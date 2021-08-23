@@ -8,10 +8,10 @@ You can either clone the public repository:
 
     $ git clone git://github.com/amlalejini/directed-digital-evolution
 ```
-Or download the [tarball](https://github.com/amlalejini/directed-digital-evolution/tarball/master):
+Or download the [tarball](https://github.com/amlalejini/directed-digital-evolution/tarball/main):
 
 ```bash
-    $ curl  -OL https://github.com/amlalejini/directed-digital-evolution/tarball/master
+    $ curl  -OL https://github.com/amlalejini/directed-digital-evolution/tarball/main
 ```
 
 ## Docker Container

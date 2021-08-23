@@ -6,7 +6,7 @@
 [![](https://img.shields.io/travis/amlalejini/directed-digital-evolution.svg)](https://travis-ci.com/amlalejini/directed-digital-evolution)
 [![Documentation Status](https://readthedocs.org/projects/directed-digital-evolution/badge/?version=latest)](https://directed-digital-evolution.readthedocs.io/en/latest/?badge=latest)
 [![documentation coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Famlalejini.github.io%2Fdirected-digital-evolution%2Fdocumentation-coverage-badge.json)](https://directed-digital-evolution.readthedocs.io/en/latest/)
-[![code coverage status](https://codecov.io/gh/amlalejini/directed-digital-evolution/branch/master/graph/badge.svg)](https://codecov.io/gh/amlalejini/directed-digital-evolution)
+[![code coverage status](https://codecov.io/gh/amlalejini/directed-digital-evolution/branch/main/graph/badge.svg)](https://codecov.io/gh/amlalejini/directed-digital-evolution)
 [![dotos](https://img.shields.io/endpoint?url=https%3A%2F%2Famlalejini.com%2Fdirected-digital-evolution%2Fdoto-badge.json)](https://github.com/amlalejini/directed-digital-evolution/search?q=todo+OR+fixme&type=)
 [![GitHub stars](https://img.shields.io/github/stars/amlalejini/directed-digital-evolution.svg?style=flat-square&logo=github&label=Stars&logoColor=white)](https://github.com/amlalejini/directed-digital-evolution)
 
@@ -16,7 +16,7 @@ Check out the live in-browser web app at [https://amlalejini.github.io/directed-
 
 
 -   Free software: MIT license
--   Documentation: <https://directed-digital-evolution.readthedocs.io>. 
+-   Documentation: <https://directed-digital-evolution.readthedocs.io>.
 
 ## Features
 

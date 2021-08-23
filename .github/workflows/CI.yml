@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [ master, dev, cut-cookie ]
+    branches: [ main, dev, cut-cookie ]
   pull_request:
     branches:
       - '**'
@@ -174,7 +174,7 @@ jobs:
   deploy-pages:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-16.04
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/cut-cookie'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/cut-cookie'
     needs:
       - clang-debug
       - gcc-debug
