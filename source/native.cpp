@@ -7,20 +7,20 @@
 #include "emp/base/vector.hpp"
 
 #include "directed-digital-evolution/config_setup.hpp"
-#include "directed-digital-evolution/example.hpp"
-#include "directed-digital-evolution/ExampleConfig.hpp"
+#include "directed-digital-evolution/DirectedDevoConfig.hpp"
+#include "directed-digital-evolution/DirectedDevoExperiment.hpp"
 
 // This is the main function for the NATIVE version of directed-digital-evolution.
 
-directed_digital_evolution::Config cfg;
+dirdevo::DirectedDevoConfig cfg;
 
 int main(int argc, char* argv[])
-{ 
+{
   // Set up a configuration panel for native application
   setup_config_native(cfg, argc, argv);
   cfg.Write(std::cout);
 
   std::cout << "Hello, world!" << "\n";
 
-  return example();
+  return 0;
 }
