@@ -31,7 +31,7 @@ void setup_config_native(dirdevo::DirectedDevoConfig & config, int argc, char* a
   if (am.ProcessBuiltin(&config)) {
     use_existing_config_file(config, am);
   } else {
-    std::exit(0);
+    std::exit(EXIT_SUCCESS);
   }
 }
 

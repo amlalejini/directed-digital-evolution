@@ -16,11 +16,13 @@ dirdevo::DirectedDevoConfig cfg;
 
 int main(int argc, char* argv[])
 {
+  using experiment_t = dirdevo::DirectedDevoExperiment<int>;
+
   // Set up a configuration panel for native application
   setup_config_native(cfg, argc, argv);
   cfg.Write(std::cout);
 
-  std::cout << "Hello, world!" << "\n";
+  experiment_t experiment(cfg);
 
   return 0;
 }
