@@ -40,16 +40,16 @@ public:
     // - on_placement_sig
     // - on_death_sig
     // - on_swap_sig
-    OnPlacement(
+    this->OnPlacement(
       [this](size_t pos) {
-        auto & org = GetOrg(pos);
+        auto & org = this->GetOrg(pos);
         scheduler.AdjustWeight(pos, org.UpdateMerit());
       }
     );
 
-    OnDeath(
+    this->OnOrgDeath(
       [this](size_t pos) {
-        auto & org = GetOrg(pos);
+        // auto & org = this->GetOrg(pos);
         scheduler.AdjustWeight(pos, 0);
       }
     );

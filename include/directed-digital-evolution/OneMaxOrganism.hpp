@@ -16,7 +16,7 @@ namespace dirdevo {
 
     struct Phenotype {
       size_t num_ones=0;
-    }
+    };
 
   protected:
     genome_t genome;
