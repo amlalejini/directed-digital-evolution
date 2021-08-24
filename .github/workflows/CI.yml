@@ -1,175 +1,175 @@
-name: CI
-on:
-  push:
-    branches: [ main, dev, cut-cookie ]
-  pull_request:
-    branches:
-      - '**'
-  schedule:
-    - cron: '0 0 * * 0'
-jobs:
+# name: CI
+# on:
+#   push:
+#     branches: [ main, dev, cut-cookie ]
+#   pull_request:
+#     branches:
+#       - '**'
+#   schedule:
+#     - cron: '0 0 * * 0'
+# jobs:
 
-  clang-debug:
-    name: Unit Tests (clang, debug mode)
-    runs-on: ubuntu-16.04
-    env:
-      CXX: clang++
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      # Adapted from https://askubuntu.com/a/524368
-      - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
-      - uses: docker-practice/actions-setup-docker@v1
-      - run: docker build -t amlalejini/directed-digital-evolution .
-      - run: docker ps -a
-      - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN -e "CXX=${CXX}" -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make"
-
-
-  gcc-debug:
-    name: Unit Tests (gcc, debug mode)
-    runs-on: ubuntu-16.04
-    env:
-      CXX: g++
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      # Adapted from https://askubuntu.com/a/524368
-      - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
-      - uses: docker-practice/actions-setup-docker@v1
-      - run: docker build -t amlalejini/directed-digital-evolution .
-      - run: docker ps -a
-      - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN -e "CXX=${CXX}" -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make"
+#   clang-debug:
+#     name: Unit Tests (clang, debug mode)
+#     runs-on: ubuntu-16.04
+#     env:
+#       CXX: clang++
+#     steps:
+#       - uses: actions/checkout@v2
+#         with:
+#           submodules: 'recursive'
+#       # Adapted from https://askubuntu.com/a/524368
+#       - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
+#       - uses: docker-practice/actions-setup-docker@v1
+#       - run: docker build -t amlalejini/directed-digital-evolution .
+#       - run: docker ps -a
+#       - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN -e "CXX=${CXX}" -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make"
 
 
-  clang-fulldebug:
-    name: Unit Tests (clang, full debug mode)
-    runs-on: ubuntu-16.04
-    env:
-      CXX: clang++
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      # Adapted from https://askubuntu.com/a/524368
-      - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
-      - uses: docker-practice/actions-setup-docker@v1
-      - run: docker build -t amlalejini/directed-digital-evolution .
-      - run: docker ps -a
-      - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN -e "CXX=${CXX}" -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make fulldebug"
-
-  gcc-fulldebug:
-    name: Unit Tests (gcc, full debug mode)
-    runs-on: ubuntu-16.04
-    env:
-      CXX: g++
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      # Adapted from https://askubuntu.com/a/524368
-      - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
-      - uses: docker-practice/actions-setup-docker@v1
-      - run: docker build -t amlalejini/directed-digital-evolution .
-      - run: docker ps -a
-      - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN -e "CXX=${CXX}" -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make fulldebug"
+#   gcc-debug:
+#     name: Unit Tests (gcc, debug mode)
+#     runs-on: ubuntu-16.04
+#     env:
+#       CXX: g++
+#     steps:
+#       - uses: actions/checkout@v2
+#         with:
+#           submodules: 'recursive'
+#       # Adapted from https://askubuntu.com/a/524368
+#       - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
+#       - uses: docker-practice/actions-setup-docker@v1
+#       - run: docker build -t amlalejini/directed-digital-evolution .
+#       - run: docker ps -a
+#       - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN -e "CXX=${CXX}" -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make"
 
 
-  clang-opt:
-    name: Unit Tests (clang, opt mode)
-    runs-on: ubuntu-16.04
-    env:
-      CXX: clang++
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      # Adapted from https://askubuntu.com/a/524368
-      - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
-      - uses: docker-practice/actions-setup-docker@v1
-      - run: docker build -t amlalejini/directed-digital-evolution .
-      - run: docker ps -a
-      - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN -e "CXX=${CXX}" -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make opt"
+#   clang-fulldebug:
+#     name: Unit Tests (clang, full debug mode)
+#     runs-on: ubuntu-16.04
+#     env:
+#       CXX: clang++
+#     steps:
+#       - uses: actions/checkout@v2
+#         with:
+#           submodules: 'recursive'
+#       # Adapted from https://askubuntu.com/a/524368
+#       - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
+#       - uses: docker-practice/actions-setup-docker@v1
+#       - run: docker build -t amlalejini/directed-digital-evolution .
+#       - run: docker ps -a
+#       - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN -e "CXX=${CXX}" -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make fulldebug"
 
-  gcc-opt:
-    name: Unit Tests (gcc, opt mode)
-    runs-on: ubuntu-16.04
-    env:
-      CXX: g++
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      # Adapted from https://askubuntu.com/a/524368
-      - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
-      - uses: docker-practice/actions-setup-docker@v1
-      - run: docker build -t amlalejini/directed-digital-evolution .
-      - run: docker ps -a
-      - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN -e "CXX=${CXX}" -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make opt"
+#   gcc-fulldebug:
+#     name: Unit Tests (gcc, full debug mode)
+#     runs-on: ubuntu-16.04
+#     env:
+#       CXX: g++
+#     steps:
+#       - uses: actions/checkout@v2
+#         with:
+#           submodules: 'recursive'
+#       # Adapted from https://askubuntu.com/a/524368
+#       - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
+#       - uses: docker-practice/actions-setup-docker@v1
+#       - run: docker build -t amlalejini/directed-digital-evolution .
+#       - run: docker ps -a
+#       - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN -e "CXX=${CXX}" -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make fulldebug"
 
-  coverage:
-    name: Coverage
-    runs-on: ubuntu-16.04
-    env:
-      CXX: clang++
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      # Adapted from https://askubuntu.com/a/524368
-      - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
-      - uses: docker-practice/actions-setup-docker@v1
-      - run: docker build -t amlalejini/directed-digital-evolution .
-      - run: docker ps -a
-      - run: ci_env=`bash <(curl -s https://codecov.io/env)`
-      - run: docker run $ci_env -e "CXX=${CXX}" amlalejini/directed-digital-evolution /bin/bash -c "cd /opt/directed-digital-evolution && make coverage && bash <(curl -s https://codecov.io/bash)"
 
-  docs:
-    name: Docs
-    runs-on: ubuntu-16.04
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      # Adapted from https://askubuntu.com/a/524368
-      - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
-      - uses: docker-practice/actions-setup-docker@v1
-      - run: docker build -t amlalejini/directed-digital-evolution .
-      - run: docker ps -a
-      - run: docker run --cap-add=SYS_ADMIN -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make"
+#   clang-opt:
+#     name: Unit Tests (clang, opt mode)
+#     runs-on: ubuntu-16.04
+#     env:
+#       CXX: clang++
+#     steps:
+#       - uses: actions/checkout@v2
+#         with:
+#           submodules: 'recursive'
+#       # Adapted from https://askubuntu.com/a/524368
+#       - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
+#       - uses: docker-practice/actions-setup-docker@v1
+#       - run: docker build -t amlalejini/directed-digital-evolution .
+#       - run: docker ps -a
+#       - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN -e "CXX=${CXX}" -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make opt"
 
-  source-clang:
-    name: Source (clang)
-    runs-on: ubuntu-16.04
-    env:
-      CXX: clang++
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      # Adapted from https://askubuntu.com/a/524368
-      - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
-      - uses: docker-practice/actions-setup-docker@v1
-      - run: docker build -t amlalejini/directed-digital-evolution .
-      - run: docker ps -a
-      - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN amlalejini/directed-digital-evolution /bin/bash -c "cd /opt/directed-digital-evolution && make test"
+#   gcc-opt:
+#     name: Unit Tests (gcc, opt mode)
+#     runs-on: ubuntu-16.04
+#     env:
+#       CXX: g++
+#     steps:
+#       - uses: actions/checkout@v2
+#         with:
+#           submodules: 'recursive'
+#       # Adapted from https://askubuntu.com/a/524368
+#       - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
+#       - uses: docker-practice/actions-setup-docker@v1
+#       - run: docker build -t amlalejini/directed-digital-evolution .
+#       - run: docker ps -a
+#       - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN -e "CXX=${CXX}" -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make opt"
 
-  source-gcc:
-    name: Source (gcc)
-    runs-on: ubuntu-16.04
-    env:
-      CXX: g++
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      # Adapted from https://askubuntu.com/a/524368
-      - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
-      - uses: docker-practice/actions-setup-docker@v1
-      - run: docker build -t amlalejini/directed-digital-evolution .
-      - run: docker ps -a
-      - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN amlalejini/directed-digital-evolution /bin/bash -c "cd /opt/directed-digital-evolution && make test"
+#   coverage:
+#     name: Coverage
+#     runs-on: ubuntu-16.04
+#     env:
+#       CXX: clang++
+#     steps:
+#       - uses: actions/checkout@v2
+#         with:
+#           submodules: 'recursive'
+#       # Adapted from https://askubuntu.com/a/524368
+#       - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
+#       - uses: docker-practice/actions-setup-docker@v1
+#       - run: docker build -t amlalejini/directed-digital-evolution .
+#       - run: docker ps -a
+#       - run: ci_env=`bash <(curl -s https://codecov.io/env)`
+#       - run: docker run $ci_env -e "CXX=${CXX}" amlalejini/directed-digital-evolution /bin/bash -c "cd /opt/directed-digital-evolution && make coverage && bash <(curl -s https://codecov.io/bash)"
+
+#   docs:
+#     name: Docs
+#     runs-on: ubuntu-16.04
+#     steps:
+#       - uses: actions/checkout@v2
+#         with:
+#           submodules: 'recursive'
+#       # Adapted from https://askubuntu.com/a/524368
+#       - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
+#       - uses: docker-practice/actions-setup-docker@v1
+#       - run: docker build -t amlalejini/directed-digital-evolution .
+#       - run: docker ps -a
+#       - run: docker run --cap-add=SYS_ADMIN -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make"
+
+#   source-clang:
+#     name: Source (clang)
+#     runs-on: ubuntu-16.04
+#     env:
+#       CXX: clang++
+#     steps:
+#       - uses: actions/checkout@v2
+#         with:
+#           submodules: 'recursive'
+#       # Adapted from https://askubuntu.com/a/524368
+#       - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
+#       - uses: docker-practice/actions-setup-docker@v1
+#       - run: docker build -t amlalejini/directed-digital-evolution .
+#       - run: docker ps -a
+#       - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN amlalejini/directed-digital-evolution /bin/bash -c "cd /opt/directed-digital-evolution && make test"
+
+#   source-gcc:
+#     name: Source (gcc)
+#     runs-on: ubuntu-16.04
+#     env:
+#       CXX: g++
+#     steps:
+#       - uses: actions/checkout@v2
+#         with:
+#           submodules: 'recursive'
+#       # Adapted from https://askubuntu.com/a/524368
+#       - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
+#       - uses: docker-practice/actions-setup-docker@v1
+#       - run: docker build -t amlalejini/directed-digital-evolution .
+#       - run: docker ps -a
+#       - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN amlalejini/directed-digital-evolution /bin/bash -c "cd /opt/directed-digital-evolution && make test"
 
   # deploy-pages:
   #   name: Deploy to GitHub Pages
