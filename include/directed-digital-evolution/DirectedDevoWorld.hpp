@@ -40,12 +40,26 @@ public:
     // - on_placement_sig
     // - on_death_sig
     // - on_swap_sig
-    // OnPlacement(
-    //   [](size_t pos)()
-    // );
+    OnPlacement(
+      [this](size_t pos) {
+        auto & org = GetOrg(pos);
+        scheduler.AdjustWeight(pos, org.UpdateMerit());
+      }
+    );
+
+    OnDeath(
+      [this](size_t pos) {
+        auto & org = GetOrg(pos);
+        scheduler.AdjustWeight(pos, 0);
+      }
+    );
+
+    // TODO - OnSwap
+
   }
 
   // TODO - anything else necessary to setup population structure...
+  // TODO - move this to the constructor? shouldn't use this world without doing this...
   void SetPopStructure(
     POP_STRUCTURE mode,
     size_t width,
@@ -54,18 +68,19 @@ public:
   ) {
     switch(mode) {
       case POP_STRUCTURE::MIXED: {
-        this->SetPopStruct_Mixed(false);
         max_pop_size=width*height;
+        this->SetPopStruct_Mixed(false);
+        this->Resize(max_pop_size); // Mixed structure doesn't resize the world, do so here.
         break;
       }
       case POP_STRUCTURE::GRID: {
-        this->SetPopStruct_Grid(width, height, false);
         max_pop_size=width*height;
+        this->SetPopStruct_Grid(width, height, false);
         break;
       }
       case POP_STRUCTURE::GRID3D: {
-        this->SetPopStruct_3DGrid(width, height, depth, false);
         max_pop_size=width*height*depth;
+        this->SetPopStruct_3DGrid(width, height, depth, false);
         break;
       }
     }

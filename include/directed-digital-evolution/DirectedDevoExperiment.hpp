@@ -99,8 +99,15 @@ void DirectedDevoExperiment<ORG>::Setup() {
     );
   }
 
+  // Seed each world with an initial common ancestor
+  for (auto world_ptr : worlds) {
+    world_ptr->Inject(org_t::GenerateAncestralGenome());
+  }
 
+  // Adjust initial scheduler weights according to initial population!
+  for (auto world_ptr : worlds) {
 
+  }
 
 
   // TODO - should config snapshot be here or elsewhere?
