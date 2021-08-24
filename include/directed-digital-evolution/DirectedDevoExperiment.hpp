@@ -90,6 +90,7 @@ void DirectedDevoExperiment<ORG>::Setup() {
   worlds.resize(config.NUM_POPS());
   for (size_t i = 0; i < config.NUM_POPS(); ++i) {
     worlds[i] = emp::NewPtr<world_t>(random, "population_"+emp::to_string(i));
+    worlds[i]->SetAvgOrgStepsPerUpdate(config.AVG_STEPS_PER_ORG());
     worlds[i]->SetPopStructure(
       local_pop_struct,
       config.LOCAL_GRID_WIDTH(),
@@ -97,6 +98,8 @@ void DirectedDevoExperiment<ORG>::Setup() {
       config.LOCAL_GRID_DEPTH()
     );
   }
+
+
 
 
 
@@ -128,6 +131,7 @@ bool DirectedDevoExperiment<ORG>::ValidateConfig() {
   if (config.LOCAL_GRID_WIDTH() < 1) return false;
   if (config.LOCAL_GRID_HEIGHT() < 1) return false;
   if (config.LOCAL_GRID_DEPTH() < 1) return false;
+  if (config.AVG_STEPS_PER_ORG() < 1) return false;
   return true;
 }
 

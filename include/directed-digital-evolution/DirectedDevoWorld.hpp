@@ -3,6 +3,9 @@
 #define DIRECTED_DEVO_DIRECTED_DEVO_WORLD_HPP_INCLUDE
 
 #include "emp/Evolve/World.hpp"
+#include "emp/datastructs/IndexMap.hpp"
+
+#include "ProbabilisticScheduler.hpp"
 
 namespace dirdevo {
 
@@ -14,16 +17,33 @@ public:
 
   using base_t = emp::World<ORG>;
   using this_t = DirectedDevoWorld<ORG>;
-
+  using scheduler_t = ProbabilisticScheduler;
 
 protected:
 
   size_t max_pop_size=0;
+  size_t avg_org_steps_per_update=1;
+  scheduler_t scheduler;     /// Used to schedule organism execution based on their merit.
+
 
 public:
 
   // using base_t::base_t;
-  DirectedDevoWorld(emp::Random & rnd, const std::string & name="") : base_t(rnd, name) {;}
+  DirectedDevoWorld(
+    emp::Random & rnd,
+    const std::string & name=""
+  ) :
+    base_t(rnd, name),
+    scheduler(rnd)
+  {
+    // Wire up scheduler to the world.
+    // - on_placement_sig
+    // - on_death_sig
+    // - on_swap_sig
+    // OnPlacement(
+    //   [](size_t pos)()
+    // );
+  }
 
   // TODO - anything else necessary to setup population structure...
   void SetPopStructure(
@@ -49,6 +69,14 @@ public:
         break;
       }
     }
+    // Setup the scheduler
+    scheduler.Reset(max_pop_size, avg_org_steps_per_update*max_pop_size);
+  }
+
+  void SetAvgOrgStepsPerUpdate(size_t avg_steps) {
+    avg_org_steps_per_update=avg_steps;
+    scheduler.Reset(max_pop_size, avg_org_steps_per_update*max_pop_size);
+    // TODO update weights in scheduler!
   }
 
   static bool IsValidPopStructure(const std::string & mode) {
