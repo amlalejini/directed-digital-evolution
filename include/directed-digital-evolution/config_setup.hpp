@@ -28,10 +28,6 @@ void setup_config_web(dirdevo::DirectedDevoConfig & config)  {
 void setup_config_native(dirdevo::DirectedDevoConfig & config, int argc, char* argv[]) {
   auto specs = emp::ArgManager::make_builtin_specs(&config);
   emp::ArgManager am(argc, argv, specs);
-  if (am.ProcessBuiltin(&config)) {
-    use_existing_config_file(config, am);
-  } else {
-    std::exit(EXIT_SUCCESS);
-  }
+  use_existing_config_file(config, am);
 }
 
