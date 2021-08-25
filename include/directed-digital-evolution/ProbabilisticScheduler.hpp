@@ -52,6 +52,7 @@ public:
   size_t GetScheduleSize() const { return schedule.size(); }
   size_t GetNumItems() const { return num_items; }
   const schedule_t & GetCurSchedule() const { return schedule; }
+  const emp::IndexMap & GetWeightMap() const { return weight_map; }
 
   /// Update the schedule according to the current weight settings
   const schedule_t & UpdateSchedule() {
@@ -75,6 +76,11 @@ public:
   /// Adjust the an item's weight in the weight map
   void AdjustWeight(size_t item_id, double new_weight) {
     weight_map.Adjust(item_id, new_weight);
+  }
+
+  /// Give access to defer referesh on weight map
+  void DeferWeightRefresh() {
+    weight_map.DeferRefresh();
   }
 
   /// Hard reset on the scheduler

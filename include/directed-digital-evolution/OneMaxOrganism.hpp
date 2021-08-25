@@ -7,7 +7,7 @@
 namespace dirdevo {
 
   template<size_t GENOME_SIZE=128>
-  class OneMaxOrganism : BaseOrganism {
+  class OneMaxOrganism : public BaseOrganism {
   public:
     struct Phenotype;
 

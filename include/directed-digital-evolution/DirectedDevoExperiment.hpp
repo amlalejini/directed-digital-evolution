@@ -84,19 +84,19 @@ void DirectedDevoExperiment<ORG>::Setup() {
   }
 
   // What population structure are we using?
+  // TODO - clean this up a bit!
   local_pop_struct = world_t::PopStructureStrToMode(config.LOCAL_POP_STRUCTURE());
+  typename world_t::PopStructureDesc pop_struct(local_pop_struct, config.LOCAL_GRID_WIDTH(), config.LOCAL_GRID_HEIGHT(), config.LOCAL_GRID_DEPTH());
 
   // Initialize each world.
   worlds.resize(config.NUM_POPS());
   for (size_t i = 0; i < config.NUM_POPS(); ++i) {
-    worlds[i] = emp::NewPtr<world_t>(random, "population_"+emp::to_string(i));
-    worlds[i]->SetAvgOrgStepsPerUpdate(config.AVG_STEPS_PER_ORG());
-    worlds[i]->SetPopStructure(
-      local_pop_struct,
-      config.LOCAL_GRID_WIDTH(),
-      config.LOCAL_GRID_HEIGHT(),
-      config.LOCAL_GRID_DEPTH()
+    worlds[i] = emp::NewPtr<world_t>(
+      random,
+      "population_"+emp::to_string(i),
+      pop_struct
     );
+    worlds[i]->SetAvgOrgStepsPerUpdate(config.AVG_STEPS_PER_ORG());
   }
 
   // Seed each world with an initial common ancestor
@@ -106,9 +106,8 @@ void DirectedDevoExperiment<ORG>::Setup() {
 
   // Adjust initial scheduler weights according to initial population!
   for (auto world_ptr : worlds) {
-
+    world_ptr->SyncSchedulerWeights();
   }
-
 
   // TODO - should config snapshot be here or elsewhere?
   SnapshotConfig();
