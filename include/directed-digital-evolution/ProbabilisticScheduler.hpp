@@ -53,6 +53,7 @@ public:
   size_t GetNumItems() const { return num_items; }
   const schedule_t & GetCurSchedule() const { return schedule; }
   const emp::IndexMap & GetWeightMap() const { return weight_map; }
+  // double GetItemWeight(size_t id) return weight_map.GetW
 
   /// Update the schedule according to the current weight settings
   const schedule_t & UpdateSchedule() {

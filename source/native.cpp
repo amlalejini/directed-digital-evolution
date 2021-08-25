@@ -25,20 +25,11 @@ int main(int argc, char* argv[])
 
   experiment_t experiment(cfg);
 
+  for (size_t i = 0; i < 5; ++i) {
+    std::cout << "======= experiment step " << i << "=======" << std::endl;
+    experiment.RunStep();
+  }
 
-  // emp::IndexMap weight_map;
-  // weight_map.ResizeClear(10);
-  // weight_map.Adjust(2, 1);
-  // std::cout << "weight map size = " << weight_map.GetSize() << std::endl;
-  // std::cout << "Weight map weight = " << weight_map.GetWeight() << std::endl;
-  // std::cout << "prob of id 2 = " << weight_map.GetProb(2) << std::endl;
-  // std::cout << "prob of id 0 = " << weight_map.GetProb(0) << std::endl;
-  // emp::Random rnd(cfg.SEED());
-  // size_t total_weight = weight_map.GetWeight();
-  // for (size_t i = 0; i < 100; ++i) {
-  //   size_t selected = weight_map.Index(rnd.GetDouble() * total_weight);
-  //   std::cout << "  - " << selected << std::endl;
-  // }
 
   // dirdevo::ProbabilisticScheduler scheduler(rnd, 10, 30);
   // scheduler.AdjustWeight(2, 10);

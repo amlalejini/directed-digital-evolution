@@ -68,6 +68,8 @@ public:
   }
 
   void Run();
+
+  /// Advance experiment by one step (advance each world by a single step)
   void RunStep();
 
 };
@@ -100,8 +102,10 @@ void DirectedDevoExperiment<ORG>::Setup() {
   }
 
   // Seed each world with an initial common ancestor
+  auto ancestral_genome = org_t::GenerateAncestralGenome();
   for (auto world_ptr : worlds) {
-    world_ptr->Inject(org_t::GenerateAncestralGenome());
+    ancestral_genome.Set(0, true); // TODO - this is for testing only!
+    world_ptr->InjectAt(ancestral_genome, 0); // TODO - Random location to start?
   }
 
   // Adjust initial scheduler weights according to initial population!
@@ -117,7 +121,8 @@ void DirectedDevoExperiment<ORG>::Setup() {
 template <typename ORG>
 void DirectedDevoExperiment<ORG>::SnapshotConfig(
   const std::string& filename /*= "experiment-config.csv"*/
-) {
+)
+{
   std::cout << "Snapshotting experiment configuration..." << std::endl;
 
   // TODO - actually snapshot configuration
@@ -141,6 +146,15 @@ bool DirectedDevoExperiment<ORG>::ValidateConfig() {
   return true;
 }
 
+template <typename ORG>
+void DirectedDevoExperiment<ORG>::RunStep() {
+  // Advance each world by one step
+  for (auto world_ptr : worlds) {
+    std::cout << "-- Stepping " << world_ptr->GetName() << " --" << std::endl;
+    world_ptr->RunStep();
+  }
+  // TODO - update transfer(?) counter
+}
 
 } // namespace dirdevo
 
