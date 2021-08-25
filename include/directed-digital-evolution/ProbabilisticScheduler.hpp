@@ -16,6 +16,11 @@ namespace dirdevo {
 
 /**
  * ProbabilisticScheduler is based roughly on Austin Ferguson's implementation, here: https://github.com/FergusonAJ/MABE2/blob/avida_basics/source/select/SchedulerProbabilistic.hpp
+ *
+ * Two ways to use:
+ *  - (1) The ProbabilisticScheduler will maintain a schedule (of a configured size), and you can use UpdateSchedule calls to update this maintained schedule based on current item weights.
+ *    This approach allows you to repeatedly compute chunks of a schedule without constantly creating new vectors.
+ *  - (2) Alternatively, just call GetRandom repeatedly each time you need choose something to 'run'.
  */
 class ProbabilisticScheduler {
 public:
@@ -53,7 +58,12 @@ public:
   size_t GetNumItems() const { return num_items; }
   const schedule_t & GetCurSchedule() const { return schedule; }
   const emp::IndexMap & GetWeightMap() const { return weight_map; }
-  // double GetItemWeight(size_t id) return weight_map.GetW
+
+  /// Return a random index where probabilities are weighted according to the weight map.
+  size_t GetRandom() {
+    const double total_weight = weight_map.GetWeight();
+    return weight_map.Index(random.GetDouble() * total_weight);
+  }
 
   /// Update the schedule according to the current weight settings
   const schedule_t & UpdateSchedule() {

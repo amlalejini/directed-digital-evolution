@@ -41,7 +41,7 @@ namespace dirdevo {
 
     // todo - make a virtual base function?
     double UpdateMerit() {
-      merit = phenotype.num_ones;
+      merit = 1 + phenotype.num_ones; // +1 ensures that merit can't be zero for living organisms
       return merit;
     }
 
