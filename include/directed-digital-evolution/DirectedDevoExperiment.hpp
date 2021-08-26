@@ -104,7 +104,7 @@ void DirectedDevoExperiment<ORG>::Setup() {
   // Seed each world with an initial common ancestor
   auto ancestral_genome = org_t::GenerateAncestralGenome();
   for (auto world_ptr : worlds) {
-    ancestral_genome.Set(0, true); // TODO - this is for testing only!
+    // ancestral_genome.Set(0, true); // TODO - this is for testing only!
     world_ptr->InjectAt(ancestral_genome, 0); // TODO - Random location to start?
   }
 

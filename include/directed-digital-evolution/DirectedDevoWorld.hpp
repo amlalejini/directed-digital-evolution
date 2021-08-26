@@ -42,6 +42,7 @@ public:
   using this_t = DirectedDevoWorld<ORG>;
   using scheduler_t = ProbabilisticScheduler;
   using pop_struct_t = PopStructureDesc;
+  using org_t = ORG;
 
   static bool IsValidPopStructure(const std::string & mode);
   static POP_STRUCTURE PopStructureStrToMode(const std::string & mode);
@@ -56,11 +57,11 @@ protected:
   size_t avg_org_steps_per_update=1;
   scheduler_t scheduler;     /// Used to schedule organism execution based on their merit.
 
-  emp::Signal<void(size_t)> mark_repro_ready; /// Organisms trigger this signal when ready to reproduce.
-  emp::Signal<void(size_t)> mark_dead;        /// Organisms trigger this signal to mark themselves as dead.
+  // emp::Signal<void(size_t)> reproduce_sig; /// Organisms trigger this signal when ready to reproduce.
+  // emp::Signal<void(size_t)> kill_sig;       /// Organisms trigger this signal to mark themselves as dead.
 
-  std::deque<size_t> repro_queue;   /// Queue of organisms marked for reproduction
-  std::deque<size_t> death_queue;   /// Queue of organisms marked for death
+  // std::deque<size_t> repro_queue;   /// Queue of organisms marked for reproduction
+  // std::deque<size_t> death_queue;   /// Queue of organisms marked for death
 
   void SetPopStructure(const pop_struct_t & pop_struct);
 
@@ -83,6 +84,7 @@ public:
         auto& org = this->GetOrg(pos);
         org.SetWorldID(pos);
         org.SetDead(false);
+        org.SetReproReady(false);
         org.SetNewBorn(true); // TODO - do we really want to set this here?
         scheduler.AdjustWeight(pos, org.UpdateMerit()); // Being alive gets you at least one merit!
       }
@@ -103,19 +105,34 @@ public:
         scheduler.AdjustWeight(p1.GetIndex(), p2_weight);
         scheduler.AdjustWeight(p2.GetIndex(), p1_weight);
 
-        auto& org1 = this->GetOrg(p1);
-        auto& org2 = this->GetOrg(p2);
+        auto& org1 = this->GetOrg(p1.GetIndex());
+        auto& org2 = this->GetOrg(p2.GetIndex());
         // Organisms have already been swapped, so p1 org needs index to reflect p1; same with p2 org.
         org1.SetWorldID(p1.GetIndex());
         org2.SetWorldID(p2.GetIndex());
-
       }
+    );
 
+    // Organism about to reproduce. Before building offspring.
+    this->OnBeforeRepro(
+      [this](size_t parent_pos) {
+        auto& parent = this->GetOrg(parent_pos);
+        parent.OnBeforeRepro();
+      }
+    );
+
+    // Offspring constructed, but has not been placed.
+    // Last time to safely access parent.
+    this->OnOffspringReady(
+      [this](org_t& offspring, size_t parent_pos) {
+        auto& parent = this->GetOrg(parent_pos);
+        parent.OnOffspringReady(offspring);
+      }
     );
 
     // TODO - setup mutation
 
-    // TODO - set population structure here?
+    // Configure population structure.
     SetPopStructure(pop_struct);
   }
 
@@ -126,6 +143,10 @@ public:
 
   /// Force a re-sync of scheduler weights with organism merits
   void SyncSchedulerWeights();
+
+  // void TriggerReproduction(size_t ) { reproduce_sig.};
+
+  // void TriggerKill();
 
   /// Run world one step (update) forward
   void RunStep();
@@ -186,11 +207,9 @@ void DirectedDevoWorld<ORG>::RunStep() {
   // Check assumptions about the state of the world.
   const size_t num_orgs = this->GetNumOrgs();
   if (!num_orgs) return;  // If there are no organisms alive, do nothing.
-  emp_assert(scheduler.GetWeightMap().GetWeight() > 0, "Scheduler requires total weight > 0.");
-  emp_assert(death_queue.empty(), "Death queue must be empty at the beginning of an update.");
-  emp_assert(repro_queue.empty(), "Reproduction queue must be empty at the beginning of an update.");
+  // emp_assert(scheduler.GetWeightMap().GetWeight() > 0, "Scheduler requires total weight > 0.");
 
-
+  /////////////////////////////////////////////////////////////////
   std::cout << "Population:";
   for (size_t i = 0; i < pop.size(); ++i) {
     if (this->IsOccupied(i)) {
@@ -201,32 +220,37 @@ void DirectedDevoWorld<ORG>::RunStep() {
     std::cout << ",weight:"<<scheduler.GetWeightMap().GetWeight(i)<<"}";
   }
   std::cout << std::endl;
+  /////////////////////////////////////////////////////////////////
 
-
-
-  // Schedule organisms to execute
-
-  const auto& schedule = scheduler.UpdateSchedule(this->GetNumOrgs()*avg_org_steps_per_update);
-  std::cout << "Schedule: " << schedule << std::endl;
-  std::cout << "  Num orgs: " << this->GetNumOrgs() << std::endl;
-
-  // Execute organisms in scheduled order
-  for (size_t schedule_i = 0; schedule_i < schedule.size(); ++schedule_i) {
-    size_t org_id = schedule[schedule_i];
+  // --- Beyond this point: assume that the scheduler weights are current and up-to-date ---
+  // Compute how many organism steps we can dish out for this world update!
+  const size_t org_step_budget = this->GetNumOrgs()*avg_org_steps_per_update;
+  for (size_t step = 0; step < org_step_budget; ++step) {
+    // Schedule someone to take a step.
+    const size_t org_id = scheduler.GetRandom(); // This should reweight the scheduler automatically.
     auto & org = this->GetOrg(org_id);
-    org.ProcessStep();
+    // Step organism forward
+    org.ProcessStep(*this);
+    // Should organism reproduce?
+    if (org.GetReproReady()) {
+      auto offspring_pos = this->DoBirth(org.GetGenome(), org_id, 1);
+      // If this organism's offspring stomped all over it, we should jump over to the next iteration of the loop
+      if (offspring_pos.GetIndex() == org_id) continue;
+    }
+    // should this organism die?
+    if (org.GetDead()) {
+      this->DoDeath({org_id});
+    }
   }
 
-  // Who dies?
-  // todo
-  // Who gets born?
-  // todo
-
+  /////////////////////////////////////////////////////////////////
   std::cout << "Resource levels: ";
   for (size_t i = 0; i < this->GetSize(); ++i) {
     if (this->IsOccupied(i)) std::cout << " {id-"<<i<<" " << this->GetOrg(i).GetResources() << "}";
   }
   std::cout << std::endl;
+  /////////////////////////////////////////////////////////////////
+
 }
 
 template<typename ORG>

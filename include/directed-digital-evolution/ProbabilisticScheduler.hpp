@@ -45,7 +45,6 @@ public:
     schedule(schedule_size),
     weight_map(num_items)
   {
-    std::cout << weight_map.GetSize() << std::endl;
     size_t i=0;
     std::generate(
       schedule.begin(),

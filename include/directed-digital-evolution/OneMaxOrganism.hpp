@@ -13,6 +13,11 @@ namespace dirdevo {
 
     using genome_t = emp::BitSet<GENOME_SIZE>;
     using phenotype_t = Phenotype;
+    using this_t = OneMaxOrganism<GENOME_SIZE>;
+    using base_t = BaseOrganism;
+
+    const double REPRO_RES_THRESHOLD=1024;
+    const size_t MAX_AGE=2048;
 
     struct Phenotype {
       size_t num_ones=0;
@@ -27,6 +32,8 @@ namespace dirdevo {
     phenotype_t phenotype;
 
     double resources=0;
+    size_t repro_count=0; // Number of times this organism has reproduced.
+    size_t age=0;
 
   public:
     OneMaxOrganism(const genome_t& g) :
@@ -45,11 +52,34 @@ namespace dirdevo {
       return merit;
     }
 
-    // todo - make this a virtual base function?
-    void ProcessStep() {
-      resources += phenotype.num_ones;
+    void OnBeforeRepro() {
+      // todo?
     }
 
+    void OnOffspringReady(this_t & offspring) {
+      // Reset this organism after dividing.
+      resources = 0;
+      repro_count += 1;
+    }
+
+    // NOTE - alternatively, I could just make this a friend of the world class, and pass the world into the process step function
+    // todo - make this a virtual base function?
+    // NOTE - can't reproduce *while* this organism is executing because I might overwrite => lead to a bad memory access
+    // WARNING - Use the world responsibly. If you overwrite the current organism, you can create ugly bad memory access errors.
+    template<typename WORLD_T>
+    void ProcessStep(WORLD_T& world) {
+      // Update resource stockpile
+      resources += 1 + phenotype.num_ones; // (accumulate some resources even if all 0s)
+      // Enough resources to reproduce?
+      SetReproReady(resources >= REPRO_RES_THRESHOLD);
+      resources -= ((resources >= REPRO_RES_THRESHOLD) * REPRO_RES_THRESHOLD); // fancy conditional-less way to conditionally subtract threshold if resources exceeds threshold
+      // Collecting resources ages you up.
+      age += 1;
+      // Too old?
+      if (age >= MAX_AGE) {
+        SetDead(world.GetRandom().P(0.5)); // Arbitrarily, 50% chance to die if too old.
+      }
+    }
 
   };
 
