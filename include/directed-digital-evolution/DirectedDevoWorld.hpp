@@ -203,6 +203,13 @@ void DirectedDevoWorld<ORG>::SyncSchedulerWeights() {
 }
 
 template<typename ORG>
+void DirectedDevoWorld<ORG>::Run(size_t updates) {
+  for (size_t u = 0; u < updates; u++) {
+    RunStep();
+  }
+}
+
+template<typename ORG>
 void DirectedDevoWorld<ORG>::RunStep() {
   // Check assumptions about the state of the world.
   const size_t num_orgs = this->GetNumOrgs();
@@ -251,6 +258,10 @@ void DirectedDevoWorld<ORG>::RunStep() {
   std::cout << std::endl;
   /////////////////////////////////////////////////////////////////
 
+  // TODO - any data recording, etc here
+
+  // Update the world
+  this->Update();
 }
 
 template<typename ORG>

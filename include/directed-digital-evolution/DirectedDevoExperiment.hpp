@@ -38,6 +38,7 @@ protected:
 
   pop_struct_t local_pop_struct=pop_struct_t::MIXED;
   bool setup=false;
+  size_t cur_epoch=0;
 
   /// Setup the experiment based on the given configuration.
   void Setup();
@@ -67,9 +68,12 @@ public:
     }
   }
 
+  /// Run experiment for configured number of EPOCHS
   void Run();
 
-  /// Advance experiment by one step (advance each world by a single step)
+  /// Advance each world by one step (advance each world by a single step)
+  /// Note that RunStep does not take into account epochs or updates per epoch.
+  /// - Used primarily for testing and the web interface. Use Run to run the experiment.
   void RunStep();
 
 };
@@ -144,6 +148,28 @@ bool DirectedDevoExperiment<ORG>::ValidateConfig() {
   if (config.LOCAL_GRID_DEPTH() < 1) return false;
   if (config.AVG_STEPS_PER_ORG() < 1) return false;
   return true;
+}
+
+
+template <typename ORG>
+void DirectedDevoExperiment<ORG>::Run() {
+
+  for (cur_epoch = 0; cur_epoch <= config.EPOCHS(); ++cur_epoch) {
+
+    // Run worlds forward X updates.
+    for (auto world_ptr : worlds) {
+      world_ptr->Run(config.UPDATES_PER_EPOCH());
+    }
+
+    // Do selection
+    // TODO
+
+    // Report summary information(?)
+    std::cout << "epoch " << cur_epoch << std::endl;
+  }
+
+  // todo - Final data dump
+
 }
 
 template <typename ORG>

@@ -24,11 +24,11 @@ int main(int argc, char* argv[])
   cfg.Write(std::cout);
 
   experiment_t experiment(cfg);
-
-  for (size_t i = 0; i < 5; ++i) {
-    std::cout << "======= experiment step " << i << "=======" << std::endl;
-    experiment.RunStep();
-  }
+  experiment.Run();
+  // for (size_t i = 0; i < 100; ++i) {
+  //   std::cout << "======= experiment step " << i << "=======" << std::endl;
+  //   experiment.RunStep();
+  // }
 
 
   // dirdevo::ProbabilisticScheduler scheduler(rnd, 10, 30);
