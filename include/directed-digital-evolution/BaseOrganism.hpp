@@ -6,9 +6,14 @@
 
 namespace dirdevo {
 
+  /// BaseOrganism exists to remind me & enforce what I require organism classes to implement...
   template<typename DERIVED_T>
   class BaseOrganism {
   public:
+
+    // using mutator_t = typename DERIVED_T::mutator_t; // DERIVED_T should specify a mutator.
+    // DERIVED_T needs to specify a 'mutator_t'
+
   protected:
     double merit=0.0; /// Used to determine weight in scheduler.
     bool new_born=false;
@@ -40,9 +45,11 @@ namespace dirdevo {
      *   }
      */
 
-    virtual double UpdateMerit() { emp_assert(false); return 0.0; };
-    virtual void OnBeforeRepro() { emp_assert(false); }
-    virtual void OnOffspringReady(DERIVED_T& offspring) { emp_assert(false); }
+    // virtual double UpdateMerit() { emp_assert(false); return 0.0; };
+    virtual void OnBeforeRepro() { emp_assert(false, "This function must be implemented by derived organism class."); }
+    virtual void OnOffspringReady(DERIVED_T&) { emp_assert(false, "This function must be implemented by derived organism class."); }
+    virtual void OnPlacement(size_t) { emp_assert(false, "This function must be implemented by derived organism class."); }
+    virtual void OnBirth(DERIVED_T&) {emp_assert(false, "This function must be implemented by derived organism class."); }
 
   };
 

@@ -18,6 +18,9 @@ EMP_BUILD_CONFIG(DirectedDevoConfig,
   VALUE(LOCAL_GRID_WIDTH, size_t, 10, "Grid width"),
   VALUE(LOCAL_GRID_HEIGHT, size_t, 10, "Grid height"),
   VALUE(LOCAL_GRID_DEPTH, size_t, 10, "Grid depth (only used in grid3d mode)"),
+  // GROUP(ONEMAX_ORG_SETTINGS, "Settings specific to the onemax organism"),
+  GROUP(BITSET_GENOME_SETTINGS, "Settings specific to bitset genomes"),
+  VALUE(BITSET_MUTATOR_PER_SITE_SUBSTITUTION_RATE, double, 0.01, "Per-site substitution rate for bitset genomes")
 );
 
 } // namespace dirdevo

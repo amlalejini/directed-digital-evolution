@@ -29,6 +29,7 @@ public:
   using world_t = DirectedDevoWorld<org_t>;
   using config_t = DirectedDevoConfig;
   using pop_struct_t = typename world_t::POP_STRUCTURE;
+  using mutator_t = typename org_t::mutator_t;
 
 protected:
 
@@ -37,6 +38,8 @@ protected:
   emp::vector<emp::Ptr<world_t>> worlds;   ///< How many "populations" are we applying directed evolution to?
 
   pop_struct_t local_pop_struct=pop_struct_t::MIXED;
+  mutator_t mutator; ///< Responsible for mutating organisms across worlds. NOTE - currently, mutator is shared; individual worlds cannot tweak settings (i.e., no high/low mutation worlds).
+
   bool setup=false;
   size_t cur_epoch=0;
 
@@ -94,6 +97,9 @@ void DirectedDevoExperiment<ORG>::Setup() {
   local_pop_struct = world_t::PopStructureStrToMode(config.LOCAL_POP_STRUCTURE());
   typename world_t::PopStructureDesc pop_struct(local_pop_struct, config.LOCAL_GRID_WIDTH(), config.LOCAL_GRID_HEIGHT(), config.LOCAL_GRID_DEPTH());
 
+  // Configure the mutator
+  mutator_t::Configure(mutator, config);
+
   // Initialize each world.
   worlds.resize(config.NUM_POPS());
   for (size_t i = 0; i < config.NUM_POPS(); ++i) {
@@ -103,6 +109,11 @@ void DirectedDevoExperiment<ORG>::Setup() {
       pop_struct
     );
     worlds[i]->SetAvgOrgStepsPerUpdate(config.AVG_STEPS_PER_ORG());
+    // configure world's mutation function
+    worlds[i]->SetMutFun([this](org_t & org, emp::Random& rnd) {
+      // TODO - add support for mutation tracking!
+      return mutator.Mutate(org.GetGenome(), rnd);
+    });
   }
 
   // Seed each world with an initial common ancestor
@@ -155,9 +166,10 @@ template <typename ORG>
 void DirectedDevoExperiment<ORG>::Run() {
 
   for (cur_epoch = 0; cur_epoch <= config.EPOCHS(); ++cur_epoch) {
-
+    std::cout << "==== EPOCH " << cur_epoch << "====" << std::endl;
     // Run worlds forward X updates.
     for (auto world_ptr : worlds) {
+      std::cout << "Running world " << world_ptr->GetName() << std::endl;
       world_ptr->Run(config.UPDATES_PER_EPOCH());
     }
 
@@ -165,7 +177,7 @@ void DirectedDevoExperiment<ORG>::Run() {
     // TODO
 
     // Report summary information(?)
-    std::cout << "epoch " << cur_epoch << std::endl;
+    // std::cout << "epoch " << cur_epoch << std::endl;
   }
 
   // todo - Final data dump

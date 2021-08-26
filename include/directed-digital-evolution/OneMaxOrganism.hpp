@@ -3,18 +3,23 @@
 #define DIRECTED_DEVO_DIRECTED_DEVO_ONEMAX_ORGANISM_HPP_INCLUDE
 
 #include "BaseOrganism.hpp"
+#include "BitSetMutator.hpp"
 
 namespace dirdevo {
 
-  template<size_t GENOME_SIZE=128>
-  class OneMaxOrganism : public BaseOrganism<OneMaxOrganism<GENOME_SIZE>> {
+  template<
+    size_t GENOME_SIZE=128,
+    typename MUTATOR_T=BitSetMutator
+  >
+  class OneMaxOrganism : public BaseOrganism<OneMaxOrganism<GENOME_SIZE,MUTATOR_T>> {
   public:
     struct Phenotype;
 
     using genome_t = emp::BitSet<GENOME_SIZE>;
     using phenotype_t = Phenotype;
-    using this_t = OneMaxOrganism<GENOME_SIZE>;
+    using this_t = OneMaxOrganism<GENOME_SIZE,MUTATOR_T>;
     using base_t = BaseOrganism<this_t>;
+    using mutator_t = MUTATOR_T;
 
     using base_t::SetReproReady;
     using base_t::SetDead;
@@ -40,6 +45,12 @@ namespace dirdevo {
 
     using base_t::merit;
 
+    double UpdateMerit() {
+      merit = 1 + phenotype.num_ones; // +1 ensures that merit can't be zero for living organisms
+      return merit;
+    }
+
+
   public:
     OneMaxOrganism(const genome_t& g) :
       genome(g)
@@ -49,13 +60,11 @@ namespace dirdevo {
 
     double GetResources() const { return resources; }
     genome_t & GetGenome() { return genome; }
+    const genome_t & GetGenome() const { return genome; }
     phenotype_t & GetPhenotype() { return phenotype; }
+    const phenotype_t & GetPhenotype() const { return phenotype; }
 
     // todo - make a virtual base function?
-    double UpdateMerit() override {
-      merit = 1 + phenotype.num_ones; // +1 ensures that merit can't be zero for living organisms
-      return merit;
-    }
 
     void OnBeforeRepro() override {
       // todo?
@@ -65,6 +74,22 @@ namespace dirdevo {
       // Reset this organism after dividing.
       resources = 0;
       repro_count += 1;
+    }
+
+    // Called when *this* organism is born
+    // - when offspringready signal is triggered
+    // - after mutations
+    void OnBirth(this_t & parent) override {
+      phenotype.num_ones = genome.CountOnes();
+      this->SetDead(false);
+      this->SetReproReady(false);
+      this->SetNewBorn(true);
+    }
+
+    // Called when *this* organism is placed
+    void OnPlacement(size_t pos) override {
+      this->SetWorldID(pos);
+      UpdateMerit();
     }
 
     // NOTE - alternatively, I could just make this a friend of the world class, and pass the world into the process step function

@@ -10,6 +10,7 @@
 #include "directed-digital-evolution/DirectedDevoConfig.hpp"
 #include "directed-digital-evolution/DirectedDevoExperiment.hpp"
 #include "directed-digital-evolution/OneMaxOrganism.hpp"
+#include "directed-digital-evolution/BitSetMutator.hpp"
 
 // This is the main function for the NATIVE version of directed-digital-evolution.
 
@@ -21,7 +22,7 @@ int main(int argc, char* argv[])
   // Things that need to be configured at compile time:
   // - Organism type
   // - Mutator?
-  using experiment_t = dirdevo::DirectedDevoExperiment<dirdevo::OneMaxOrganism<128>>;
+  using experiment_t = dirdevo::DirectedDevoExperiment<dirdevo::OneMaxOrganism<128,dirdevo::BitSetMutator>>;
 
   // Set up a configuration panel for native application
   setup_config_native(cfg, argc, argv);

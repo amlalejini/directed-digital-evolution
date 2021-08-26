@@ -57,12 +57,6 @@ protected:
   size_t avg_org_steps_per_update=1;
   scheduler_t scheduler;     /// Used to schedule organism execution based on their merit.
 
-  // emp::Signal<void(size_t)> reproduce_sig; /// Organisms trigger this signal when ready to reproduce.
-  // emp::Signal<void(size_t)> kill_sig;       /// Organisms trigger this signal to mark themselves as dead.
-
-  // std::deque<size_t> repro_queue;   /// Queue of organisms marked for reproduction
-  // std::deque<size_t> death_queue;   /// Queue of organisms marked for death
-
   void SetPopStructure(const pop_struct_t & pop_struct);
 
 public:
@@ -82,17 +76,16 @@ public:
     this->OnPlacement(
       [this](size_t pos) {
         auto& org = this->GetOrg(pos);
-        org.SetWorldID(pos);
-        org.SetDead(false);
-        org.SetReproReady(false);
-        org.SetNewBorn(true); // TODO - do we really want to set this here?
-        scheduler.AdjustWeight(pos, org.UpdateMerit()); // Being alive gets you at least one merit!
+        org.OnPlacement(pos);
+        scheduler.AdjustWeight(pos, org.GetMerit()); // Being alive gets you at least one merit!
+        // std::cout << "Placing organism at" << pos << std::endl;
+        // std::cout << "  num ones = " << org.GetPhenotype().num_ones << std::endl;
+        // std::cout << "  weight = " << scheduler.GetWeightMap().GetWeight(pos) << std::endl;
       }
     );
 
     this->OnOrgDeath(
       [this](size_t pos) {
-        // auto & org = this->GetOrg(pos);
         scheduler.AdjustWeight(pos, 0);
       }
     );
@@ -125,7 +118,9 @@ public:
     // Last time to safely access parent.
     this->OnOffspringReady(
       [this](org_t& offspring, size_t parent_pos) {
+        this->DoMutationsOrg(offspring); // Do mutations on offspring ready, but before parent sees offspring.
         auto& parent = this->GetOrg(parent_pos);
+        offspring.OnBirth(parent);
         parent.OnOffspringReady(offspring);
       }
     );
@@ -143,10 +138,6 @@ public:
 
   /// Force a re-sync of scheduler weights with organism merits
   void SyncSchedulerWeights();
-
-  // void TriggerReproduction(size_t ) { reproduce_sig.};
-
-  // void TriggerKill();
 
   /// Run world one step (update) forward
   void RunStep();
@@ -217,10 +208,15 @@ void DirectedDevoWorld<ORG>::RunStep() {
   // emp_assert(scheduler.GetWeightMap().GetWeight() > 0, "Scheduler requires total weight > 0.");
 
   /////////////////////////////////////////////////////////////////
-  std::cout << "Population:";
+  std::cout << "-------------- RUN STEP (" << this->GetUpdate() << ") --------------" << std::endl;
+  std::cout << "  Population:";
   for (size_t i = 0; i < pop.size(); ++i) {
     if (this->IsOccupied(i)) {
-      std::cout << " {id:"<<i<<","<<"merit:"<<pop[i]->GetMerit();
+      std::cout << " {"
+        << "id:"<<i<<","
+        << "merit:"<<pop[i]->GetMerit() << ","
+        << "pheno:"<<pop[i]->GetPhenotype().num_ones << ","
+        << "ones:"<< pop[i]->GetGenome().CountOnes();
     } else {
       std::cout << " {id:"<<i<<","<<"dead";
     }
@@ -251,7 +247,7 @@ void DirectedDevoWorld<ORG>::RunStep() {
   }
 
   /////////////////////////////////////////////////////////////////
-  std::cout << "Resource levels: ";
+  std::cout << "  Resource levels (after update): ";
   for (size_t i = 0; i < this->GetSize(); ++i) {
     if (this->IsOccupied(i)) std::cout << " {id-"<<i<<" " << this->GetOrg(i).GetResources() << "}";
   }
