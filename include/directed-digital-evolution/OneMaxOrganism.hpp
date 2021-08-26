@@ -7,14 +7,17 @@
 namespace dirdevo {
 
   template<size_t GENOME_SIZE=128>
-  class OneMaxOrganism : public BaseOrganism {
+  class OneMaxOrganism : public BaseOrganism<OneMaxOrganism<GENOME_SIZE>> {
   public:
     struct Phenotype;
 
     using genome_t = emp::BitSet<GENOME_SIZE>;
     using phenotype_t = Phenotype;
     using this_t = OneMaxOrganism<GENOME_SIZE>;
-    using base_t = BaseOrganism;
+    using base_t = BaseOrganism<this_t>;
+
+    using base_t::SetReproReady;
+    using base_t::SetDead;
 
     const double REPRO_RES_THRESHOLD=1024;
     const size_t MAX_AGE=2048;
@@ -35,6 +38,8 @@ namespace dirdevo {
     size_t repro_count=0; // Number of times this organism has reproduced.
     size_t age=0;
 
+    using base_t::merit;
+
   public:
     OneMaxOrganism(const genome_t& g) :
       genome(g)
@@ -47,16 +52,16 @@ namespace dirdevo {
     phenotype_t & GetPhenotype() { return phenotype; }
 
     // todo - make a virtual base function?
-    double UpdateMerit() {
+    double UpdateMerit() override {
       merit = 1 + phenotype.num_ones; // +1 ensures that merit can't be zero for living organisms
       return merit;
     }
 
-    void OnBeforeRepro() {
+    void OnBeforeRepro() override {
       // todo?
     }
 
-    void OnOffspringReady(this_t & offspring) {
+    void OnOffspringReady(this_t & offspring) override {
       // Reset this organism after dividing.
       resources = 0;
       repro_count += 1;

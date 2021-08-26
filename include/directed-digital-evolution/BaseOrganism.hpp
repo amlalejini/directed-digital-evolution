@@ -6,6 +6,7 @@
 
 namespace dirdevo {
 
+  template<typename DERIVED_T>
   class BaseOrganism {
   public:
   protected:
@@ -16,6 +17,8 @@ namespace dirdevo {
     size_t world_id=0;
 
   public:
+
+    virtual ~BaseOrganism() = default;
 
     double GetMerit() const { return merit; }
     bool GetNewBorn() const { return new_born; }
@@ -37,7 +40,9 @@ namespace dirdevo {
      *   }
      */
 
-
+    virtual double UpdateMerit() { emp_assert(false); return 0.0; };
+    virtual void OnBeforeRepro() { emp_assert(false); }
+    virtual void OnOffspringReady(DERIVED_T& offspring) { emp_assert(false); }
 
   };
 
