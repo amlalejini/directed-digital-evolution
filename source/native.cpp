@@ -17,6 +17,10 @@ dirdevo::DirectedDevoConfig cfg;
 
 int main(int argc, char* argv[])
 {
+
+  // Things that need to be configured at compile time:
+  // - Organism type
+  // - Mutator?
   using experiment_t = dirdevo::DirectedDevoExperiment<dirdevo::OneMaxOrganism<128>>;
 
   // Set up a configuration panel for native application
