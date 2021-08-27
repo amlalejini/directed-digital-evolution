@@ -21,13 +21,14 @@
 
 namespace dirdevo {
 
-template<typename ORG> // TODO - define org type based on compiler flag?
+template<typename ORG, typename TASK> // TODO - define org type based on compiler flag?
 class DirectedDevoExperiment {
 public:
   // --- Publically available types ---
-  using this_t = DirectedDevoExperiment<ORG>;
+  using this_t = DirectedDevoExperiment<ORG,TASK>;
   using org_t = ORG;
-  using world_t = DirectedDevoWorld<org_t>;
+  using task_t = TASK;
+  using world_t = DirectedDevoWorld<org_t,task_t>;
   using config_t = DirectedDevoConfig;
   using pop_struct_t = typename world_t::POP_STRUCTURE;
   using mutator_t = typename org_t::mutator_t;
@@ -97,8 +98,8 @@ public:
 
 };
 
-template <typename ORG>
-void DirectedDevoExperiment<ORG>::Setup() {
+template <typename ORG, typename TASK>
+void DirectedDevoExperiment<ORG, TASK>::Setup() {
   if (setup) return; // Don't let myself run Setup more than once.
 
   // Validate configuration (even in when compiled outside of debug mode!)
@@ -149,13 +150,13 @@ void DirectedDevoExperiment<ORG>::Setup() {
   setup = true;
 }
 
-template <typename ORG>
-void DirectedDevoExperiment<ORG>::SetupSelection() {
+template <typename ORG, typename TASK>
+void DirectedDevoExperiment<ORG, TASK>::SetupSelection() {
 
 }
 
-template <typename ORG>
-void DirectedDevoExperiment<ORG>::SnapshotConfig(
+template <typename ORG, typename TASK>
+void DirectedDevoExperiment<ORG, TASK>::SnapshotConfig(
   const std::string& filename /*= "experiment-config.csv"*/
 )
 {
@@ -169,8 +170,8 @@ void DirectedDevoExperiment<ORG>::SnapshotConfig(
   std::cout << "...done snapshotting." << std::endl;
 }
 
-template <typename ORG>
-bool DirectedDevoExperiment<ORG>::ValidateConfig() {
+template <typename ORG, typename TASK>
+bool DirectedDevoExperiment<ORG, TASK>::ValidateConfig() {
   // GLOBAL SETTINGS
   if (config.NUM_POPS() < 1) return false;
   // LOCAL WORLD SETTINGS
@@ -184,8 +185,8 @@ bool DirectedDevoExperiment<ORG>::ValidateConfig() {
 }
 
 
-template <typename ORG>
-void DirectedDevoExperiment<ORG>::Run() {
+template <typename ORG, typename TASK>
+void DirectedDevoExperiment<ORG, TASK>::Run() {
 
   for (cur_epoch = 0; cur_epoch <= config.EPOCHS(); ++cur_epoch) {
     std::cout << "==== EPOCH " << cur_epoch << "====" << std::endl;
@@ -207,8 +208,8 @@ void DirectedDevoExperiment<ORG>::Run() {
 
 }
 
-template <typename ORG>
-void DirectedDevoExperiment<ORG>::RunStep() {
+template <typename ORG, typename TASK>
+void DirectedDevoExperiment<ORG, TASK>::RunStep() {
   // Advance each world by one step
   for (auto world_ptr : worlds) {
     std::cout << "-- Stepping " << world_ptr->GetName() << " --" << std::endl;

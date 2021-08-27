@@ -12,7 +12,7 @@
 
 namespace dirdevo {
 
-template <typename ORG>
+template <typename ORG, typename TASK>
 class DirectedDevoWorld : public emp::World<ORG> {
 public:
   // todo - wrap this in a struct?
@@ -39,7 +39,8 @@ public:
   };
 
   using base_t = emp::World<ORG>;
-  using this_t = DirectedDevoWorld<ORG>;
+  using this_t = DirectedDevoWorld<ORG, TASK>;
+  using task_t = TASK;
   using scheduler_t = ProbabilisticScheduler;
   using pop_struct_t = PopStructureDesc;
   using org_t = ORG;
@@ -53,9 +54,10 @@ protected:
   using base_t::name;
   using base_t::control;
 
-  size_t max_pop_size=0;
-  size_t avg_org_steps_per_update=1;
-  scheduler_t scheduler;     /// Used to schedule organism execution based on their merit.
+  size_t max_pop_size=0;              /// Maximum population size (depends on population structure and configuration)
+  size_t avg_org_steps_per_update=1;  /// Determines the number of execution steps we dish out each update (population size * this).
+  scheduler_t scheduler;              /// Used to schedule organism execution based on their merit.
+  task_t task;                        /// Used to track task performance
 
   void SetPopStructure(const pop_struct_t & pop_struct);
 
@@ -68,7 +70,8 @@ public:
     const pop_struct_t & pop_struct={}
   ) :
     base_t(rnd, name),
-    scheduler(rnd)
+    scheduler(rnd),
+    task()
   {
 
     // Wire up scheduler to the world.
@@ -146,8 +149,8 @@ public:
   void Run(size_t updates); // todo
 };
 
-template<typename ORG>
-void DirectedDevoWorld<ORG>::SetPopStructure(
+template<typename ORG, typename TASK>
+void DirectedDevoWorld<ORG,TASK>::SetPopStructure(
   const PopStructureDesc& pop_struct
 )
 {
@@ -173,15 +176,15 @@ void DirectedDevoWorld<ORG>::SetPopStructure(
   scheduler.Reset(max_pop_size, avg_org_steps_per_update*max_pop_size);
 }
 
-template<typename ORG>
-void DirectedDevoWorld<ORG>::SetAvgOrgStepsPerUpdate(size_t avg_steps) {
+template<typename ORG, typename TASK>
+void DirectedDevoWorld<ORG,TASK>::SetAvgOrgStepsPerUpdate(size_t avg_steps) {
   avg_org_steps_per_update=avg_steps;
   scheduler.Reset(max_pop_size, avg_org_steps_per_update*max_pop_size);
   // TODO update weights in scheduler!
 }
 
-template<typename ORG>
-void DirectedDevoWorld<ORG>::SyncSchedulerWeights() {
+template<typename ORG, typename TASK>
+void DirectedDevoWorld<ORG,TASK>::SyncSchedulerWeights() {
   scheduler.DeferWeightRefresh(); // Bulk adjustments, defer refresh until next index
   for (size_t i = 0; i < pop.size(); ++i) {
     if (this->IsOccupied(i)) {
@@ -193,15 +196,15 @@ void DirectedDevoWorld<ORG>::SyncSchedulerWeights() {
   }
 }
 
-template<typename ORG>
-void DirectedDevoWorld<ORG>::Run(size_t updates) {
+template<typename ORG, typename TASK>
+void DirectedDevoWorld<ORG,TASK>::Run(size_t updates) {
   for (size_t u = 0; u < updates; u++) {
     RunStep();
   }
 }
 
-template<typename ORG>
-void DirectedDevoWorld<ORG>::RunStep() {
+template<typename ORG, typename TASK>
+void DirectedDevoWorld<ORG,TASK>::RunStep() {
   // Check assumptions about the state of the world.
   const size_t num_orgs = this->GetNumOrgs();
   if (!num_orgs) return;  // If there are no organisms alive, do nothing.
@@ -260,13 +263,13 @@ void DirectedDevoWorld<ORG>::RunStep() {
   this->Update();
 }
 
-template<typename ORG>
-bool DirectedDevoWorld<ORG>::IsValidPopStructure(const std::string & mode) {
+template<typename ORG, typename TASK>
+bool DirectedDevoWorld<ORG,TASK>::IsValidPopStructure(const std::string & mode) {
   return emp::Has({"mixed", "grid", "grid3d"}, mode);
 }
 
-template<typename ORG>
-typename DirectedDevoWorld<ORG>::POP_STRUCTURE DirectedDevoWorld<ORG>::PopStructureStrToMode(const std::string & mode) {
+template<typename ORG, typename TASK>
+typename DirectedDevoWorld<ORG,TASK>::POP_STRUCTURE DirectedDevoWorld<ORG,TASK>::PopStructureStrToMode(const std::string & mode) {
   emp_assert(IsValidPopStructure(mode), "Invalid population structure string.");
   static std::unordered_map<std::string, POP_STRUCTURE> pop_struct_str_to_mode = {
     {"mixed", POP_STRUCTURE::MIXED},
