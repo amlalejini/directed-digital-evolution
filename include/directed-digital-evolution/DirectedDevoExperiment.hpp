@@ -48,7 +48,6 @@ protected:
 
   std::function<void(emp::vector<size_t>&)> do_selection_fun;
   emp::vector<std::function<double(void)>> aggregate_score_funs;
-  // emp::vector<
 
   // TODO - have a criteria vector of functions that access quality criteria (for lexicase, multi obj opt)?
   // TODO - Have a task construct that manages performance criteria, etc?
@@ -90,6 +89,7 @@ public:
 
   ~DirectedDevoExperiment() {
     // Clean up worlds
+    aggregate_score_funs.clear();
     for (auto world : worlds) {
       if (world != nullptr) world.Delete();
     }
@@ -239,6 +239,12 @@ void DirectedDevoExperiment<ORG, TASK>::Run() {
     // Do evaluation (could move this into previous loop if I don't add anything else here that requires all worlds to have been run)
     for (auto world_ptr : worlds) {
       world_ptr->Evaluate();
+    }
+
+    std::cout << "Evaluation summary: " << std::endl;
+    for (auto world_ptr : worlds) {
+      std::cout << "  " << world_ptr->GetName() << std::endl;
+      std::cout << "    Aggregate performance: " << world_ptr->GetAggregateTaskPerformance() << std::endl;
     }
 
     // Do selection

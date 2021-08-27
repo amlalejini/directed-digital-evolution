@@ -55,6 +55,7 @@ protected:
   using base_t::pop;
   using base_t::name;
   using base_t::control;
+  using base_t::on_death_sig;
 
   size_t max_pop_size=0;              /// Maximum population size (depends on population structure and configuration)
   size_t avg_org_steps_per_update=1;  /// Determines the number of execution steps we dish out each update (population size * this).
@@ -91,12 +92,19 @@ public:
       }
     );
 
-    this->OnOrgDeath(
+    auto org_death_key = this->OnOrgDeath(
       [this](size_t pos) {
         auto& org = this->GetOrg(pos);
+        // TODO - fix this! Don't want to call anything if we're in the destructor
         org.OnDeath(pos);
         task.OnOrgDeath(org, pos);
         scheduler.AdjustWeight(pos, 0); // Update scheduler weights last.
+      }
+    );
+
+    this->OnWorldDestruct(
+      [this,org_death_key]() {
+        on_death_sig.Remove(org_death_key);
       }
     );
 
@@ -242,20 +250,6 @@ void DirectedDevoWorld<ORG,TASK>::RunStep() {
 
   /////////////////////////////////////////////////////////////////
   std::cout << "-------------- RUN STEP (" << this->GetUpdate() << ") --------------" << std::endl;
-  std::cout << "  Population:";
-  for (size_t i = 0; i < pop.size(); ++i) {
-    if (this->IsOccupied(i)) {
-      std::cout << " {"
-        << "id:"<<i<<","
-        << "merit:"<<pop[i]->GetMerit() << ","
-        << "pheno:"<<pop[i]->GetPhenotype().num_ones << ","
-        << "ones:"<< pop[i]->GetGenome().CountOnes();
-    } else {
-      std::cout << " {id:"<<i<<","<<"dead";
-    }
-    std::cout << ",weight:"<<scheduler.GetWeightMap().GetWeight(i)<<"}";
-  }
-  std::cout << std::endl;
   /////////////////////////////////////////////////////////////////
 
   // --- Beyond this point: assume that the scheduler weights are current and up-to-date ---
@@ -282,6 +276,20 @@ void DirectedDevoWorld<ORG,TASK>::RunStep() {
   }
 
   /////////////////////////////////////////////////////////////////
+  std::cout << "  Population:";
+  for (size_t i = 0; i < pop.size(); ++i) {
+    if (this->IsOccupied(i)) {
+      std::cout << " {"
+        << "id:"<<i<<","
+        << "merit:"<<pop[i]->GetMerit() << ","
+        << "pheno:"<<pop[i]->GetPhenotype().num_ones << ","
+        << "ones:"<< pop[i]->GetGenome().CountOnes();
+    } else {
+      std::cout << " {id:"<<i<<","<<"dead";
+    }
+    std::cout << ",weight:"<<scheduler.GetWeightMap().GetWeight(i)<<"}";
+  }
+  std::cout << std::endl;
   std::cout << "  Resource levels (after update): ";
   for (size_t i = 0; i < this->GetSize(); ++i) {
     if (this->IsOccupied(i)) std::cout << " {id-"<<i<<" " << this->GetOrg(i).GetResources() << "}";
