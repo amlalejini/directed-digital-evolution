@@ -9,6 +9,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <functional>
 
 #include "emp/base/vector.hpp"
 #include "emp/datastructs/vector_utils.hpp"
@@ -40,12 +41,27 @@ protected:
   pop_struct_t local_pop_struct=pop_struct_t::MIXED;
   mutator_t mutator; ///< Responsible for mutating organisms across worlds. NOTE - currently, mutator is shared; individual worlds cannot tweak settings (i.e., no high/low mutation worlds).
 
+  std::function<void(void)> do_selection_fun;
+
+  // TODO - have a criteria vector of functions that access quality criteria (for lexicase, multi obj opt)?
+  // TODO - Have a task construct that manages performance criteria, etc?
+  //        The task would know about the organism type and encode how to evaluate a population of those organisms
+  //        I.e., given a world of a compatible type (e.g., bitorgs), it can evaluate the world's performance
+  //        If there's a organism-task mismatch, shit won't compile (which is what we want)!
+  // std::function<double(size_t)>
+  // emp::vector<std::function<double(size_t)> performance_criteria;
+
   bool setup=false;
   size_t cur_epoch=0;
 
-  /// Setup the experiment based on the given configuration.
+  /// Setup the experiment based on the given configuration (called internally).
   void Setup();
+
+  /// Configure local population structure (called internally).
   void SetLocalPopStructure();
+
+  /// Configure population selection (called internally).
+  void SetupSelection();
 
   /// Output the experiment's configuration as a .csv file.
   void SnapshotConfig(const std::string& filename = "experiment-config.csv");
@@ -134,6 +150,11 @@ void DirectedDevoExperiment<ORG>::Setup() {
 }
 
 template <typename ORG>
+void DirectedDevoExperiment<ORG>::SetupSelection() {
+
+}
+
+template <typename ORG>
 void DirectedDevoExperiment<ORG>::SnapshotConfig(
   const std::string& filename /*= "experiment-config.csv"*/
 )
@@ -158,6 +179,7 @@ bool DirectedDevoExperiment<ORG>::ValidateConfig() {
   if (config.LOCAL_GRID_HEIGHT() < 1) return false;
   if (config.LOCAL_GRID_DEPTH() < 1) return false;
   if (config.AVG_STEPS_PER_ORG() < 1) return false;
+  // TODO - flesh this out!
   return true;
 }
 
@@ -175,6 +197,7 @@ void DirectedDevoExperiment<ORG>::Run() {
 
     // Do selection
     // TODO
+    // NOTE - each world should have a 'phenotype' that gets filled out by the world as it goes(?)
 
     // Report summary information(?)
     // std::cout << "epoch " << cur_epoch << std::endl;
