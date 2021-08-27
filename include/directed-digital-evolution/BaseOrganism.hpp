@@ -45,11 +45,23 @@ public:
    *   }
    */
 
-  // virtual double UpdateMerit() { emp_assert(false); return 0.0; };
+  /// Called when this organism is about to reproduce (but offspring has not been built yet)
   virtual void OnBeforeRepro() { emp_assert(false, "This function must be implemented by derived organism class."); }
-  virtual void OnOffspringReady(DERIVED_T&) { emp_assert(false, "This function must be implemented by derived organism class."); }
-  virtual void OnPlacement(size_t) { emp_assert(false, "This function must be implemented by derived organism class."); }
-  virtual void OnBirth(DERIVED_T&) {emp_assert(false, "This function must be implemented by derived organism class."); }
+
+  /// Called when this organism's offspring is ready (after the offspring's OnBirth function is called)
+  virtual void OnOffspringReady(DERIVED_T& offspring) { emp_assert(false, "This function must be implemented by derived organism class."); }
+
+  /// Called when *this* organism is placed (just after birth or injection)
+  virtual void OnPlacement(size_t position) { emp_assert(false, "This function must be implemented by derived organism class."); }
+
+  /// Called when *this* organism is born
+  /// - when world's offspring ready signal is triggered
+  /// - after mutations
+  virtual void OnBirth(DERIVED_T& parent) { emp_assert(false, "This function must be implemented by derived organism class."); }
+
+  /// Called when *this* organism is being 'killed' by the world (in most cases, this won't do anything)
+  /// - Position is the position in the world where the organism is being removed
+  virtual void OnDeath(size_t position) { emp_assert(false, "This function must be implemented by the derived organism class."); }
 
 };
 

@@ -66,9 +66,7 @@ public:
 
   // todo - make a virtual base function?
 
-  void OnBeforeRepro() override {
-    // todo?
-  }
+  void OnBeforeRepro() override { }
 
   void OnOffspringReady(this_t & offspring) override {
     // Reset this organism after dividing.
@@ -86,7 +84,9 @@ public:
     this->SetNewBorn(true);
   }
 
-  // Called when *this* organism is placed
+  void OnDeath(size_t) override { }
+
+  /// Called when *this* organism is placed
   void OnPlacement(size_t pos) override {
     this->SetWorldID(pos);
     UpdateMerit();

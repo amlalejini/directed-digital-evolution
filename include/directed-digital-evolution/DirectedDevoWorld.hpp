@@ -15,6 +15,8 @@ namespace dirdevo {
 template <typename ORG, typename TASK>
 class DirectedDevoWorld : public emp::World<ORG> {
 public:
+  friend TASK; // Let the task see my insides. TASK should be sure to be a responsible friend...
+
   // todo - wrap this in a struct?
   enum class POP_STRUCTURE { MIXED, GRID, GRID3D };
   struct PopStructureDesc {
@@ -71,41 +73,48 @@ public:
   ) :
     base_t(rnd, name),
     scheduler(rnd),
-    task()
+    task(*this)
   {
+
+    /// TODO - document give the order of signal calls in the world!
+    /// TODO - is there a way to strip out unused functions?
 
     // Wire up scheduler to the world.
     // - Update scheduler weights on organism placement, death, and swap.
     this->OnPlacement(
       [this](size_t pos) {
         auto& org = this->GetOrg(pos);
-        org.OnPlacement(pos);
-        scheduler.AdjustWeight(pos, org.GetMerit()); // Being alive gets you at least one merit!
-        // std::cout << "Placing organism at" << pos << std::endl;
-        // std::cout << "  num ones = " << org.GetPhenotype().num_ones << std::endl;
-        // std::cout << "  weight = " << scheduler.GetWeightMap().GetWeight(pos) << std::endl;
+        org.OnPlacement(pos);                        // Tell the organism about its placement.
+        task.OnOrgPlacement(org, pos);               // Tell the task about organism placement.
+        scheduler.AdjustWeight(pos, org.GetMerit()); // Update scheduler weights last.
       }
     );
 
     this->OnOrgDeath(
       [this](size_t pos) {
-        scheduler.AdjustWeight(pos, 0);
+        auto& org = this->GetOrg(pos);
+        org.OnDeath(pos);
+        task.OnOrgDeath(org, pos);
+        scheduler.AdjustWeight(pos, 0); // Update scheduler weights last.
       }
     );
 
     this->OnSwapOrgs(
       [this](emp::WorldPosition p1, emp::WorldPosition p2) {
-        const auto& weight_map = scheduler.GetWeightMap();
-        const double p1_weight = weight_map.GetWeight(p1.GetIndex());
-        const double p2_weight = weight_map.GetWeight(p2.GetIndex());
-        scheduler.AdjustWeight(p1.GetIndex(), p2_weight);
-        scheduler.AdjustWeight(p2.GetIndex(), p1_weight);
-
         auto& org1 = this->GetOrg(p1.GetIndex());
         auto& org2 = this->GetOrg(p2.GetIndex());
         // Organisms have already been swapped, so p1 org needs index to reflect p1; same with p2 org.
         org1.SetWorldID(p1.GetIndex());
         org2.SetWorldID(p2.GetIndex());
+
+        task.AfterOrgSwap(org1, org2);
+
+        // Update scheduler weights last
+        const auto& weight_map = scheduler.GetWeightMap();
+        const double p1_weight = weight_map.GetWeight(p1.GetIndex());
+        const double p2_weight = weight_map.GetWeight(p2.GetIndex());
+        scheduler.AdjustWeight(p1.GetIndex(), p2_weight);
+        scheduler.AdjustWeight(p2.GetIndex(), p1_weight);
       }
     );
 
@@ -113,7 +122,8 @@ public:
     this->OnBeforeRepro(
       [this](size_t parent_pos) {
         auto& parent = this->GetOrg(parent_pos);
-        parent.OnBeforeRepro();
+        parent.OnBeforeRepro();     // Tell parent that it's about to reproduce
+        task.OnBeforeOrgRepro(parent); // Tell task about reproduction
       }
     );
 
@@ -123,15 +133,22 @@ public:
       [this](org_t& offspring, size_t parent_pos) {
         this->DoMutationsOrg(offspring); // Do mutations on offspring ready, but before parent sees offspring.
         auto& parent = this->GetOrg(parent_pos);
-        offspring.OnBirth(parent);
-        parent.OnOffspringReady(offspring);
+        offspring.OnBirth(parent);                // Tell offspring about it's birthday!
+        parent.OnOffspringReady(offspring);       // Tell parent that it's offspring is ready
+        task.OnOffspringReady(offspring, parent); // Tell task that this offspring was born from this parent.
       }
     );
 
-    // TODO - setup mutation
+    this->OnUpdate(
+      [this](size_t u) {
+        task.OnWorldUpdate(u);
+      }
+    );
 
     // Configure population structure.
     SetPopStructure(pop_struct);
+
+    task.OnWorldSetup(); // Tell the task that the world has been configured.
   }
 
   const std::string & GetName() const { return name; }
@@ -180,7 +197,7 @@ template<typename ORG, typename TASK>
 void DirectedDevoWorld<ORG,TASK>::SetAvgOrgStepsPerUpdate(size_t avg_steps) {
   avg_org_steps_per_update=avg_steps;
   scheduler.Reset(max_pop_size, avg_org_steps_per_update*max_pop_size);
-  // TODO update weights in scheduler!
+  SyncSchedulerWeights();
 }
 
 template<typename ORG, typename TASK>
@@ -205,6 +222,9 @@ void DirectedDevoWorld<ORG,TASK>::Run(size_t updates) {
 
 template<typename ORG, typename TASK>
 void DirectedDevoWorld<ORG,TASK>::RunStep() {
+  // Tell task that we're about to run an update
+  task.OnBeforeWorldUpdate(this->GetUpdate());
+
   // Check assumptions about the state of the world.
   const size_t num_orgs = this->GetNumOrgs();
   if (!num_orgs) return;  // If there are no organisms alive, do nothing.
@@ -236,7 +256,9 @@ void DirectedDevoWorld<ORG,TASK>::RunStep() {
     const size_t org_id = scheduler.GetRandom(); // This should reweight the scheduler automatically.
     auto & org = this->GetOrg(org_id);
     // Step organism forward
+    task.BeforeOrgProcessStep(org);
     org.ProcessStep(*this);
+    task.AfterOrgProcessStep(org);
     // Should organism reproduce?
     if (org.GetReproReady()) {
       auto offspring_pos = this->DoBirth(org.GetGenome(), org_id, 1);
