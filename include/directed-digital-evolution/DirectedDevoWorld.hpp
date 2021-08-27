@@ -60,6 +60,7 @@ protected:
   size_t avg_org_steps_per_update=1;  /// Determines the number of execution steps we dish out each update (population size * this).
   scheduler_t scheduler;              /// Used to schedule organism execution based on their merit.
   task_t task;                        /// Used to track task performance
+  std::function<double(void)> aggregate_performance_fun;
 
   void SetPopStructure(const pop_struct_t & pop_struct);
 
@@ -149,6 +150,7 @@ public:
     SetPopStructure(pop_struct);
 
     task.OnWorldSetup(); // Tell the task that the world has been configured.
+    aggregate_performance_fun = task.GetAggregatePerformanceFun(); // TODO - test that this wiring works as expected!
   }
 
   const std::string & GetName() const { return name; }
@@ -163,7 +165,15 @@ public:
   void RunStep();
 
   /// Run world forward for given number of updates
-  void Run(size_t updates); // todo
+  void Run(size_t updates);
+
+  /// Evaluate the world (make sure task performance is current)
+  void Evaluate();
+
+  double GetAggregateTaskPerformance() { emp_assert(task.IsEvalFresh()); return aggregate_performance_fun(); }
+  double GetSubTaskPerformance(size_t i);
+  size_t GetNumSubTasks();
+
 };
 
 template<typename ORG, typename TASK>
@@ -283,6 +293,11 @@ void DirectedDevoWorld<ORG,TASK>::RunStep() {
 
   // Update the world
   this->Update();
+}
+
+template<typename ORG, typename TASK>
+void DirectedDevoWorld<ORG,TASK>::Evaluate() {
+  task.Evaluate();
 }
 
 template<typename ORG, typename TASK>

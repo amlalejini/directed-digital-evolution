@@ -8,13 +8,13 @@
 namespace dirdevo {
 
 template<
-  size_t GENOME_SIZE=128,
+  size_t BITS=128,
   typename MUTATOR_T=BitSetMutator
 >
-class OneMaxOrganism : public BaseOrganism<OneMaxOrganism<GENOME_SIZE,MUTATOR_T>> {
+class OneMaxOrganism : public BaseOrganism<OneMaxOrganism<BITS,MUTATOR_T>> {
 public:
   struct Phenotype;
-
+  static constexpr size_t GENOME_SIZE=BITS;
   using genome_t = emp::BitSet<GENOME_SIZE>;
   using phenotype_t = Phenotype;
   using this_t = OneMaxOrganism<GENOME_SIZE,MUTATOR_T>;

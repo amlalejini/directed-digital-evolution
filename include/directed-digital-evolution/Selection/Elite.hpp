@@ -6,6 +6,10 @@
 
 #include "emp/base/vector.hpp"
 
+// TODO - convert this into struct w/() operator overloads if we want to track state information during selection?
+//      - or if we need to configure the selection scheme up front and then;
+//      problem with struct: requires you to hold on to it, so you need to know its type => Experiment needs one of each selection type that it knows about (which is probably fine)
+
 namespace dirdevo {
 
 /// ==ELITE== Selection picks a set of the most fit individuals from the population to move to
@@ -40,14 +44,15 @@ emp::vector<size_t> EliteSelect(const emp::vector<double>& scores, size_t e_coun
 }
 
 
-void EliteSelect(emp::vector<size_t> & selected, const emp::vector<double>& scores, size_t e_count=1) {
+void EliteSelect(emp::vector<size_t> & selected, const emp::vector<std::function<double(void)>>& score_funs, size_t e_count=1) {
   emp_assert(e_count > 0, e_count);
-  emp_assert(e_count <= scores.size(), e_count, scores.size());
+  emp_assert(e_count <= score_funs.size(), e_count, score_funs.size());
 
   // sort fitnesses
   std::multimap<double, size_t> fit_map;
-  for (size_t id = 0; id < scores.size(); ++id) {
-    fit_map.insert( std::make_pair(scores[id], id) );
+  // for (size_t id = 0; id < scores.size(); ++id) {
+  for (size_t id = 0; id < score_funs.size(); ++id) {
+    fit_map.insert( std::make_pair(score_funs[id](), id) );
   }
 
   // Grab the top fitnesses and move them into selected.

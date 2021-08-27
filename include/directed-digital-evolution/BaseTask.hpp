@@ -3,6 +3,9 @@
 #define DIRECTED_DEVO_DIRECTED_DEVO_BASE_TASK_HPP_INCLUDE
 
 #include <cstddef>
+#include <functional>
+
+#include "emp/base/vector.hpp"
 
 namespace dirdevo {
 
@@ -17,14 +20,26 @@ public:
 
   using org_t = ORG_T;
   using world_t = DirectedDevoWorld<org_t, DERIVED_T>;
+  using perf_fun_t = std::function<double(void)>;
 
 protected:
 
   world_t & world; ///< Reference back to the world that own's this task object. WARNING - must be used responsibly! It would be very easy to create some nasty memory errors by moving things around (e.g., world assumes a reference is still valid but task-driven manipulation invalidated it).
+  bool fresh_eval=true;
+
+  // TODO - think more about whether this is the cleanest way to do this...
+  perf_fun_t aggregate_performance_fun;
+  emp::vector<perf_fun_t> performance_fun_set;
+
   BaseTask(world_t& w) : world(w) { ; }
 
 public:
 
+  perf_fun_t GetAggregatePerformanceFun() { return aggregate_performance_fun; }
+
+  emp::vector<perf_fun_t> & GetPerformanceFunSet() { return performance_fun_set; }
+
+  bool IsEvalFresh() const { return fresh_eval; }
 
   // --- WORLD-LEVEL EVENT HOOKS ---
 
@@ -38,6 +53,9 @@ public:
   virtual void OnWorldUpdate(size_t update) { emp_assert(false, "Derived task class must implement this function."); }
 
   // TODO - any selection based hooks!
+  /// Ensure that task performance is up-to-date. Might not do anything if performance is updated as the world updates.
+  virtual void Evaluate() { emp_assert(false, "Derived task class must implement this function."); }
+
 
   // --- ORGANISM-LEVEL EVENT HOOKS ---
   // These are always called AFTER the organism's equivalent functions.

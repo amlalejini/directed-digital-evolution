@@ -9,6 +9,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <functional>
 
 #include "emp/base/vector.hpp"
@@ -18,6 +19,7 @@
 
 #include "DirectedDevoConfig.hpp"
 #include "DirectedDevoWorld.hpp"
+#include "Selection/SelectionSchemes.hpp"
 
 namespace dirdevo {
 
@@ -31,7 +33,9 @@ public:
   using world_t = DirectedDevoWorld<org_t,task_t>;
   using config_t = DirectedDevoConfig;
   using pop_struct_t = typename world_t::POP_STRUCTURE;
-  using mutator_t = typename org_t::mutator_t;
+  using mutator_t = typename org_t::mutator_t; // TODO - move the mutator out of the organism? Makes it weird that the task needs to care about mutators....
+
+  const std::unordered_set<std::string> valid_selection_methods={"elite","tournament","lexicase"};
 
 protected:
 
@@ -42,7 +46,9 @@ protected:
   pop_struct_t local_pop_struct=pop_struct_t::MIXED;
   mutator_t mutator; ///< Responsible for mutating organisms across worlds. NOTE - currently, mutator is shared; individual worlds cannot tweak settings (i.e., no high/low mutation worlds).
 
-  std::function<void(void)> do_selection_fun;
+  std::function<void(emp::vector<size_t>&)> do_selection_fun;
+  emp::vector<std::function<double(void)>> aggregate_score_funs;
+  // emp::vector<
 
   // TODO - have a criteria vector of functions that access quality criteria (for lexicase, multi obj opt)?
   // TODO - Have a task construct that manages performance criteria, etc?
@@ -63,6 +69,7 @@ protected:
 
   /// Configure population selection (called internally).
   void SetupSelection();
+  void SetupEliteSelection();
 
   /// Output the experiment's configuration as a .csv file.
   void SnapshotConfig(const std::string& filename = "experiment-config.csv");
@@ -145,6 +152,9 @@ void DirectedDevoExperiment<ORG, TASK>::Setup() {
     world_ptr->SyncSchedulerWeights();
   }
 
+  // Setup selection
+  SetupSelection();
+
   // TODO - should config snapshot be here or elsewhere?
   SnapshotConfig();
   setup = true;
@@ -152,7 +162,34 @@ void DirectedDevoExperiment<ORG, TASK>::Setup() {
 
 template <typename ORG, typename TASK>
 void DirectedDevoExperiment<ORG, TASK>::SetupSelection() {
+  // Wire up aggregate score functions
+  for (size_t pop_id = 0; pop_id < config.NUM_POPS(); ++pop_id) {
+    aggregate_score_funs.emplace_back(
+      [this, pop_id]() {
+        return worlds[pop_id]->GetAggregateTaskPerformance();
+      }
+    );
+  }
+  // todo - wire up function sets
 
+  if (config.SELECTION_METHOD() == "elite") {
+    SetupEliteSelection();
+  } else if (config.SELECTION_METHOD() == "tournament") {
+    emp_assert(false);
+  } else if (config.SELECTION_METHOD() == "lexicase") {
+    emp_assert(false);
+  } else {
+    // code should never reach this else (unless I forget to add a selection scheme here that is in the valid selection method set)
+    emp_assert(false, "Unimplemented selection scheme.", config.SELECTION_METHOD());
+  }
+}
+
+template <typename ORG, typename TASK>
+void DirectedDevoExperiment<ORG, TASK>::SetupEliteSelection() {
+  // calling the do selected function should population selected with the ids of populations to sample 'propagules' from
+  do_selection_fun = [this](emp::vector<size_t>& selected) {
+    dirdevo::EliteSelect(selected, aggregate_score_funs, config.ELITE_SEL_NUM_ELITES());
+  };
 }
 
 template <typename ORG, typename TASK>
@@ -180,6 +217,7 @@ bool DirectedDevoExperiment<ORG, TASK>::ValidateConfig() {
   if (config.LOCAL_GRID_HEIGHT() < 1) return false;
   if (config.LOCAL_GRID_DEPTH() < 1) return false;
   if (config.AVG_STEPS_PER_ORG() < 1) return false;
+  if (!emp::Has(valid_selection_methods,config.SELECTION_METHOD())) return false;
   // TODO - flesh this out!
   return true;
 }
@@ -187,6 +225,8 @@ bool DirectedDevoExperiment<ORG, TASK>::ValidateConfig() {
 
 template <typename ORG, typename TASK>
 void DirectedDevoExperiment<ORG, TASK>::Run() {
+  // Create vector to hold the distribution of population ids selected each epoch
+  emp::vector<size_t> selected(config.NUM_POPS(), 0);
 
   for (cur_epoch = 0; cur_epoch <= config.EPOCHS(); ++cur_epoch) {
     std::cout << "==== EPOCH " << cur_epoch << "====" << std::endl;
@@ -196,7 +236,21 @@ void DirectedDevoExperiment<ORG, TASK>::Run() {
       world_ptr->Run(config.UPDATES_PER_EPOCH());
     }
 
+    // Do evaluation (could move this into previous loop if I don't add anything else here that requires all worlds to have been run)
+    for (auto world_ptr : worlds) {
+      world_ptr->Evaluate();
+    }
+
     // Do selection
+    do_selection_fun(selected);
+
+    std::cout << "selected:" << selected << std::endl;
+
+    // selected should hold which populations we should sample from
+
+    // TODO - should sampling individuals from a population remove them from future samples?
+    // - Which populations are propagated to the next generation?
+
     // TODO
     // NOTE - each world should have a 'phenotype' that gets filled out by the world as it goes(?)
 
