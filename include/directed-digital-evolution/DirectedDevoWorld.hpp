@@ -59,9 +59,11 @@ protected:
 
   size_t max_pop_size=0;              /// Maximum population size (depends on population structure and configuration)
   size_t avg_org_steps_per_update=1;  /// Determines the number of execution steps we dish out each update (population size * this).
+  bool extinct=false;                 /// flag for whether of not the population is extinct
   scheduler_t scheduler;              /// Used to schedule organism execution based on their merit.
   task_t task;                        /// Used to track task performance
   std::function<double(void)> aggregate_performance_fun;
+  pop_struct_t pop_struct;
 
   void SetPopStructure(const pop_struct_t & pop_struct);
 
@@ -71,14 +73,15 @@ public:
   DirectedDevoWorld(
     emp::Random & rnd,
     const std::string & name="",
-    const pop_struct_t & pop_struct={}
+    const pop_struct_t & p_struct={}
   ) :
     base_t(rnd, name),
     scheduler(rnd),
-    task(*this)
+    task(*this),
+    pop_struct(p_struct)
   {
 
-    /// TODO - document give the order of signal calls in the world!
+    /// TODO - document the order of signal calls in the world!
     /// TODO - is there a way to strip out unused functions?
 
     // Wire up scheduler to the world.
@@ -89,19 +92,20 @@ public:
         org.OnPlacement(pos);                        // Tell the organism about its placement.
         task.OnOrgPlacement(org, pos);               // Tell the task about organism placement.
         scheduler.AdjustWeight(pos, org.GetMerit()); // Update scheduler weights last.
+        extinct=false; // World can't be extinct anymore
       }
     );
 
     auto org_death_key = this->OnOrgDeath(
       [this](size_t pos) {
         auto& org = this->GetOrg(pos);
-        // TODO - fix this! Don't want to call anything if we're in the destructor
         org.OnDeath(pos);
         task.OnOrgDeath(org, pos);
         scheduler.AdjustWeight(pos, 0); // Update scheduler weights last.
       }
     );
 
+    // We need to remove the on death signal to prevent it from being triggered when the world clears the population (calling remove org)
     this->OnWorldDestruct(
       [this,org_death_key]() {
         on_death_sig.Remove(org_death_key);
@@ -161,7 +165,9 @@ public:
     aggregate_performance_fun = task.GetAggregatePerformanceFun(); // TODO - test that this wiring works as expected!
   }
 
-  const std::string & GetName() const { return name; }
+  const std::string& GetName() const { return name; }
+
+  bool IsExtinct() const { return extinct; }
 
   /// Configure the average number of steps distributed to each organism per world update
   void SetAvgOrgStepsPerUpdate(size_t avg_steps);
@@ -177,6 +183,8 @@ public:
 
   /// Evaluate the world (make sure task performance is current)
   void Evaluate();
+
+  void DirectedDevoReset();
 
   double GetAggregateTaskPerformance() { emp_assert(task.IsEvalFresh()); return aggregate_performance_fun(); }
   double GetSubTaskPerformance(size_t i);
@@ -245,16 +253,19 @@ void DirectedDevoWorld<ORG,TASK>::RunStep() {
 
   // Check assumptions about the state of the world.
   const size_t num_orgs = this->GetNumOrgs();
-  if (!num_orgs) return;  // If there are no organisms alive, do nothing.
+  extinct = !(bool)num_orgs;
+  if (extinct) {
+    return;  // If there are no organisms alive, do nothing (world has gone extinct).
+  }
   // emp_assert(scheduler.GetWeightMap().GetWeight() > 0, "Scheduler requires total weight > 0.");
 
   /////////////////////////////////////////////////////////////////
-  std::cout << "-------------- RUN STEP (" << this->GetUpdate() << ") --------------" << std::endl;
+  // std::cout << "-------------- RUN STEP (" << this->GetUpdate() << ") --------------" << std::endl;
   /////////////////////////////////////////////////////////////////
 
   // --- Beyond this point: assume that the scheduler weights are current and up-to-date ---
   // Compute how many organism steps we can dish out for this world update!
-  const size_t org_step_budget = this->GetNumOrgs()*avg_org_steps_per_update;
+  const size_t org_step_budget = num_orgs*avg_org_steps_per_update;
   for (size_t step = 0; step < org_step_budget; ++step) {
     // Schedule someone to take a step.
     const size_t org_id = scheduler.GetRandom(); // This should reweight the scheduler automatically.
@@ -275,27 +286,29 @@ void DirectedDevoWorld<ORG,TASK>::RunStep() {
     }
   }
 
-  /////////////////////////////////////////////////////////////////
-  std::cout << "  Population:";
-  for (size_t i = 0; i < pop.size(); ++i) {
-    if (this->IsOccupied(i)) {
-      std::cout << " {"
-        << "id:"<<i<<","
-        << "merit:"<<pop[i]->GetMerit() << ","
-        << "pheno:"<<pop[i]->GetPhenotype().num_ones << ","
-        << "ones:"<< pop[i]->GetGenome().CountOnes();
-    } else {
-      std::cout << " {id:"<<i<<","<<"dead";
+  if (this->GetUpdate() == 4095 ) {
+    /////////////////////////////////////////////////////////////////
+    std::cout << "  Population:";
+    for (size_t i = 0; i < pop.size(); ++i) {
+      if (this->IsOccupied(i)) {
+        std::cout << " {"
+          << "id:"<<i<<","
+          << "merit:"<<pop[i]->GetMerit() << ","
+          << "pheno:"<<pop[i]->GetPhenotype().num_ones << ","
+          << "ones:"<< pop[i]->GetGenome().CountOnes();
+      } else {
+        std::cout << " {id:"<<i<<","<<"dead";
+      }
+      std::cout << ",weight:"<<scheduler.GetWeightMap().GetWeight(i)<<"}";
     }
-    std::cout << ",weight:"<<scheduler.GetWeightMap().GetWeight(i)<<"}";
+    std::cout << std::endl;
+    std::cout << "  Resource levels (after update): ";
+    for (size_t i = 0; i < this->GetSize(); ++i) {
+      if (this->IsOccupied(i)) std::cout << " {id-"<<i<<" " << this->GetOrg(i).GetResources() << "}";
+    }
+    std::cout << std::endl;
+    /////////////////////////////////////////////////////////////////
   }
-  std::cout << std::endl;
-  std::cout << "  Resource levels (after update): ";
-  for (size_t i = 0; i < this->GetSize(); ++i) {
-    if (this->IsOccupied(i)) std::cout << " {id-"<<i<<" " << this->GetOrg(i).GetResources() << "}";
-  }
-  std::cout << std::endl;
-  /////////////////////////////////////////////////////////////////
 
   // TODO - any data recording, etc here
 
@@ -306,6 +319,13 @@ void DirectedDevoWorld<ORG,TASK>::RunStep() {
 template<typename ORG, typename TASK>
 void DirectedDevoWorld<ORG,TASK>::Evaluate() {
   task.Evaluate();
+}
+
+template<typename ORG, typename TASK>
+void DirectedDevoWorld<ORG,TASK>::DirectedDevoReset() {
+  task.OnWorldReset();          // Tell task that the world is being reset.
+  base_t::Reset();              // Call base reset function.
+  SetPopStructure(pop_struct);  // Reset the population structure.
 }
 
 template<typename ORG, typename TASK>

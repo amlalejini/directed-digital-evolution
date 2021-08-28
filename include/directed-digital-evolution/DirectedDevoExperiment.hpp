@@ -34,6 +34,8 @@ public:
   using config_t = DirectedDevoConfig;
   using pop_struct_t = typename world_t::POP_STRUCTURE;
   using mutator_t = typename org_t::mutator_t; // TODO - move the mutator out of the organism? Makes it weird that the task needs to care about mutators....
+  using genome_t = typename org_t::genome_t;
+  using propagule_t = emp::vector<genome_t>;
 
   const std::unordered_set<std::string> valid_selection_methods={"elite","tournament","lexicase"};
 
@@ -48,6 +50,11 @@ protected:
 
   std::function<void(emp::vector<size_t>&)> do_selection_fun;
   emp::vector<std::function<double(void)>> aggregate_score_funs;
+
+  // TODO - should more state information get passed through the propagule? If so, genome_t => org_t?
+  emp::vector< emp::vector<genome_t> > propagules;
+  std::unordered_set<size_t> extinct_worlds; /// Set of worlds that are extinct.
+  std::unordered_set<size_t> live_worlds;    /// Set of worlds that are not extinct.
 
   // TODO - have a criteria vector of functions that access quality criteria (for lexicase, multi obj opt)?
   // TODO - Have a task construct that manages performance criteria, etc?
@@ -69,6 +76,12 @@ protected:
   /// Configure population selection (called internally).
   void SetupSelection();
   void SetupEliteSelection();
+
+  // TODO - allow for different sampling techniques / ways of forming propagules
+  // - e.g., each propagules comes from a single world? each propagule is a mixture of all worlds?
+  //        'propagule' crossover?
+  propagule_t Sample(world_t& world); // NOTE - should this live in the experiment or the world class?
+  void SeedWithPropagule(world_t& world, propagule_t& propagule);
 
   /// Output the experiment's configuration as a .csv file.
   void SnapshotConfig(const std::string& filename = "experiment-config.csv");
@@ -193,6 +206,28 @@ void DirectedDevoExperiment<ORG, TASK>::SetupEliteSelection() {
 }
 
 template <typename ORG, typename TASK>
+emp::vector<typename ORG::genome_t> DirectedDevoExperiment<ORG, TASK>::Sample(world_t& world) {
+  emp_assert(!world.IsExtinct(), "Attempting to sample from an extinct population.");
+  // sample randomly (for now)
+  propagule_t sample;
+  // extinct worlds shouldn't get selected (unless everything went extinct or we're doing random selection...)
+  for (size_t i = 0; i < config.POPULATION_SAMPLING_SIZE(); ++i) {
+    sample.emplace_back(world.GetRandomOrg().GetGenome());
+  }
+  return sample;
+}
+
+template <typename ORG, typename TASK>
+void DirectedDevoExperiment<ORG, TASK>::SeedWithPropagule(world_t& world, propagule_t& propagule) {
+  // TODO - Tweak if we ever complicate how propagules are seeded into the world
+  emp_assert(propagule.size() <= world.GetSize(), "Propagule size cannot exceed world size.", propagule.size(), world.GetSize());
+  for (size_t i = 0; i < propagule.size(); ++i) {
+   const size_t pos = i; // TODO - use a slightly better method of distributing the propagule!
+   world.InjectAt(propagule[i], {pos});
+  }
+}
+
+template <typename ORG, typename TASK>
 void DirectedDevoExperiment<ORG, TASK>::SnapshotConfig(
   const std::string& filename /*= "experiment-config.csv"*/
 )
@@ -218,6 +253,7 @@ bool DirectedDevoExperiment<ORG, TASK>::ValidateConfig() {
   if (config.LOCAL_GRID_DEPTH() < 1) return false;
   if (config.AVG_STEPS_PER_ORG() < 1) return false;
   if (!emp::Has(valid_selection_methods,config.SELECTION_METHOD())) return false;
+  if (config.POPULATION_SAMPLING_SIZE() < 1) return false;
   // TODO - flesh this out!
   return true;
 }
@@ -230,6 +266,10 @@ void DirectedDevoExperiment<ORG, TASK>::Run() {
 
   for (cur_epoch = 0; cur_epoch <= config.EPOCHS(); ++cur_epoch) {
     std::cout << "==== EPOCH " << cur_epoch << "====" << std::endl;
+
+    extinct_worlds.clear();
+    live_worlds.clear();
+
     // Run worlds forward X updates.
     for (auto world_ptr : worlds) {
       std::cout << "Running world " << world_ptr->GetName() << std::endl;
@@ -237,8 +277,14 @@ void DirectedDevoExperiment<ORG, TASK>::Run() {
     }
 
     // Do evaluation (could move this into previous loop if I don't add anything else here that requires all worlds to have been run)
-    for (auto world_ptr : worlds) {
-      world_ptr->Evaluate();
+    for (size_t world_id = 0; world_id < worlds.size(); ++world_id) {
+      worlds[world_id]->Evaluate();
+      (worlds[world_id]->IsExtinct()) ? extinct_worlds.insert(world_id) : live_worlds.insert(world_id);
+    }
+
+    if (extinct_worlds.size() == worlds.size()) {
+      std::cout << "All of the worlds are extinct." << std::endl;
+
     }
 
     std::cout << "Evaluation summary: " << std::endl;
@@ -250,15 +296,33 @@ void DirectedDevoExperiment<ORG, TASK>::Run() {
     // Do selection
     do_selection_fun(selected);
 
-    std::cout << "selected:" << selected << std::endl;
+    // std::cout << "selected:" << selected << std::endl;
 
     // selected should hold which populations we should sample from
 
-    // TODO - should sampling individuals from a population remove them from future samples?
-    // - Which populations are propagated to the next generation?
+    // For each selected world, extract a sample
+    propagules.resize(config.NUM_POPS(), {});
+    emp_assert(propagules.size()==selected.size());
+    for (size_t i = 0; i < selected.size(); ++i) {
+      // Sample propagules from each world!
+      size_t selected_pop_id = selected[i];
+      // Make sure selected pop is isn't extinct (in some weird edge case)
+      // Note that we cannot be here if all populations are extinct. Spin until we pull a non-extinct pop.
+      while (emp::Has(extinct_worlds, selected_pop_id)) {
+        selected_pop_id = (selected_pop_id + 1) % worlds.size();
+      }
+      // Sample from the selected world to form the propagule.
+      // TODO - will need to tweak this code if we complicate propagule formation
+      propagules[i] = Sample(*worlds[selected_pop_id]);
+    }
 
-    // TODO
-    // NOTE - each world should have a 'phenotype' that gets filled out by the world as it goes(?)
+    // Reset worlds + inject propagules into them!
+    for (size_t i = 0; i < config.NUM_POPS(); ++i) {
+      auto& world = *(worlds[i]);
+      world.DirectedDevoReset(); // Clear our the world.
+      emp_assert(propagules[i].size(), "Propagule is empty.");
+      SeedWithPropagule(world, propagules[i]);
+    }
 
     // Report summary information(?)
     // std::cout << "epoch " << cur_epoch << std::endl;

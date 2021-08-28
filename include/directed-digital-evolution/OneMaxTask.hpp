@@ -31,6 +31,7 @@ protected:
 
   emp::vector<double> ones_per_position;
   double total_num_ones=0;
+  size_t num_orgs;
 
 public:
   OneMaxTask(world_t& w) : base_t(w), ones_per_position(org_t::GENOME_SIZE, 0) { ; }
@@ -67,6 +68,15 @@ public:
   /// OnWorldUpdate is called when the OnUpdate signal is triggered (at the end of a world update)
   void OnWorldUpdate(size_t update) override { /*todo*/ }
 
+  void OnWorldReset() override {
+    total_num_ones = 0.0;
+    std::fill(
+      ones_per_position.begin(),
+      ones_per_position.end(),
+      0.0
+    );
+  }
+
   // TODO - any selection based hooks!
 
   /// Evaluate the world on this task (count ones).
@@ -81,6 +91,7 @@ public:
     );
 
     // Count ones!
+    num_orgs = world.GetNumOrgs();
     for (size_t org_id = 0; org_id < world.GetSize(); ++org_id) {
       if (!world.IsOccupied({org_id})) continue;
       auto& org = world.GetOrg(org_id);
@@ -89,7 +100,7 @@ public:
       }
       total_num_ones += org.GetPhenotype().num_ones;
     }
-
+    total_num_ones = (num_orgs) ? total_num_ones / num_orgs : 0;
     fresh_eval=true; // mark task evaluation
 
   }

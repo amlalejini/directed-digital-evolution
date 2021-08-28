@@ -46,7 +46,7 @@ protected:
   using base_t::merit;
 
   double UpdateMerit() {
-    merit = 1 + phenotype.num_ones; // +1 ensures that merit can't be zero for living organisms
+    merit = 1 + emp::Pow2(phenotype.num_ones); // +1 ensures that merit can't be zero for living organisms
     return merit;
   }
 

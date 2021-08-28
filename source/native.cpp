@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
   // Things that need to be configured at compile time:
   // - Organism type
   // - Mutator?
-  using org_t = dirdevo::OneMaxOrganism<128,dirdevo::BitSetMutator>;
+  using org_t = dirdevo::OneMaxOrganism<256,dirdevo::BitSetMutator>;
   using task_t = dirdevo::OneMaxTask<org_t>; // TODO
   using experiment_t = dirdevo::DirectedDevoExperiment<org_t, task_t>;
 

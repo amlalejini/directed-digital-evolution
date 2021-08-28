@@ -52,10 +52,12 @@ public:
   /// OnWorldUpdate is called when the OnUpdate signal is triggered (at the end of a world update)
   virtual void OnWorldUpdate(size_t update) { emp_assert(false, "Derived task class must implement this function."); }
 
+  /// OnWorldReset is called when the DirectedDevoWorld's DirectedDevoReset function is called.
+  virtual void OnWorldReset() { emp_assert(false, "Derived task class must implement this function."); }
+
   // TODO - any selection based hooks!
   /// Ensure that task performance is up-to-date. Might not do anything if performance is updated as the world updates.
   virtual void Evaluate() { emp_assert(false, "Derived task class must implement this function."); }
-
 
   // --- ORGANISM-LEVEL EVENT HOOKS ---
   // These are always called AFTER the organism's equivalent functions.
