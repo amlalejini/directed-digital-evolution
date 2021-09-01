@@ -9,9 +9,14 @@
 #include "directed-digital-evolution/config_setup.hpp"
 #include "directed-digital-evolution/DirectedDevoConfig.hpp"
 #include "directed-digital-evolution/DirectedDevoExperiment.hpp"
+
+// ONE MAX
 #include "directed-digital-evolution/OneMaxOrganism.hpp"
 #include "directed-digital-evolution/BitSetMutator.hpp"
 #include "directed-digital-evolution/OneMaxTask.hpp"
+
+// SGP-LITE
+#include "directed-digital-evolution/SGPLiteOrganism.hpp"
 
 // This is the main function for the NATIVE version of directed-digital-evolution.
 
