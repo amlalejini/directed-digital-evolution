@@ -3,7 +3,6 @@
 #define DIRECTED_DEVO_DIRECTED_DEVO_ONEMAX_ORGANISM_HPP_INCLUDE
 
 #include "BaseOrganism.hpp"
-// #include "BitSetMutator.hpp"
 
 namespace dirdevo {
 
@@ -16,7 +15,6 @@ public:
   using phenotype_t = Phenotype;
   using this_t = OneMaxOrganism<GENOME_SIZE>;
   using base_t = BaseOrganism<this_t>;
-  // using mutator_t = MUTATOR_T;
 
   using base_t::SetReproReady;
   using base_t::SetDead;
