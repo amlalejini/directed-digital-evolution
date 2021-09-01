@@ -23,9 +23,10 @@ int main(int argc, char* argv[])
   // Things that need to be configured at compile time:
   // - Organism type
   // - Mutator?
-  using org_t = dirdevo::OneMaxOrganism<256,dirdevo::BitSetMutator>;
-  using task_t = dirdevo::OneMaxTask<org_t>; // TODO
-  using experiment_t = dirdevo::DirectedDevoExperiment<org_t, task_t>;
+  using org_t = dirdevo::OneMaxOrganism<256>;
+  using task_t = dirdevo::OneMaxTask<org_t>;
+  using mutator_t = dirdevo::BitSetMutator;
+  using experiment_t = dirdevo::DirectedDevoExperiment<org_t, mutator_t, task_t>;
 
   // Set up a configuration panel for native application
   setup_config_native(cfg, argc, argv);

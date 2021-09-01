@@ -23,17 +23,18 @@
 
 namespace dirdevo {
 
-template<typename ORG, typename TASK> // TODO - define org type based on compiler flag?
+template<typename ORG, typename MUTATOR, typename TASK> // TODO - define org type based on compiler flag?
 class DirectedDevoExperiment {
 public:
   // --- Publically available types ---
-  using this_t = DirectedDevoExperiment<ORG,TASK>;
+  using this_t = DirectedDevoExperiment<ORG,MUTATOR,TASK>;
   using org_t = ORG;
   using task_t = TASK;
   using world_t = DirectedDevoWorld<org_t,task_t>;
   using config_t = DirectedDevoConfig;
   using pop_struct_t = typename world_t::POP_STRUCTURE;
-  using mutator_t = typename org_t::mutator_t; // TODO - move the mutator out of the organism? Makes it weird that the task needs to care about mutators....
+  // using mutator_t = typename org_t::mutator_t; // TODO - move the mutator out of the organism? Makes it weird that the task needs to care about mutators....
+  using mutator_t = MUTATOR;
   using genome_t = typename org_t::genome_t;
   using propagule_t = emp::vector<genome_t>;
 
@@ -118,8 +119,8 @@ public:
 
 };
 
-template <typename ORG, typename TASK>
-void DirectedDevoExperiment<ORG, TASK>::Setup() {
+template <typename ORG, typename MUTATOR, typename TASK>
+void DirectedDevoExperiment<ORG, MUTATOR, TASK>::Setup() {
   if (setup) return; // Don't let myself run Setup more than once.
 
   // Validate configuration (even in when compiled outside of debug mode!)
@@ -173,8 +174,8 @@ void DirectedDevoExperiment<ORG, TASK>::Setup() {
   setup = true;
 }
 
-template <typename ORG, typename TASK>
-void DirectedDevoExperiment<ORG, TASK>::SetupSelection() {
+template <typename ORG, typename MUTATOR, typename TASK>
+void DirectedDevoExperiment<ORG, MUTATOR, TASK>::SetupSelection() {
   // Wire up aggregate score functions
   for (size_t pop_id = 0; pop_id < config.NUM_POPS(); ++pop_id) {
     aggregate_score_funs.emplace_back(
@@ -197,16 +198,16 @@ void DirectedDevoExperiment<ORG, TASK>::SetupSelection() {
   }
 }
 
-template <typename ORG, typename TASK>
-void DirectedDevoExperiment<ORG, TASK>::SetupEliteSelection() {
+template <typename ORG, typename MUTATOR, typename TASK>
+void DirectedDevoExperiment<ORG, MUTATOR, TASK>::SetupEliteSelection() {
   // calling the do selected function should population selected with the ids of populations to sample 'propagules' from
   do_selection_fun = [this](emp::vector<size_t>& selected) {
     dirdevo::EliteSelect(selected, aggregate_score_funs, config.ELITE_SEL_NUM_ELITES());
   };
 }
 
-template <typename ORG, typename TASK>
-emp::vector<typename ORG::genome_t> DirectedDevoExperiment<ORG, TASK>::Sample(world_t& world) {
+template <typename ORG, typename MUTATOR, typename TASK>
+emp::vector<typename ORG::genome_t> DirectedDevoExperiment<ORG, MUTATOR, TASK>::Sample(world_t& world) {
   emp_assert(!world.IsExtinct(), "Attempting to sample from an extinct population.");
   // sample randomly (for now)
   propagule_t sample;
@@ -217,8 +218,8 @@ emp::vector<typename ORG::genome_t> DirectedDevoExperiment<ORG, TASK>::Sample(wo
   return sample;
 }
 
-template <typename ORG, typename TASK>
-void DirectedDevoExperiment<ORG, TASK>::SeedWithPropagule(world_t& world, propagule_t& propagule) {
+template <typename ORG, typename MUTATOR, typename TASK>
+void DirectedDevoExperiment<ORG, MUTATOR, TASK>::SeedWithPropagule(world_t& world, propagule_t& propagule) {
   // TODO - Tweak if we ever complicate how propagules are seeded into the world
   emp_assert(propagule.size() <= world.GetSize(), "Propagule size cannot exceed world size.", propagule.size(), world.GetSize());
   for (size_t i = 0; i < propagule.size(); ++i) {
@@ -227,8 +228,8 @@ void DirectedDevoExperiment<ORG, TASK>::SeedWithPropagule(world_t& world, propag
   }
 }
 
-template <typename ORG, typename TASK>
-void DirectedDevoExperiment<ORG, TASK>::SnapshotConfig(
+template <typename ORG, typename MUTATOR, typename TASK>
+void DirectedDevoExperiment<ORG, MUTATOR, TASK>::SnapshotConfig(
   const std::string& filename /*= "experiment-config.csv"*/
 )
 {
@@ -242,8 +243,8 @@ void DirectedDevoExperiment<ORG, TASK>::SnapshotConfig(
   std::cout << "...done snapshotting." << std::endl;
 }
 
-template <typename ORG, typename TASK>
-bool DirectedDevoExperiment<ORG, TASK>::ValidateConfig() {
+template <typename ORG, typename MUTATOR, typename TASK>
+bool DirectedDevoExperiment<ORG, MUTATOR, TASK>::ValidateConfig() {
   // GLOBAL SETTINGS
   if (config.NUM_POPS() < 1) return false;
   // LOCAL WORLD SETTINGS
@@ -259,8 +260,8 @@ bool DirectedDevoExperiment<ORG, TASK>::ValidateConfig() {
 }
 
 
-template <typename ORG, typename TASK>
-void DirectedDevoExperiment<ORG, TASK>::Run() {
+template <typename ORG, typename MUTATOR, typename TASK>
+void DirectedDevoExperiment<ORG, MUTATOR, TASK>::Run() {
   // Create vector to hold the distribution of population ids selected each epoch
   emp::vector<size_t> selected(config.NUM_POPS(), 0);
 
@@ -332,8 +333,8 @@ void DirectedDevoExperiment<ORG, TASK>::Run() {
 
 }
 
-template <typename ORG, typename TASK>
-void DirectedDevoExperiment<ORG, TASK>::RunStep() {
+template <typename ORG, typename MUTATOR, typename TASK>
+void DirectedDevoExperiment<ORG, MUTATOR, TASK>::RunStep() {
   // Advance each world by one step
   for (auto world_ptr : worlds) {
     std::cout << "-- Stepping " << world_ptr->GetName() << " --" << std::endl;

@@ -3,23 +3,20 @@
 #define DIRECTED_DEVO_DIRECTED_DEVO_ONEMAX_ORGANISM_HPP_INCLUDE
 
 #include "BaseOrganism.hpp"
-#include "BitSetMutator.hpp"
+// #include "BitSetMutator.hpp"
 
 namespace dirdevo {
 
-template<
-  size_t BITS=128,
-  typename MUTATOR_T=BitSetMutator
->
-class OneMaxOrganism : public BaseOrganism<OneMaxOrganism<BITS,MUTATOR_T>> {
+template<size_t BITS=128>
+class OneMaxOrganism : public BaseOrganism<OneMaxOrganism<BITS>> {
 public:
   struct Phenotype;
   static constexpr size_t GENOME_SIZE=BITS;
   using genome_t = emp::BitSet<GENOME_SIZE>;
   using phenotype_t = Phenotype;
-  using this_t = OneMaxOrganism<GENOME_SIZE,MUTATOR_T>;
+  using this_t = OneMaxOrganism<GENOME_SIZE>;
   using base_t = BaseOrganism<this_t>;
-  using mutator_t = MUTATOR_T;
+  // using mutator_t = MUTATOR_T;
 
   using base_t::SetReproReady;
   using base_t::SetDead;
