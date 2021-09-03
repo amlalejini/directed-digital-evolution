@@ -80,7 +80,7 @@ protected:
   void Setup();
 
   /// Configure local population structure (called internally).
-  void SetLocalPopStructure();
+  // void SetLocalPopStructure();
 
   /// Configure population selection (called internally).
   void SetupSelection();
@@ -143,8 +143,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
 
   // What population structure are we using?
   // TODO - clean this up a bit!
-  local_pop_struct = world_t::PopStructureStrToMode(config.LOCAL_POP_STRUCTURE());
-  typename world_t::PopStructureDesc pop_struct(local_pop_struct, config.LOCAL_GRID_WIDTH(), config.LOCAL_GRID_HEIGHT(), config.LOCAL_GRID_DEPTH());
+  // local_pop_struct = world_t::PopStructureStrToMode(config.LOCAL_POP_STRUCTURE());
+  // typename world_t::PopStructureDesc pop_struct(local_pop_struct, config.LOCAL_GRID_WIDTH(), config.LOCAL_GRID_HEIGHT(), config.LOCAL_GRID_DEPTH());
 
   // Configure the mutator
   mutator_t::Configure(mutator, config);
@@ -158,8 +158,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
     worlds[i] = emp::NewPtr<world_t>(
       config,
       random,
-      "population_"+emp::to_string(i),
-      pop_struct
+      "population_"+emp::to_string(i)
     );
     worlds[i]->SetAvgOrgStepsPerUpdate(config.AVG_STEPS_PER_ORG());
     // configure world's mutation function

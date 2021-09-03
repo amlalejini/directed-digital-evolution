@@ -21,7 +21,7 @@ public:
   using org_t = AvidaGPOrganism;
   using this_t = AvidaGPL9Task;
   using base_t = BaseTask<this_t,org_t>;
-  using world_t = AvidaGPL9World<this_t>;
+  using world_t = DirectedDevoWorld<org_t, this_t>;
 
 protected:
 

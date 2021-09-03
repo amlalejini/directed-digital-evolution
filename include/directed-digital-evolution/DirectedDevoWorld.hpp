@@ -13,6 +13,8 @@
 
 namespace dirdevo {
 
+// TODO - add world peripheral??? => Can hold instruction sets?
+//        OR, assume that directeddevoworld is not the end point? that is, you need to derive from it
 // TODO - clean up configuration (let the world configure more of itself (move out of the experiment..)!)
 template <typename ORG, typename TASK>
 class DirectedDevoWorld : public emp::World<ORG> {
@@ -69,8 +71,7 @@ protected:
   std::function<double(void)> aggregate_performance_fun;
   pop_struct_t pop_struct;
 
-
-  void SetPopStructure(const pop_struct_t & pop_struct);
+  void SetPopStructure(const pop_struct_t & pop_struct); // TODO - clean this up more!
 
 public:
 
@@ -78,14 +79,18 @@ public:
   DirectedDevoWorld(
     const config_t& cfg,
     emp::Random & rnd,
-    const std::string & name="",
-    const pop_struct_t & p_struct={} // TODO - let world configure it's own population structure based on cfg
+    const std::string & name=""
   ) :
     base_t(rnd, name),
     config(cfg),
     scheduler(rnd),
     task(*this),
-    pop_struct(p_struct)
+    pop_struct(
+      this_t::PopStructureStrToMode(cfg.LOCAL_POP_STRUCTURE()),
+      cfg.LOCAL_GRID_WIDTH(),
+      cfg.LOCAL_GRID_HEIGHT(),
+      cfg.LOCAL_GRID_DEPTH()
+    )
   {
 
     /// TODO - document the order of signal calls in the world!

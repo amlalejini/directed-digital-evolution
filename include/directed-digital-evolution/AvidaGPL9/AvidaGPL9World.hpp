@@ -22,9 +22,6 @@ public:
   using hardware_t = emp::AvidaGP;
   using inst_lib_t = typename hardware_t::inst_lib_t;
   using config_t = typename base_t::config_t;
-  using pop_struct_t = typename base_t::pop_struct_t; // TODO - have base class handle structure
-
-  using base_t::POP_STRUCTURE;
 
 protected:
 
@@ -36,10 +33,9 @@ public:
   AvidaGPL9World(
     const config_t& cfg,
     emp::Random & rnd,
-    const std::string & name="",
-    const pop_struct_t & p_struct={}
+    const std::string & name=""
   ) :
-    base_t(cfg, rnd, name, p_struct)
+    base_t(cfg, rnd, name)
   {
     // Configure the instruction set.
     SetupInstLib();

@@ -3,6 +3,7 @@
 #define DIRECTED_DEVO_DIRECTED_DEVO_AVIDAGP_ORGANISM_HPP_INCLUDE
 
 #include "../BaseOrganism.hpp"
+#include "emp/hardware/Genome.hpp"
 #include "emp/hardware/AvidaGP.hpp"
 
 // STATUS: In progress
@@ -21,7 +22,7 @@ public:
   using this_t = AvidaGPOrganism;
   using base_t = BaseOrganism<this_t>;
   using hardware_t = emp::AvidaGP;
-  using genome_t = typename hardware_t::genome_t;
+  using genome_t = typename emp::AvidaGP::genome_t;
   using phenotype_t = Phenotype;
 
   struct Phenotype {
@@ -41,14 +42,14 @@ public:
 protected:
   // sgp_cpu_t cpu;
   phenotype_t phenotype;
-  hardware_t hardware;
+  emp::AvidaGP hardware;
   // genome_t genome;      /// Keep our own copy of our genome independent of the hardware? (can't easily mutate the genome in the hardware)
   // sgp_program_t program;
 
 public:
 
-  AvidaGPOrganism(const genome_t& g) :
-    hardware(g)
+  AvidaGPOrganism(const genome_t& g)
+    : hardware(g)
   {
 
   }
@@ -59,20 +60,20 @@ public:
   const phenotype_t & GetPhenotype() const { return phenotype; }
 
 
-  void OnBeforeRepro() override;
+  // void OnBeforeRepro() override;
 
-  void OnOffspringReady(this_t& offspring) override;
+  // void OnOffspringReady(this_t& offspring) override;
 
-  void OnPlacement(size_t position) override;
+  // void OnPlacement(size_t position) override;
 
-  void OnBirth(this_t& parent) override {
-    // After mutations have occurred, but before parent & task have been alerted to ready-ness.
-    // Safe to spin up the CPU with the current program at this point.
-    // cpu.InitializeAnchors(genome);
-    //
-  }
+  // void OnBirth(this_t& parent) override {
+  //   // After mutations have occurred, but before parent & task have been alerted to ready-ness.
+  //   // Safe to spin up the CPU with the current program at this point.
+  //   // cpu.InitializeAnchors(genome);
+  //   //
+  // }
 
-  void OnDeath(size_t position) override;
+  // void OnDeath(size_t position) override;
 
   template<typename WORLD_T>
   void ProcessStep(WORLD_T& world) {
