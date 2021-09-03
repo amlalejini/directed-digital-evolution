@@ -2,7 +2,7 @@
 #ifndef DIRECTED_DEVO_DIRECTED_DEVO_ONEMAX_ORGANISM_HPP_INCLUDE
 #define DIRECTED_DEVO_DIRECTED_DEVO_ONEMAX_ORGANISM_HPP_INCLUDE
 
-#include "BaseOrganism.hpp"
+#include "../BaseOrganism.hpp"
 
 namespace dirdevo {
 
@@ -26,7 +26,8 @@ public:
     size_t num_ones=0;
   };
 
-  static genome_t GenerateAncestralGenome() {
+  template<typename EXPERIMENT_T, typename WORLD_T>
+  static genome_t GenerateAncestralGenome(const EXPERIMENT_T& exp, const WORLD_T& world) {
     return genome_t(false);
   }
 

@@ -1,8 +1,10 @@
 #pragma once
-#ifndef DIRECTED_DEVO_DIRECTED_DEVO_ONE_MAX_TASK_HPP_INCLUDE
-#define DIRECTED_DEVO_DIRECTED_DEVO_ONE_MAX_TASK_HPP_INCLUDE
+#ifndef DIRECTED_DEVO_AVIDAGP_L9_TASK_HPP_INCLUDE
+#define DIRECTED_DEVO_AVIDAGP_L9_TASK_HPP_INCLUDE
 
 #include "../BaseTask.hpp"
+#include "AvidaGPOrganism.hpp"
+#include "AvidaGPL9World.hpp"
 
 namespace dirdevo {
 
@@ -12,15 +14,14 @@ namespace dirdevo {
  * Aggregate performance = average num_ones
  * Multiple criteria = average genome value for each site (works because fixed length genomes)
  */
-template<typename ORG_T>
-class OneMaxTask : public BaseTask<OneMaxTask<ORG_T>, ORG_T> {
+class AvidaGPL9Task : public BaseTask<AvidaGPL9Task, AvidaGPOrganism> {
 
 public:
 
-  using org_t = ORG_T;
-  using this_t = OneMaxTask<org_t>;
+  using org_t = AvidaGPOrganism;
+  using this_t = AvidaGPL9Task;
   using base_t = BaseTask<this_t,org_t>;
-  using world_t = DirectedDevoWorld<org_t,this_t>;
+  using world_t = AvidaGPL9World<this_t>;
 
 protected:
 
@@ -29,12 +30,9 @@ protected:
   using base_t::fresh_eval;
   using base_t::world;
 
-  emp::vector<double> ones_per_position;
-  double total_num_ones=0;
-  size_t num_orgs;
-
 public:
-  OneMaxTask(world_t& w) : base_t(w), ones_per_position(org_t::GENOME_SIZE, 0) { ; }
+  // TODO - fix this => task is initialized by the base obj
+  AvidaGPL9Task(world_t& w) : base_t(w) { ; }
 
   // --- WORLD-LEVEL EVENT HOOKS ---
 
@@ -43,14 +41,15 @@ public:
     // TODO - configure task based on world's configuration
 
     // Wire up the aggregate task performance function
-    aggregate_performance_fun = [this]() { return total_num_ones; };
+    aggregate_performance_fun = [this]() { return 0; };
 
     // Wire up the performance function set (used for multi-objective/-task selection schemes)
-    for (size_t i = 0; i < org_t::GENOME_SIZE; ++i) {
+    // TODO - fill this out!
+    for (size_t i = 0; i < 10; ++i) { // <-- this is a placeholder just to get things to compile
       performance_fun_set.emplace_back(
         [i, this]() {
           // importantly, i is copy-captured
-          return ones_per_position[i];
+          return 0;
         }
       );
     }
@@ -69,40 +68,15 @@ public:
   void OnWorldUpdate(size_t update) override { /*todo*/ }
 
   void OnWorldReset() override {
-    total_num_ones = 0.0;
-    std::fill(
-      ones_per_position.begin(),
-      ones_per_position.end(),
-      0.0
-    );
-  }
 
-  // TODO - any selection based hooks!
+  }
 
   /// Evaluate the world on this task (count ones).
   void Evaluate() override {
 
-    // Reset internal performance state
-    total_num_ones = 0.0;
-    std::fill(
-      ones_per_position.begin(),
-      ones_per_position.end(),
-      0.0
-    );
+    // TODO
 
-    // Count ones!
-    num_orgs = world.GetNumOrgs();
-    for (size_t org_id = 0; org_id < world.GetSize(); ++org_id) {
-      if (!world.IsOccupied({org_id})) continue;
-      auto& org = world.GetOrg(org_id);
-      for (size_t site_i=0; site_i < org.GetGenome().GetSize(); ++site_i) {
-        ones_per_position[site_i] += (double)org.GetGenome().Get(site_i);
-      }
-      total_num_ones += org.GetPhenotype().num_ones;
-    }
-    total_num_ones = (num_orgs) ? total_num_ones / num_orgs : 0;
     fresh_eval=true; // mark task evaluation
-
   }
 
   // --- ORGANISM-LEVEL EVENT HOOKS ---
@@ -129,10 +103,9 @@ public:
   /// Called after two organisms are swapped in the world (new world positions are accurate).
   void AfterOrgSwap(org_t& org1, org_t& org2) override { /*todo*/ }
 
-
 };
 
 
 } // namespace dirdevo
 
-#endif // #ifndef DIRECTED_DEVO_DIRECTED_DEVO_ONE_MAX_TASK_HPP_INCLUDE
+#endif // #ifndef DIRECTED_DEVO_AVIDAGP_L9_TASK_HPP_INCLUDE

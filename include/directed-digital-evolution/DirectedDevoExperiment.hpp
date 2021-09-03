@@ -20,19 +20,26 @@
 #include "DirectedDevoConfig.hpp"
 #include "DirectedDevoWorld.hpp"
 #include "Selection/SelectionSchemes.hpp"
+#include "BasePeripheral.hpp"
 
 namespace dirdevo {
 
-template<typename ORG, typename MUTATOR, typename TASK> // TODO - define org type based on compiler flag?
+// TODO - we're using one uniform configuration type, so just hand off configs and let things configure themselves.
+// TODO - make communication between experiment and components more consistent (e.g., Configuration; let components configure themselves?)
+
+// PERIPHERAL defines any extra equipment needed to run the experiment (typically something required by the subtasks)
+template<typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL=BasePeripheral>
 class DirectedDevoExperiment {
 public:
   // --- Publically available types ---
-  using this_t = DirectedDevoExperiment<ORG,MUTATOR,TASK>;
+  using this_t = DirectedDevoExperiment<WORLD,ORG,MUTATOR,TASK,PERIPHERAL>;
   using org_t = ORG;
   using task_t = TASK;
-  using world_t = DirectedDevoWorld<org_t,task_t>;
+  using world_t = WORLD; //DirectedDevoWorld<org_t,task_t>;
   using config_t = DirectedDevoConfig;
   using pop_struct_t = typename world_t::POP_STRUCTURE;
+  using peripheral_t = PERIPHERAL;
+
   // using mutator_t = typename org_t::mutator_t; // TODO - move the mutator out of the organism? Makes it weird that the task needs to care about mutators....
   using mutator_t = MUTATOR;
   using genome_t = typename org_t::genome_t;
@@ -48,6 +55,7 @@ protected:
 
   pop_struct_t local_pop_struct=pop_struct_t::MIXED;
   mutator_t mutator; ///< Responsible for mutating organisms across worlds. NOTE - currently, mutator is shared; individual worlds cannot tweak settings (i.e., no high/low mutation worlds).
+  peripheral_t peripheral; ///< Peripheral components that should exist at the experiment level.
 
   std::function<void(emp::vector<size_t>&)> do_selection_fun;
   emp::vector<std::function<double(void)>> aggregate_score_funs;
@@ -117,10 +125,13 @@ public:
   /// - Used primarily for testing and the web interface. Use Run to run the experiment.
   void RunStep();
 
+  peripheral_t& GetPeripheral() { return peripheral; }
+  const peripheral_t& GetPeripheral() const { return peripheral; }
+
 };
 
-template <typename ORG, typename MUTATOR, typename TASK>
-void DirectedDevoExperiment<ORG, MUTATOR, TASK>::Setup() {
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
   if (setup) return; // Don't let myself run Setup more than once.
 
   // Validate configuration (even in when compiled outside of debug mode!)
@@ -138,10 +149,14 @@ void DirectedDevoExperiment<ORG, MUTATOR, TASK>::Setup() {
   // Configure the mutator
   mutator_t::Configure(mutator, config);
 
+  // Configure the peripheral components
+  peripheral.Setup(config);
+
   // Initialize each world.
   worlds.resize(config.NUM_POPS());
   for (size_t i = 0; i < config.NUM_POPS(); ++i) {
     worlds[i] = emp::NewPtr<world_t>(
+      config,
       random,
       "population_"+emp::to_string(i),
       pop_struct
@@ -155,9 +170,9 @@ void DirectedDevoExperiment<ORG, MUTATOR, TASK>::Setup() {
   }
 
   // Seed each world with an initial common ancestor
-  auto ancestral_genome = org_t::GenerateAncestralGenome();
+  // PROBLEM - can't do out-of-world injection for genomes
   for (auto world_ptr : worlds) {
-    // ancestral_genome.Set(0, true); // TODO - this is for testing only!
+    auto ancestral_genome = org_t::GenerateAncestralGenome(*this, *world_ptr);
     world_ptr->InjectAt(ancestral_genome, 0); // TODO - Random location to start?
   }
 
@@ -174,8 +189,8 @@ void DirectedDevoExperiment<ORG, MUTATOR, TASK>::Setup() {
   setup = true;
 }
 
-template <typename ORG, typename MUTATOR, typename TASK>
-void DirectedDevoExperiment<ORG, MUTATOR, TASK>::SetupSelection() {
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupSelection() {
   // Wire up aggregate score functions
   for (size_t pop_id = 0; pop_id < config.NUM_POPS(); ++pop_id) {
     aggregate_score_funs.emplace_back(
@@ -198,16 +213,16 @@ void DirectedDevoExperiment<ORG, MUTATOR, TASK>::SetupSelection() {
   }
 }
 
-template <typename ORG, typename MUTATOR, typename TASK>
-void DirectedDevoExperiment<ORG, MUTATOR, TASK>::SetupEliteSelection() {
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupEliteSelection() {
   // calling the do selected function should population selected with the ids of populations to sample 'propagules' from
   do_selection_fun = [this](emp::vector<size_t>& selected) {
     dirdevo::EliteSelect(selected, aggregate_score_funs, config.ELITE_SEL_NUM_ELITES());
   };
 }
 
-template <typename ORG, typename MUTATOR, typename TASK>
-emp::vector<typename ORG::genome_t> DirectedDevoExperiment<ORG, MUTATOR, TASK>::Sample(world_t& world) {
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+emp::vector<typename ORG::genome_t> DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Sample(world_t& world) {
   emp_assert(!world.IsExtinct(), "Attempting to sample from an extinct population.");
   // sample randomly (for now)
   propagule_t sample;
@@ -218,8 +233,8 @@ emp::vector<typename ORG::genome_t> DirectedDevoExperiment<ORG, MUTATOR, TASK>::
   return sample;
 }
 
-template <typename ORG, typename MUTATOR, typename TASK>
-void DirectedDevoExperiment<ORG, MUTATOR, TASK>::SeedWithPropagule(world_t& world, propagule_t& propagule) {
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SeedWithPropagule(world_t& world, propagule_t& propagule) {
   // TODO - Tweak if we ever complicate how propagules are seeded into the world
   emp_assert(propagule.size() <= world.GetSize(), "Propagule size cannot exceed world size.", propagule.size(), world.GetSize());
   for (size_t i = 0; i < propagule.size(); ++i) {
@@ -228,11 +243,10 @@ void DirectedDevoExperiment<ORG, MUTATOR, TASK>::SeedWithPropagule(world_t& worl
   }
 }
 
-template <typename ORG, typename MUTATOR, typename TASK>
-void DirectedDevoExperiment<ORG, MUTATOR, TASK>::SnapshotConfig(
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SnapshotConfig(
   const std::string& filename /*= "experiment-config.csv"*/
-)
-{
+) {
   std::cout << "Snapshotting experiment configuration..." << std::endl;
 
   // TODO - actually snapshot configuration
@@ -243,8 +257,8 @@ void DirectedDevoExperiment<ORG, MUTATOR, TASK>::SnapshotConfig(
   std::cout << "...done snapshotting." << std::endl;
 }
 
-template <typename ORG, typename MUTATOR, typename TASK>
-bool DirectedDevoExperiment<ORG, MUTATOR, TASK>::ValidateConfig() {
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+bool DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::ValidateConfig() {
   // GLOBAL SETTINGS
   if (config.NUM_POPS() < 1) return false;
   // LOCAL WORLD SETTINGS
@@ -260,8 +274,8 @@ bool DirectedDevoExperiment<ORG, MUTATOR, TASK>::ValidateConfig() {
 }
 
 
-template <typename ORG, typename MUTATOR, typename TASK>
-void DirectedDevoExperiment<ORG, MUTATOR, TASK>::Run() {
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
   // Create vector to hold the distribution of population ids selected each epoch
   emp::vector<size_t> selected(config.NUM_POPS(), 0);
 
@@ -333,8 +347,8 @@ void DirectedDevoExperiment<ORG, MUTATOR, TASK>::Run() {
 
 }
 
-template <typename ORG, typename MUTATOR, typename TASK>
-void DirectedDevoExperiment<ORG, MUTATOR, TASK>::RunStep() {
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::RunStep() {
   // Advance each world by one step
   for (auto world_ptr : worlds) {
     std::cout << "-- Stepping " << world_ptr->GetName() << " --" << std::endl;

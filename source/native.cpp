@@ -11,12 +11,18 @@
 #include "directed-digital-evolution/DirectedDevoExperiment.hpp"
 
 // ONE MAX
-#include "directed-digital-evolution/OneMaxOrganism.hpp"
-#include "directed-digital-evolution/BitSetMutator.hpp"
-#include "directed-digital-evolution/OneMaxTask.hpp"
+#include "directed-digital-evolution/OneMax/OneMaxOrganism.hpp"
+#include "directed-digital-evolution/Mutator/BitSetMutator.hpp"
+#include "directed-digital-evolution/OneMax/OneMaxTask.hpp"
 
 // SGP-LITE
-#include "directed-digital-evolution/SGPLiteOrganism.hpp"
+// #include "directed-digital-evolution/Organism/SGPLiteOrganism.hpp"
+
+// AVIDAGP-L9
+#include "directed-digital-evolution/AvidaGPL9/AvidaGPOrganism.hpp"
+#include "directed-digital-evolution/AvidaGPL9/AvidaGPL9Task.hpp"
+#include "directed-digital-evolution/AvidaGPL9/AvidaGPL9World.hpp"
+#include "directed-digital-evolution/Mutator/AvidaGPMutator.hpp"
 
 // This is the main function for the NATIVE version of directed-digital-evolution.
 
@@ -28,10 +34,29 @@ int main(int argc, char* argv[])
   // Things that need to be configured at compile time:
   // - Organism type
   // - Mutator?
-  using org_t = dirdevo::OneMaxOrganism<256>;
-  using task_t = dirdevo::OneMaxTask<org_t>;
-  using mutator_t = dirdevo::BitSetMutator;
-  using experiment_t = dirdevo::DirectedDevoExperiment<org_t, mutator_t, task_t>;
+
+  // TODO - configure compile time flags to switch between configurations (or just have multiple .cpp?)
+
+  ///////////////////////////////////////////////////////
+  // OneMax
+  ///////////////////////////////////////////////////////
+  // using org_t = dirdevo::OneMaxOrganism<256>;
+  // using task_t = dirdevo::OneMaxTask<org_t>;
+  // using mutator_t = dirdevo::BitSetMutator;
+  // using world_t = dirdevo::DirectedDevoWorld<org_t,task_t>;
+  // using experiment_t = dirdevo::DirectedDevoExperiment<world_t, org_t, mutator_t, task_t>;
+  ///////////////////////////////////////////////////////
+
+  ///////////////////////////////////////////////////////
+  // AvidaGP-L9
+  ///////////////////////////////////////////////////////
+  using org_t = dirdevo::AvidaGPOrganism;
+  using task_t = dirdevo::AvidaGPL9Task;
+  using mutator_t = dirdevo::AvidaGPMutator;
+  using world_t = dirdevo::AvidaGPL9World<task_t>;
+  using experiment_t = dirdevo::DirectedDevoExperiment<world_t, org_t, mutator_t, task_t>;
+  ///////////////////////////////////////////////////////
+
 
   // Set up a configuration panel for native application
   setup_config_native(cfg, argc, argv);

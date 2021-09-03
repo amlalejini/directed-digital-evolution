@@ -9,9 +9,11 @@
 #include "emp/datastructs/IndexMap.hpp"
 
 #include "ProbabilisticScheduler.hpp"
+#include "DirectedDevoConfig.hpp"
 
 namespace dirdevo {
 
+// TODO - clean up configuration (let the world configure more of itself (move out of the experiment..)!)
 template <typename ORG, typename TASK>
 class DirectedDevoWorld : public emp::World<ORG> {
 public:
@@ -46,6 +48,7 @@ public:
   using scheduler_t = ProbabilisticScheduler;
   using pop_struct_t = PopStructureDesc;
   using org_t = ORG;
+  using config_t = DirectedDevoConfig;
 
   static bool IsValidPopStructure(const std::string & mode);
   static POP_STRUCTURE PopStructureStrToMode(const std::string & mode);
@@ -57,6 +60,7 @@ protected:
   using base_t::control;
   using base_t::on_death_sig;
 
+  const config_t& config; ///< Reference to the experiment's configuration.
   size_t max_pop_size=0;              /// Maximum population size (depends on population structure and configuration)
   size_t avg_org_steps_per_update=1;  /// Determines the number of execution steps we dish out each update (population size * this).
   bool extinct=false;                 /// flag for whether of not the population is extinct
@@ -65,17 +69,20 @@ protected:
   std::function<double(void)> aggregate_performance_fun;
   pop_struct_t pop_struct;
 
+
   void SetPopStructure(const pop_struct_t & pop_struct);
 
 public:
 
   // using base_t::base_t;
   DirectedDevoWorld(
+    const config_t& cfg,
     emp::Random & rnd,
     const std::string & name="",
-    const pop_struct_t & p_struct={}
+    const pop_struct_t & p_struct={} // TODO - let world configure it's own population structure based on cfg
   ) :
     base_t(rnd, name),
+    config(cfg),
     scheduler(rnd),
     task(*this),
     pop_struct(p_struct)
@@ -163,6 +170,8 @@ public:
 
     task.OnWorldSetup(); // Tell the task that the world has been configured.
     aggregate_performance_fun = task.GetAggregatePerformanceFun(); // TODO - test that this wiring works as expected!
+
+    std::cout << "DirectedDevoWorld constructed." << std::endl;
   }
 
   const std::string& GetName() const { return name; }
@@ -293,20 +302,20 @@ void DirectedDevoWorld<ORG,TASK>::RunStep() {
       if (this->IsOccupied(i)) {
         std::cout << " {"
           << "id:"<<i<<","
-          << "merit:"<<pop[i]->GetMerit() << ","
-          << "pheno:"<<pop[i]->GetPhenotype().num_ones << ","
-          << "ones:"<< pop[i]->GetGenome().CountOnes();
+          << "merit:"<<pop[i]->GetMerit();
+          // << "pheno:"<<pop[i]->GetPhenotype().num_ones << ",";
+          // << "ones:"<< pop[i]->GetGenome().CountOnes();
       } else {
         std::cout << " {id:"<<i<<","<<"dead";
       }
       std::cout << ",weight:"<<scheduler.GetWeightMap().GetWeight(i)<<"}";
     }
     std::cout << std::endl;
-    std::cout << "  Resource levels (after update): ";
-    for (size_t i = 0; i < this->GetSize(); ++i) {
-      if (this->IsOccupied(i)) std::cout << " {id-"<<i<<" " << this->GetOrg(i).GetResources() << "}";
-    }
-    std::cout << std::endl;
+    // std::cout << "  Resource levels (after update): ";
+    // for (size_t i = 0; i < this->GetSize(); ++i) {
+    //   if (this->IsOccupied(i)) std::cout << " {id-"<<i<<" " << this->GetOrg(i).GetResources() << "}";
+    // }
+    // std::cout << std::endl;
     /////////////////////////////////////////////////////////////////
   }
 
