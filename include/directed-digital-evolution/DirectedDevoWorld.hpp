@@ -204,6 +204,9 @@ public:
   double GetSubTaskPerformance(size_t i);
   size_t GetNumSubTasks();
 
+  task_t& GetTask() { return task; }
+  const task_t& GetTask() const { return task; }
+
 };
 
 template<typename ORG, typename TASK>

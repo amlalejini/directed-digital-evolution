@@ -21,7 +21,6 @@
 // AVIDAGP-L9
 #include "directed-digital-evolution/AvidaGPL9/AvidaGPOrganism.hpp"
 #include "directed-digital-evolution/AvidaGPL9/AvidaGPL9Task.hpp"
-#include "directed-digital-evolution/AvidaGPL9/AvidaGPL9World.hpp"
 #include "directed-digital-evolution/Mutator/AvidaGPMutator.hpp"
 
 // This is the main function for the NATIVE version of directed-digital-evolution.
@@ -53,7 +52,7 @@ int main(int argc, char* argv[])
   using org_t = dirdevo::AvidaGPOrganism;
   using task_t = dirdevo::AvidaGPL9Task;
   using mutator_t = dirdevo::AvidaGPMutator;
-  using world_t = dirdevo::AvidaGPL9World<task_t>;
+  using world_t = dirdevo::DirectedDevoWorld<org_t,task_t>;
   using experiment_t = dirdevo::DirectedDevoExperiment<world_t, org_t, mutator_t, task_t>;
   ///////////////////////////////////////////////////////
 

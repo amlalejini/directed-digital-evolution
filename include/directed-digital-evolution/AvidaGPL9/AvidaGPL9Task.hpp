@@ -4,7 +4,6 @@
 
 #include "../BaseTask.hpp"
 #include "AvidaGPOrganism.hpp"
-#include "AvidaGPL9World.hpp"
 
 namespace dirdevo {
 
@@ -23,6 +22,9 @@ public:
   using base_t = BaseTask<this_t,org_t>;
   using world_t = DirectedDevoWorld<org_t, this_t>;
 
+  using hardware_t = emp::AvidaGP;
+  using inst_lib_t = typename hardware_t::inst_lib_t;
+
 protected:
 
   using base_t::aggregate_performance_fun;
@@ -30,9 +32,16 @@ protected:
   using base_t::fresh_eval;
   using base_t::world;
 
+  inst_lib_t inst_lib;
+
+  void SetupInstLib();
+
 public:
   // TODO - fix this => task is initialized by the base obj
   AvidaGPL9Task(world_t& w) : base_t(w) { ; }
+
+  inst_lib_t& GetInstLib() { return inst_lib; }
+  const inst_lib_t& GetInstLib() const { return inst_lib; }
 
   // --- WORLD-LEVEL EVENT HOOKS ---
 
@@ -55,6 +64,8 @@ public:
     }
 
     fresh_eval=false;
+
+    SetupInstLib();
 
   }
 
@@ -105,6 +116,21 @@ public:
 
 };
 
+void AvidaGPL9Task::SetupInstLib() {
+  std::cout << "Setting up instruction library." << std::endl;
+
+  inst_lib = inst_lib_t::DefaultInstLib();
+
+  inst_lib.AddInst(
+    "Nop",
+    [](hardware_t& hw, const hardware_t::inst_t & inst) {
+      return;
+    },
+    0,
+    "No operation"
+  );
+
+}
 
 } // namespace dirdevo
 
