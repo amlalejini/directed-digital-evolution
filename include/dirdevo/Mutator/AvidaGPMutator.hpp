@@ -8,8 +8,9 @@
 #include "emp/config/config.hpp"
 #include "emp/math/Random.hpp"
 #include "emp/tools/string_utils.hpp"
-
 #include "emp/hardware/AvidaGP.hpp"
+
+#include "dirdevo/AvidaGPL9/AvidaGPReplicator.hpp"
 
 namespace dirdevo {
 
@@ -24,7 +25,7 @@ public:
 
   using mut_config_t = MutatorConfig;
   using this_t = AvidaGPMutator;
-  using genome_t = typename emp::AvidaGP::genome_t;
+  using genome_t = typename AvidaGPReplicator::genome_t;
 
   static void Configure(this_t& mutator, const emp::Config& exp_config) {
 

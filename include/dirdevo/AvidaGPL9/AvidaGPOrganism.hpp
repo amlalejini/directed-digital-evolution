@@ -2,9 +2,10 @@
 #ifndef DIRECTED_DEVO_DIRECTED_DEVO_AVIDAGP_ORGANISM_HPP_INCLUDE
 #define DIRECTED_DEVO_DIRECTED_DEVO_AVIDAGP_ORGANISM_HPP_INCLUDE
 
-#include "../BaseOrganism.hpp"
 #include "emp/hardware/Genome.hpp"
 #include "emp/hardware/AvidaGP.hpp"
+
+#include "AvidaGPReplicator.hpp"
 
 // STATUS: In progress
 
@@ -21,8 +22,9 @@ public:
 
   using this_t = AvidaGPOrganism;
   using base_t = BaseOrganism<this_t>;
-  using hardware_t = emp::AvidaGP;
-  using genome_t = typename emp::AvidaGP::genome_t;
+
+  using hardware_t = AvidaGPReplicator;
+  using genome_t = typename AvidaGPReplicator::genome_t;
   using phenotype_t = Phenotype;
 
   struct Phenotype {
@@ -42,7 +44,7 @@ public:
 protected:
   // sgp_cpu_t cpu;
   phenotype_t phenotype;
-  emp::AvidaGP hardware;
+  hardware_t hardware;
   // genome_t genome;      /// Keep our own copy of our genome independent of the hardware? (can't easily mutate the genome in the hardware)
   // sgp_program_t program;
 
@@ -60,24 +62,27 @@ public:
   const phenotype_t & GetPhenotype() const { return phenotype; }
 
 
-  // void OnBeforeRepro() override;
+  // void OnBeforeRepro() override {
+
+  // }
 
   // void OnOffspringReady(this_t& offspring) override;
+  // TODO - reset parent!
 
   // void OnPlacement(size_t position) override;
 
-  // void OnBirth(this_t& parent) override {
-  //   // After mutations have occurred, but before parent & task have been alerted to ready-ness.
-  //   // Safe to spin up the CPU with the current program at this point.
-  //   // cpu.InitializeAnchors(genome);
-  //   //
-  // }
+  void OnBirth(this_t& parent) override {
+    hardware.ResetHardware(); // Reset AvidaGP virtual hardware
+    // hardware.traits.resize()
+    // TODO - reset phenotype
+  }
 
   // void OnDeath(size_t position) override;
 
   template<typename WORLD_T>
   void ProcessStep(WORLD_T& world) {
-
+    // TODO - fill out process step
+    hardware.SingleProcess();
   }
 
 };

@@ -4,6 +4,7 @@
 
 #include "../BaseTask.hpp"
 #include "AvidaGPOrganism.hpp"
+#include "AvidaGPReplicator.hpp"
 
 namespace dirdevo {
 
@@ -22,7 +23,7 @@ public:
   using base_t = BaseTask<this_t,org_t>;
   using world_t = DirectedDevoWorld<org_t, this_t>;
 
-  using hardware_t = emp::AvidaGP;
+  using hardware_t = AvidaGPReplicator;
   using inst_lib_t = typename hardware_t::inst_lib_t;
 
 protected:
@@ -123,12 +124,25 @@ void AvidaGPL9Task::SetupInstLib() {
 
   inst_lib.AddInst(
     "Nop",
-    [](hardware_t& hw, const hardware_t::inst_t & inst) {
+    [](hardware_t& hw, const hardware_t::inst_t& inst) {
       return;
     },
     0,
     "No operation"
   );
+
+  inst_lib.AddInst(
+    "CopyInst",
+    [](hardware_t& hw, const hardware_t::inst_t& inst) {
+      if (hw.IsDoneCopying()) return; // Don't over-copy.
+      hw.IncSitesCopied();            // 'Copy' an instruction.
+    },
+    0,
+    "Copy next instrution"
+  );
+
+  // TODO - input
+  // TODO - output
 
 }
 
