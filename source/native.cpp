@@ -6,7 +6,7 @@
 
 #include "emp/base/vector.hpp"
 
-#include "dirdevo/config_setup.hpp"
+#include "dirdevo/utility/config_setup.hpp"
 #include "dirdevo/DirectedDevoConfig.hpp"
 #include "dirdevo/DirectedDevoExperiment.hpp"
 
