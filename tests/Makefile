@@ -1,4 +1,4 @@
-TEST_NAMES := selection L9TaskSet
+TEST_NAMES := selection L9TaskSet L9EnvironmentBank
 
 TO_ROOT := $(shell git rev-parse --show-cdup)
 

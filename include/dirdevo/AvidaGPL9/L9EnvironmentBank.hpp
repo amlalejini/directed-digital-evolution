@@ -8,6 +8,7 @@
 #include "emp/math/Random.hpp"
 #include "emp/datastructs/map_utils.hpp"
 #include "emp/datastructs/set_utils.hpp"
+#include "emp/base/Ptr.hpp"
 
 #include "L9TaskSet.hpp"
 
@@ -58,7 +59,7 @@ protected:
 
   emp::Random& random;
   task_set_t& task_set;
-  emp::vector<Environment> environment_bank; ///< Bank of environments.
+  emp::vector<emp::Ptr<Environment>> environment_bank; ///< Bank of environments.
 
   /// Internal helper function to add a task (task_id) output (output_value) to an environment (env)
   void SetEnvOutput(Environment& env, size_t task_id, output_t output_value) {
@@ -71,7 +72,7 @@ protected:
       env.task_lookup.find(output_value)->second.emplace_back(task_id);
     } else {
       env.task_lookup.emplace(
-        std::make_pair(output_value, task_id)
+        std::make_pair(output_value, emp::vector<size_t>({task_id}))
       );
     }
   }
@@ -79,6 +80,7 @@ protected:
   Environment BuildEnvironment() {
     Environment env;
     env.is_collision=true;
+    // size_t build_tries = 0;
     while (env.is_collision) {
       env.Clear();
       env.correct_outputs.resize(task_set.GetSize(), (uint32_t)-1);
@@ -86,13 +88,12 @@ protected:
         random.GetUInt(this_t::MIN_LOGIC_TASK_INPUT, this_t::MAX_LOGIC_TASK_INPUT),
         random.GetUInt(this_t::MIN_LOGIC_TASK_INPUT, this_t::MAX_LOGIC_TASK_INPUT)
       };
-      for (size_t task_id = 0; task_id < task_set.GetSize(); ++task_id) {
-        const output_t task_output = task_set.GetTask(task_id).calc_output_fun(env.input_buffer);
+      for (size_t task_id = 0; (task_id < task_set.GetSize()) && !env.is_collision; ++task_id) {
+        const auto& task = task_set.GetTask(task_id);
+        const output_t task_output = task.calc_output_fun(
+          (task.num_inputs > 1) ? env.input_buffer : emp::vector<input_t>({env.input_buffer[0]})
+        );
         SetEnvOutput(env, task_id, task_output);
-        // Have we seen this output before? Yes, mark collision and break.
-        if (env.is_collision) {
-          break;
-        }
       }
     }
     return env;
@@ -103,8 +104,10 @@ protected:
   void Generate(size_t count) {
     // TODO - guarantee that every environment is unique?
     // std::unordered_set<std::pair<input_t,input_t>> env_buffers; // Use to make sure each environment is unique
-    for (size_t n = 0; n = count; n++) {
-      environment_bank.emplace_back(BuildEnvironment());
+    environment_bank.resize(count, nullptr);
+    for (size_t n = 0; n < count; n++) {
+      environment_bank[n] = emp::NewPtr<Environment>(BuildEnvironment());
+      // environment_bank.emplace_back(BuildEnvironment());
     }
   }
 
@@ -122,11 +125,20 @@ public:
     Generate(num_environments);
   }
 
+  ~L9EnvironmentBank() {
+    for (emp::Ptr<Environment> env : environment_bank) {
+      env.Delete();
+    }
+  }
+
   size_t GetSize() const { return environment_bank.size(); }
 
-  Environment GetRandEnv() {
+
+  const Environment& GetEnvironment(size_t i) const { emp_assert(i < GetSize()); return *(environment_bank[i]); }
+
+  const Environment& GetRandEnv() {
     emp_assert(GetSize(), "Environment bank is empty", GetSize());
-    return environment_bank[random.GetUInt(environment_bank.size())];
+    return *(environment_bank[random.GetUInt(environment_bank.size())]);
   }
 
 };
