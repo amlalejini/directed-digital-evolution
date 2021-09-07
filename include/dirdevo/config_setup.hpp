@@ -7,7 +7,7 @@
 #include "emp/web/UrlParams.hpp"
 #include "emp/web/web.hpp"
 
-#include "directed-digital-evolution/DirectedDevoConfig.hpp"
+#include "dirdevo/DirectedDevoConfig.hpp"
 
 void use_existing_config_file(dirdevo::DirectedDevoConfig & config, emp::ArgManager & am) {
   if(std::filesystem::exists("directed-digital-evolution.cfg")) {
