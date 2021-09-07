@@ -6,11 +6,12 @@
 #include <map>
 #include <unordered_set>
 
-#include <emp/base/vector.hpp>
-#include <emp/datastructs/map_utils.hpp>
+#include "emp/base/vector.hpp"
+#include "emp/datastructs/map_utils.hpp"
 
 namespace dirdevo {
 
+// TODO - clean up language world task vs organism task
 template<typename INPUT_T, typename OUTPUT_T>
 class TaskSet {
 
