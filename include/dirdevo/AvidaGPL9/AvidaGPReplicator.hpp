@@ -21,7 +21,12 @@ public:
   using typename base_t::inst_lib_t;
 
 protected:
-  size_t sites_copied=0; /// Tracks number of instructions copied by executing copy instructions
+
+  size_t sites_copied=0;         /// Tracks number of instructions copied by executing copy instructions
+  size_t env_id=0;               /// ID of the environment (from the environment bank) for this hardware
+  size_t world_id=0;             /// World ID where this hardware unit resides
+  bool dividing=false;           /// Did virtual hardware trigger division (self-replication)?
+  size_t failed_self_divisions=0;     /// Number of failed division attempts
 
 public:
 
@@ -34,6 +39,25 @@ public:
   AvidaGPReplicator(AvidaGPReplicator &&) = default;
 
   virtual ~AvidaGPReplicator() { ; }
+
+  void ResetReplicatorHardware() {
+    sites_copied=0;
+    dividing=false;
+    failed_self_divisions=0;
+    ResetHardware();
+  }
+
+  size_t GetEnvID() const { return env_id; }
+  void SetEnvID(size_t id) { env_id = id; }
+
+  size_t GetWorldID() const { return world_id; }
+  void SetWorldID(size_t id) { world_id = id; }
+
+  bool IsDividing() const { return dividing; }
+  void SetDividing(bool d) { dividing = d; }
+
+  size_t GetNumFailedSelfDivisions() const { return failed_self_divisions; }
+  void IncFailedSelfDivisions(size_t inc=1) { failed_self_divisions += 1; }
 
   bool IsDoneCopying() const { return sites_copied >= GetSize(); }
   size_t GetSitesCopied() const { return sites_copied; }

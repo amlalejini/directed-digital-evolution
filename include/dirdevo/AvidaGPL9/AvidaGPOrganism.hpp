@@ -28,6 +28,17 @@ public:
   using phenotype_t = Phenotype;
 
   struct Phenotype {
+    emp::vector<size_t> org_task_performances;
+
+    void Reset(size_t num_org_tasks=0) {
+      // Reset task performance information for this organism.
+      org_task_performances.resize(num_org_tasks);
+      std::fill(
+        org_task_performances.begin(),
+        org_task_performances.end(),
+        0
+      );
+    }
 
   };
 
@@ -45,9 +56,9 @@ protected:
   // sgp_cpu_t cpu;
   phenotype_t phenotype;
   hardware_t hardware;
-  // genome_t genome;      /// Keep our own copy of our genome independent of the hardware? (can't easily mutate the genome in the hardware)
-  // sgp_program_t program;
+  // bool dividing=false;     /// Is true when organism executes a divide instruction after copying its genome.
 
+  // sgp_program_t program;
 public:
 
   AvidaGPOrganism(const genome_t& g)
@@ -61,6 +72,9 @@ public:
   phenotype_t & GetPhenotype() { return phenotype; }
   const phenotype_t & GetPhenotype() const { return phenotype; }
 
+  hardware_t& GetHardware() { return hardware; }
+  const hardware_t& GetHardware() const { hardware; }
+
 
   // void OnBeforeRepro() override {
 
@@ -69,10 +83,13 @@ public:
   // void OnOffspringReady(this_t& offspring) override;
   // TODO - reset parent!
 
-  // void OnPlacement(size_t position) override;
+  void OnPlacement(size_t position) override {
+    // let hardware know where it exists in the world
+    hardware.SetWorldID(position);
+  }
 
   void OnBirth(this_t& parent) override {
-    hardware.ResetHardware(); // Reset AvidaGP virtual hardware
+    hardware.ResetReplicatorHardware(); // Reset AvidaGP virtual hardware
     // hardware.traits.resize()
     // TODO - reset phenotype
   }

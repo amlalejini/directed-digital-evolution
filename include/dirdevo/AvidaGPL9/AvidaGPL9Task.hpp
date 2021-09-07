@@ -5,6 +5,8 @@
 #include "../BaseTask.hpp"
 #include "AvidaGPOrganism.hpp"
 #include "AvidaGPReplicator.hpp"
+#include "L9TaskSet.hpp"
+#include "L9EnvironmentBank.hpp"
 
 namespace dirdevo {
 
@@ -25,6 +27,9 @@ public:
 
   using hardware_t = AvidaGPReplicator;
   using inst_lib_t = typename hardware_t::inst_lib_t;
+  using org_task_set_t = L9TaskSet;
+
+  static constexpr size_t ENV_BANK_SIZE = 100000;
 
 protected:
 
@@ -33,13 +38,21 @@ protected:
   using base_t::fresh_eval;
   using base_t::world;
 
+  // Shared instruction set
   inst_lib_t inst_lib;
+
+  // Environment/logic task information
+  org_task_set_t org_task_set;
+  L9EnvironmentBank env_bank;
 
   void SetupInstLib();
 
 public:
-  // TODO - fix this => task is initialized by the base obj
-  AvidaGPL9Task(world_t& w) : base_t(w) { ; }
+  AvidaGPL9Task(world_t& w) :
+    base_t(w),
+    org_task_set(),
+    env_bank(world.GetRandom(), org_task_set, this_t::ENV_BANK_SIZE)
+  { ; }
 
   inst_lib_t& GetInstLib() { return inst_lib; }
   const inst_lib_t& GetInstLib() const { return inst_lib; }
@@ -67,7 +80,6 @@ public:
     fresh_eval=false;
 
     SetupInstLib();
-
   }
 
   /// OnBeforeWorldUpdate is called at the beginning of running the world update
@@ -86,7 +98,7 @@ public:
   /// Evaluate the world on this task (count ones).
   void Evaluate() override {
 
-    // TODO
+
 
     fresh_eval=true; // mark task evaluation
   }
@@ -98,10 +110,17 @@ public:
   void OnBeforeOrgRepro(org_t & parent) override { /*todo*/ }
 
   /// Called when the offspring has been constructed but has not been placed yet.
-  void OnOffspringReady(org_t& offspring, org_t& parent) override { /*todo*/ }
+  void OnOffspringReady(org_t& offspring, org_t& parent) override {
+    // Reset parent and offspring phenotypes
+    offspring.GetPhenotype().Reset(org_task_set.GetSize());
+    parent.GetPhenotype().Reset(org_task_set.GetSize());
+  }
 
   /// Called when org is being placed (@ position) in the world
-  void OnOrgPlacement(org_t& org, size_t position) override { /*todo*/ }
+  void OnOrgPlacement(org_t& org, size_t position) override {
+    // Assign organism an environment ID
+    org.GetHardware().SetEnvID(world.GetRandom().GetUInt(org_task_set.GetSize()));
+  }
 
   /// Called just before the organism's process step function is called.
   void BeforeOrgProcessStep(org_t& org) override { /*todo*/ }
@@ -122,6 +141,7 @@ void AvidaGPL9Task::SetupInstLib() {
 
   inst_lib = inst_lib_t::DefaultInstLib();
 
+  // Add instruction: Nop
   inst_lib.AddInst(
     "Nop",
     [](hardware_t& hw, const hardware_t::inst_t& inst) {
@@ -131,6 +151,7 @@ void AvidaGPL9Task::SetupInstLib() {
     "No operation"
   );
 
+  // Add instruction: CopyInst
   inst_lib.AddInst(
     "CopyInst",
     [](hardware_t& hw, const hardware_t::inst_t& inst) {
@@ -141,9 +162,37 @@ void AvidaGPL9Task::SetupInstLib() {
     "Copy next instrution"
   );
 
-  // TODO - input
-  // TODO - output
+  // Add divide instruction
+  inst_lib.AddInst(
+    "DivideSelf",
+    [](hardware_t& hw, const hardware_t::inst_t& inst) {
+      hw.SetDividing(hw.IsDoneCopying());
+      hw.IncFailedSelfDivisions((size_t)!hw.IsDividing());
+    },
+    0,
+    "Mark hardware unit for self-replication"
+  );
 
+  // Add nand instruction
+  inst_lib.AddInst(
+    "Nand",
+    [](hardware_t& hw, const hardware_t::inst_t& inst) {
+      hw.regs[inst.args[2]] = ~((uint32_t)hw.regs[inst.args[0]]&(uint32_t)hw.regs[inst.args[1]]);
+    },
+    3,
+    "REG[ARG3]=~(REG[ARG1]&REG[ARG2])"
+  );
+
+  // TODO - input
+  // inst_lib.AddInst(
+
+  // );
+
+
+  // TODO - output
+  // inst_lib.AddInst(
+
+  // );
 }
 
 } // namespace dirdevo
