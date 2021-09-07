@@ -8,7 +8,7 @@
 #include "emp/Evolve/World.hpp"
 #include "emp/datastructs/IndexMap.hpp"
 
-#include "ProbabilisticScheduler.hpp"
+#include "utility/ProbabilisticScheduler.hpp"
 #include "DirectedDevoConfig.hpp"
 
 namespace dirdevo {
