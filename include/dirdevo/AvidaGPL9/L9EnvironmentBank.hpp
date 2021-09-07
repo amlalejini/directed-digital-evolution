@@ -16,10 +16,10 @@ namespace dirdevo {
 
 /// Bank of L9 instances
 /// TODO - save and load functionality
-class L9InstanceBank {
+class L9EnvironmentBank {
 public:
 
-  using this_t = L9InstanceBank;
+  using this_t = L9EnvironmentBank;
   using input_t = uint32_t;
   using output_t = uint32_t;
   using task_set_t = L9TaskSet;
@@ -110,7 +110,7 @@ protected:
 
 public:
 
-  L9InstanceBank(
+  L9EnvironmentBank(
     emp::Random& rnd,
     task_set_t& a_task_set,
     size_t num_environments
