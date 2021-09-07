@@ -1,9 +1,10 @@
 # Project-specific settings
 PROJECT := directed-digital-evolution
 EMP_DIR := third-party/Empirical/include
+SGP_DIR := third-party/signalgp-lite/include
 
 # Flags to use regardless of compiler
-CFLAGS_all := -Wall -Wno-unused-function -std=c++17 -I$(EMP_DIR)/ -Iinclude/
+CFLAGS_all := -Wall -Wno-unused-function -std=c++17 -I$(EMP_DIR)/ -I$(SGP_DIR)/ -Iinclude/
 
 # Native compiler information
 CXX ?= g++
