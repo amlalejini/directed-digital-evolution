@@ -7,6 +7,8 @@
 
 #include "emp/base/vector.hpp"
 
+#include "DirectedDevoWorld.hpp"
+
 namespace dirdevo {
 
 // TODO - at compile time, depending on the task strip out unused function calls from the world?
@@ -24,7 +26,7 @@ public:
 
 protected:
 
-  world_t & world; ///< Reference back to the world that own's this task object. WARNING - must be used responsibly! It would be very easy to create some nasty memory errors by moving things around (e.g., world assumes a reference is still valid but task-driven manipulation invalidated it).
+  world_t& world; ///< Reference back to the world that own's this task object. WARNING - must be used responsibly! It would be very easy to create some nasty memory errors by moving things around (e.g., world assumes a reference is still valid but task-driven manipulation invalidated it).
   bool fresh_eval=true;
 
   // TODO - think more about whether this is the cleanest way to do this...
