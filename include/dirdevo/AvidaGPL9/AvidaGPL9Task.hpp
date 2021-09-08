@@ -2,6 +2,10 @@
 #ifndef DIRECTED_DEVO_AVIDAGP_L9_TASK_HPP_INCLUDE
 #define DIRECTED_DEVO_AVIDAGP_L9_TASK_HPP_INCLUDE
 
+
+#include "emp/hardware/AvidaCPU_InstLib.hpp"
+#include "emp/tools/string_utils.hpp"
+
 #include "../BaseTask.hpp"
 #include "AvidaGPOrganism.hpp"
 #include "AvidaGPReplicator.hpp"
@@ -10,12 +14,7 @@
 
 namespace dirdevo {
 
-/// todo ORG_T should really be OneMaxOrganism, but that requires extra fiddling with more template parameters to declare a one max task
-/**
- * OneMaxTask is simple task that is used only to test all of the pieces of this digital directed evolution framework.
- * Aggregate performance = average num_ones
- * Multiple criteria = average genome value for each site (works because fixed length genomes)
- */
+/// TODO - move events into proper place once things are more settled (task vs organism vs world)
 class AvidaGPL9Task : public BaseTask<AvidaGPL9Task, AvidaGPOrganism> {
 
 public:
@@ -119,14 +118,21 @@ public:
   /// Called when org is being placed (@ position) in the world
   void OnOrgPlacement(org_t& org, size_t position) override {
     // Assign organism an environment ID
-    org.GetHardware().SetEnvID(world.GetRandom().GetUInt(org_task_set.GetSize()));
+    const size_t env_id = world.GetRandom().GetUInt(env_bank.GetSize());
+    org.GetHardware().SetEnvID(env_id);
+    // Configure organism's intput buffer
+    org.GetHardware().GetInputBuffer() = env_bank.GetEnvironment(env_id).input_buffer;
+    emp_assert(org.GetHardware().GetInputBuffer() == env_bank.GetEnvironment(env_id).input_buffer);
   }
 
   /// Called just before the organism's process step function is called.
   void BeforeOrgProcessStep(org_t& org) override { /*todo*/ }
 
   /// Called just after the organism's process step function is called.
-  void AfterOrgProcessStep(org_t& org) override { /*todo*/ }
+  void AfterOrgProcessStep(org_t& org) override {
+    // TODO - process organism output?
+    /*todo*/
+  }
 
   /// Called before organism is removed from the world.
   void OnOrgDeath(org_t& org, size_t position) override { /*todo*/ }
@@ -139,7 +145,39 @@ public:
 void AvidaGPL9Task::SetupInstLib() {
   std::cout << "Setting up instruction library." << std::endl;
 
-  inst_lib = inst_lib_t::DefaultInstLib();
+  ///////////////////////////////////////////////////////////////////////////////////
+  // Add default instructions
+  // - Default instructions not used: Input (replaced), Output (replaced)
+  inst_lib.AddInst("Inc", inst_lib_t::Inst_Inc, 1, "Increment value in reg Arg1");
+  inst_lib.AddInst("Dec", inst_lib_t::Inst_Dec, 1, "Decrement value in reg Arg1");
+  inst_lib.AddInst("Not", inst_lib_t::Inst_Not, 1, "Logically toggle value in reg Arg1");
+  inst_lib.AddInst("SetReg", inst_lib_t::Inst_SetReg, 2, "Set reg Arg1 to numerical value Arg2");
+  inst_lib.AddInst("Add", inst_lib_t::Inst_Add, 3, "regs: Arg3 = Arg1 + Arg2");
+  inst_lib.AddInst("Sub", inst_lib_t::Inst_Sub, 3, "regs: Arg3 = Arg1 - Arg2");
+  inst_lib.AddInst("Mult", inst_lib_t::Inst_Mult, 3, "regs: Arg3 = Arg1 * Arg2");
+  inst_lib.AddInst("Div", inst_lib_t::Inst_Div, 3, "regs: Arg3 = Arg1 / Arg2");
+  inst_lib.AddInst("Mod", inst_lib_t::Inst_Mod, 3, "regs: Arg3 = Arg1 % Arg2");
+  inst_lib.AddInst("TestEqu", inst_lib_t::Inst_TestEqu, 3, "regs: Arg3 = (Arg1 == Arg2)");
+  inst_lib.AddInst("TestNEqu", inst_lib_t::Inst_TestNEqu, 3, "regs: Arg3 = (Arg1 != Arg2)");
+  inst_lib.AddInst("TestLess", inst_lib_t::Inst_TestLess, 3, "regs: Arg3 = (Arg1 < Arg2)");
+  inst_lib.AddInst("If", inst_lib_t::Inst_If, 2, "If reg Arg1 != 0, scope -> Arg2; else skip scope", emp::ScopeType::BASIC, 1);
+  inst_lib.AddInst("While", inst_lib_t::Inst_While, 2, "Until reg Arg1 != 0, repeat scope Arg2; else skip", emp::ScopeType::LOOP, 1);
+  inst_lib.AddInst("Countdown", inst_lib_t::Inst_Countdown, 2, "Countdown reg Arg1 to zero; scope to Arg2", emp::ScopeType::LOOP, 1);
+  inst_lib.AddInst("Break", inst_lib_t::Inst_Break, 1, "Break out of scope Arg1");
+  inst_lib.AddInst("Scope", inst_lib_t::Inst_Scope, 1, "Enter scope Arg1", emp::ScopeType::BASIC, 0);
+  inst_lib.AddInst("Define", inst_lib_t::Inst_Define, 2, "Build function Arg1 in scope Arg2", emp::ScopeType::FUNCTION, 1);
+  inst_lib.AddInst("Call", inst_lib_t::Inst_Call, 1, "Call previously defined function Arg1");
+  inst_lib.AddInst("Push", inst_lib_t::Inst_Push, 2, "Push reg Arg1 onto stack Arg2");
+  inst_lib.AddInst("Pop", inst_lib_t::Inst_Pop, 2, "Pop stack Arg1 into reg Arg2");
+  inst_lib.AddInst("CopyVal", inst_lib_t::Inst_CopyVal, 2, "Copy reg Arg1 into reg Arg2");
+  inst_lib.AddInst("ScopeReg", inst_lib_t::Inst_ScopeReg, 1, "Backup reg Arg1; restore at end of scope");
+
+  for (size_t i = 0; i < hardware_t::CPU_SIZE; i++) {
+    inst_lib.AddArg(emp::to_string((int)i), i);                   // Args can be called by value
+    inst_lib.AddArg(emp::to_string("Reg", 'A'+(char)i), i);  // ...or as a register.
+  }
+  ///////////////////////////////////////////////////////////////////////////////////
+
 
   // Add instruction: Nop
   inst_lib.AddInst(
@@ -183,16 +221,29 @@ void AvidaGPL9Task::SetupInstLib() {
     "REG[ARG3]=~(REG[ARG1]&REG[ARG2])"
   );
 
-  // TODO - input
-  // inst_lib.AddInst(
+  // Input
+  inst_lib.AddInst(
+    "Input",
+    [](hardware_t& hw, const hardware_t::inst_t& inst) {
+      emp_assert(hw.GetInputBuffer().size(), "Input buffer should contain at least one element");
+      const size_t input_ptr = hw.AdvanceInputPointer();    // Returns the current input pointer value and then advances the pointer.
+      const auto input_val = hw.GetInputBuffer()[input_ptr];
+      hw.regs[inst.args[0]] = input_val;
+    },
+    1,
+    "REG[ARG0]=NextInput"
+  );
 
-  // );
+  // Output
+  inst_lib.AddInst(
+    "Output",
+    [](hardware_t& hw, const hardware_t::inst_t& inst) {
+      hw.GetOutputBuffer().emplace_back(hw.regs[inst.args[0]]);
+    },
+    1,
+    "Push REG[ARG0] to output buffer"
+  );
 
-
-  // TODO - output
-  // inst_lib.AddInst(
-
-  // );
 }
 
 } // namespace dirdevo

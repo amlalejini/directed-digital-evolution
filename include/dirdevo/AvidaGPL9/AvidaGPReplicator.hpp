@@ -2,9 +2,11 @@
 #ifndef DIRECTED_DEVO_DIRECTED_DEVO_AVIDAGP_REPLICATOR_HARDWARE_HPP_INCLUDE
 #define DIRECTED_DEVO_DIRECTED_DEVO_AVIDAGP_REPLICATOR_HARDWARE_HPP_INCLUDE
 
+#include <cstddef>
 
 #include "emp/hardware/Genome.hpp"
 #include "emp/hardware/AvidaGP.hpp"
+#include "emp/base/vector.hpp"
 
 #include "../BaseOrganism.hpp"
 
@@ -20,6 +22,9 @@ public:
   using typename base_t::genome_t;
   using typename base_t::inst_lib_t;
 
+  using input_t = uint32_t;
+  using output_t = uint32_t;
+
 protected:
 
   size_t sites_copied=0;         /// Tracks number of instructions copied by executing copy instructions
@@ -27,6 +32,10 @@ protected:
   size_t world_id=0;             /// World ID where this hardware unit resides
   bool dividing=false;           /// Did virtual hardware trigger division (self-replication)?
   size_t failed_self_divisions=0;     /// Number of failed division attempts
+
+  emp::vector<input_t> input_buffer;
+  emp::vector<output_t> output_buffer;
+  size_t input_pointer=0;
 
 public:
 
@@ -44,6 +53,9 @@ public:
     sites_copied=0;
     dividing=false;
     failed_self_divisions=0;
+    input_buffer.clear();
+    output_buffer.clear();
+    input_pointer=0;
     ResetHardware();
   }
 
@@ -52,6 +64,17 @@ public:
 
   size_t GetWorldID() const { return world_id; }
   void SetWorldID(size_t id) { world_id = id; }
+
+  emp::vector<input_t>& GetInputBuffer() { return input_buffer; }
+  emp::vector<output_t>& GetOutputBuffer() { return output_buffer; }
+  size_t GetInputPointer() const { return input_pointer; }
+
+  size_t AdvanceInputPointer() {
+    emp_assert(input_buffer.size());
+    const size_t ret_val=input_pointer;
+    input_pointer = input_pointer+1 % input_buffer.size();
+    return ret_val;
+  }
 
   bool IsDividing() const { return dividing; }
   void SetDividing(bool d) { dividing = d; }

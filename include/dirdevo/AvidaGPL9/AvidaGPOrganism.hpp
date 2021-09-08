@@ -73,7 +73,7 @@ public:
   const phenotype_t & GetPhenotype() const { return phenotype; }
 
   hardware_t& GetHardware() { return hardware; }
-  const hardware_t& GetHardware() const { hardware; }
+  const hardware_t& GetHardware() const { return hardware; }
 
 
   // void OnBeforeRepro() override {
