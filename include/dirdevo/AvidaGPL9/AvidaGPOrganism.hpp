@@ -92,6 +92,14 @@ public:
 
   size_t GetAge() const { return age; }
 
+  void OnInjectReady() override {
+    hardware.ResetReplicatorHardware();
+    dead=false;
+    repro_ready=false;
+    new_born=true;
+    age=0;
+  }
+
   void OnBeforeRepro() override { }
 
   void OnOffspringReady(this_t& offspring) override { }

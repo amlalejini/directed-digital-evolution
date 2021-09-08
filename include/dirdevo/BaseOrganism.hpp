@@ -45,6 +45,9 @@ public:
    *   }
    */
 
+  /// Called when this organism is about to be injected into the population.
+  virtual void OnInjectReady() { emp_assert(false, "Derived task class must implement this function."); }
+
   /// Called when this organism is about to reproduce (but offspring has not been built yet)
   virtual void OnBeforeRepro() { emp_assert(false, "This function must be implemented by derived organism class."); }
 

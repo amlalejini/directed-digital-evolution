@@ -129,6 +129,10 @@ public:
 
   // --- ORGANISM-LEVEL EVENT HOOKS ---
   // These are always called AFTER the organism's equivalent functions.
+  void OnOrgInjectReady(org_t& org) override {
+    // anything that happens OnOffspringReady might also need to happen here (injected organisms are never offspring)
+    org.GetPhenotype().Reset(org_task_set.GetSize());
+  }
 
   /// Called when parent is about to reproduce, but before an offspring has been constructed.
   void OnBeforeOrgRepro(org_t & parent) override { /*todo*/ }

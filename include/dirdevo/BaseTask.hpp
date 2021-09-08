@@ -64,6 +64,9 @@ public:
   // --- ORGANISM-LEVEL EVENT HOOKS ---
   // These are always called AFTER the organism's equivalent functions.
 
+  /// Called before an organism is injected into the population
+  virtual void OnOrgInjectReady(org_t& org) { emp_assert(false, "Derived task class must implement this function."); }
+
   // NOTE - Asserts are a lazy way to indicate to future me that these functions need to be implemented.
   /// Called when parent is about to reproduce, but before an offspring has been constructed.
   virtual void OnBeforeOrgRepro(org_t & parent) { emp_assert(false, "Derived task class must implement this function."); }

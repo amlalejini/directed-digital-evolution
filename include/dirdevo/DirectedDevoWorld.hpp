@@ -96,8 +96,19 @@ public:
     /// TODO - document the order of signal calls in the world!
     /// TODO - is there a way to strip out unused functions?
 
-    // Wire up scheduler to the world.
+    // Wire up event handles to world signals.
     // - Update scheduler weights on organism placement, death, and swap.
+    // - Tell task about placement, death, etc
+    // - Tell organism about placement, death, etc
+
+    // NOTE - reminder that on placement signal will still trigger for injected organisms!
+    this->OnInjectReady(
+      [this](org_t& org) {
+        org.OnInjectReady();
+        task.OnOrgInjectReady(org);
+      }
+    );
+
     this->OnPlacement(
       [this](size_t pos) {
         auto& org = this->GetOrg(pos);
