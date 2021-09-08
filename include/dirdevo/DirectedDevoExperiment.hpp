@@ -298,12 +298,12 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
 
     if (extinct_worlds.size() == worlds.size()) {
       std::cout << "All of the worlds are extinct." << std::endl;
-
     }
 
     std::cout << "Evaluation summary: " << std::endl;
     for (auto world_ptr : worlds) {
       std::cout << "  " << world_ptr->GetName() << std::endl;
+      std::cout << "    Pop size: " << world_ptr->GetNumOrgs() << std::endl;
       std::cout << "    Aggregate performance: " << world_ptr->GetAggregateTaskPerformance() << std::endl;
     }
 

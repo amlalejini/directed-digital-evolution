@@ -27,7 +27,11 @@ public:
   using genome_t = typename AvidaGPReplicator::genome_t;
   using phenotype_t = Phenotype;
 
+  using base_t::SetReproReady;
+  using base_t::SetDead;
+
   struct Phenotype {
+    // TODO - manage organism task performance
     emp::vector<size_t> org_task_performances;
 
     void Reset(size_t num_org_tasks=0) {
@@ -56,9 +60,13 @@ protected:
   // sgp_cpu_t cpu;
   phenotype_t phenotype;
   hardware_t hardware;
-  // bool dividing=false;     /// Is true when organism executes a divide instruction after copying its genome.
 
-  // sgp_program_t program;
+  size_t age = 0;
+
+  using base_t::dead;
+  using base_t::repro_ready;
+  using base_t::new_born;
+
 public:
 
   AvidaGPOrganism(const genome_t& g)
@@ -76,11 +84,9 @@ public:
   const hardware_t& GetHardware() const { return hardware; }
 
 
-  // void OnBeforeRepro() override {
+  void OnBeforeRepro() override { }
 
-  // }
-
-  // void OnOffspringReady(this_t& offspring) override;
+  void OnOffspringReady(this_t& offspring) override { }
   // TODO - reset parent!
 
   void OnPlacement(size_t position) override {
@@ -90,16 +96,22 @@ public:
 
   void OnBirth(this_t& parent) override {
     hardware.ResetReplicatorHardware(); // Reset AvidaGP virtual hardware
-    // hardware.traits.resize()
+    dead=false;
+    repro_ready=false;
+    new_born=true;
     // TODO - reset phenotype
   }
 
-  // void OnDeath(size_t position) override;
+  void OnDeath(size_t position) override { /*TODO*/ }
 
   template<typename WORLD_T>
   void ProcessStep(WORLD_T& world) {
     // TODO - fill out process step
+    // Advance virtual CPU by one step
     hardware.SingleProcess();
+    // Is this organism reproducing?
+    repro_ready = hardware.IsDividing();
+    // TODO - check death condition
   }
 
 };

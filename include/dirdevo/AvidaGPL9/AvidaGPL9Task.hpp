@@ -7,6 +7,7 @@
 #include "emp/tools/string_utils.hpp"
 
 #include "../BaseTask.hpp"
+#include "../DirectedDevoWorld.hpp"
 #include "AvidaGPOrganism.hpp"
 #include "AvidaGPReplicator.hpp"
 #include "L9TaskSet.hpp"
@@ -199,6 +200,18 @@ void AvidaGPL9Task::SetupInstLib() {
     0,
     "Copy next instrution"
   );
+
+  // Add instruction: GetLen
+  inst_lib.AddInst(
+    "GetLen",
+    [](hardware_t& hw, const hardware_t::inst_t& inst) {
+      hw.regs[inst.args[0]] = hw.GetSize();
+    },
+    1,
+    "REG[ARG0]=ProgramSize"
+  );
+
+  // Add instruction: IsDoneCopying
 
   // Add divide instruction
   inst_lib.AddInst(

@@ -15,7 +15,7 @@ public:
   // DERIVED_T needs to specify a 'mutator_t'
 
 protected:
-  double merit=0.0; /// Used to determine weight in scheduler.
+  double merit=1.0; /// Used to determine weight in scheduler.
   bool new_born=false;
   bool dead=false;
   bool repro_ready=false;

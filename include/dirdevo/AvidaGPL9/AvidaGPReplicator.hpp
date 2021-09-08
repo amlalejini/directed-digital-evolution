@@ -80,7 +80,7 @@ public:
   void SetDividing(bool d) { dividing = d; }
 
   size_t GetNumFailedSelfDivisions() const { return failed_self_divisions; }
-  void IncFailedSelfDivisions(size_t inc=1) { failed_self_divisions += 1; }
+  void IncFailedSelfDivisions(size_t inc=1) { failed_self_divisions += inc; }
 
   bool IsDoneCopying() const { return sites_copied >= GetSize(); }
   size_t GetSitesCopied() const { return sites_copied; }
