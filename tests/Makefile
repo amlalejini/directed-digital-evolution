@@ -1,10 +1,10 @@
-TEST_NAMES := selection L9TaskSet L9EnvironmentBank
+TEST_NAMES := selection L9TaskSet L9EnvironmentBank AvidaGPReplicator
 
 TO_ROOT := $(shell git rev-parse --show-cdup)
 
 EMP_DIR := $(TO_ROOT)/third-party/Empirical/include
 
-CXX ?= clang
+CXX ?= g++
 
 FLAGS = -std=c++17 -pthread -Wall -Wno-unused-function -Wno-unused-private-field -I$(TO_ROOT)/include/ -I$(TO_ROOT)/third-party/ -I$(EMP_DIR)
 
