@@ -2,6 +2,7 @@
 #ifndef DIRECTED_DEVO_AVIDAGP_L9_TASK_HPP_INCLUDE
 #define DIRECTED_DEVO_AVIDAGP_L9_TASK_HPP_INCLUDE
 
+#include <algorithm>
 
 #include "emp/hardware/AvidaCPU_InstLib.hpp"
 #include "emp/tools/string_utils.hpp"
@@ -46,13 +47,26 @@ protected:
   org_task_set_t org_task_set;
   L9EnvironmentBank env_bank;
 
+  emp::vector<double> l9_indiv_task_values; ///< Value of each logic function.
+  emp::vector<double> l9_world_task_values; ///< What value does each logic function have to the world?
+  emp::vector<size_t> l9_indiv_task_ids;       ///< Which logic functions (as task ids) confer bonuses for individual reproduction?
+  emp::vector<size_t> l9_world_task_ids;       ///< Which logic functions (as task ids) confer bonuses for world selection?
+
+  emp::vector<size_t> l9_world_task_performance; ///< Counts of how many times each logic task has been performed in the world.
+
   void SetupInstLib();
+  void SetupTaskValues();
 
 public:
   AvidaGPL9Task(world_t& w) :
     base_t(w),
     org_task_set(),
-    env_bank(world.GetRandom(), org_task_set, this_t::ENV_BANK_SIZE)
+    env_bank(world.GetRandom(), org_task_set, this_t::ENV_BANK_SIZE),
+    l9_indiv_task_values(org_task_set.GetSize(), 0.0),
+    l9_world_task_values(org_task_set.GetSize(), 0.0),
+    l9_indiv_task_ids(),
+    l9_world_task_ids(),
+    l9_world_task_performance(org_task_set.GetSize(), 0)
   { ; }
 
   inst_lib_t& GetInstLib() { return inst_lib; }
@@ -63,6 +77,10 @@ public:
   /// OnWorldSetup called at end of constructor/world setup
   void OnWorldSetup() override {
     // TODO - configure task based on world's configuration
+
+    // Configure individual and world logic tasks.
+    SetupTaskValues();
+
 
     // Wire up the aggregate task performance function
     aggregate_performance_fun = [this]() { return 0; };
@@ -93,7 +111,12 @@ public:
   void OnWorldUpdate(size_t update) override { /*todo*/ }
 
   void OnWorldReset() override {
-
+    // Reset world task performance counts
+    std::fill(
+      l9_world_task_performance.begin(),
+      l9_world_task_performance.end(),
+      0
+    );
   }
 
   /// Evaluate the world on this task (count ones).
@@ -115,6 +138,8 @@ public:
     // Reset parent and offspring phenotypes
     offspring.GetPhenotype().Reset(org_task_set.GetSize());
     parent.GetPhenotype().Reset(org_task_set.GetSize());
+
+    // TODO - set parent & offspring merit to be based on parent's phenotype
   }
 
   /// Called when org is being placed (@ position) in the world
@@ -133,7 +158,23 @@ public:
   /// Called just after the organism's process step function is called.
   void AfterOrgProcessStep(org_t& org) override {
     // TODO - process organism output?
-    /*todo*/
+
+    // Analyze organism output buffer
+    auto& output_buffer = org.GetHardware().GetOutputBuffer();
+    for (auto value : output_buffer) {
+      // Is this value the correct output to any of the tasks?
+      const auto& env = env_bank.GetEnvironment(org.GetHardware().GetEnvID());
+      if (emp::Has(env.valid_outputs, value)) {
+        emp_assert(env.task_lookup.find(value)->second.size() == 1, "Environment should guarantee unique output for each logic operation");
+        const size_t task_id = env.task_lookup.find(value)->second[0];
+        org.GetPhenotype().org_task_performances[task_id] += 1; // hypothesis => injected organism's phenotype hasn't been reset to right size
+        // TODO - allow configuration of when tasks count toward world performance
+        // for now, just let each time the task is performed count for the world
+        l9_world_task_performance[task_id] += 1;
+      }
+    }
+    output_buffer.clear(); // Clear the output buffer after processing
+
     // Is organism still alive?
     const size_t age_limit = org.GetGenome().GetSize()*world.config.AVIDAGP_ORG_AGE_LIMIT();
     org.SetDead(org.GetAge() >= age_limit);
@@ -261,6 +302,50 @@ void AvidaGPL9Task::SetupInstLib() {
     1,
     "Push REG[ARG0] to output buffer"
   );
+
+}
+
+void AvidaGPL9Task::SetupTaskValues() {
+  // Reset existing values
+  l9_indiv_task_values.resize(org_task_set.GetSize(), 0.0);
+  std::fill(
+    l9_indiv_task_values.begin(),
+    l9_indiv_task_values.end(),
+    0.0
+  );
+
+  l9_world_task_values.resize(org_task_set.GetSize(), 0.0);
+  std::fill(
+    l9_world_task_values.begin(),
+    l9_world_task_values.end(),
+    0.0
+  );
+  l9_indiv_task_ids.clear();
+  l9_world_task_ids.clear();
+
+  // TODO - allow a configuration file to specify these values
+  l9_indiv_task_ids.emplace_back(org_task_set.GetID("ECHO"));
+  l9_indiv_task_ids.emplace_back(org_task_set.GetID("NAND"));
+  l9_indiv_task_values[org_task_set.GetID("ECHO")] = 1.0;
+  l9_indiv_task_values[org_task_set.GetID("NAND")] = 1.0;
+
+  l9_world_task_ids.emplace_back(org_task_set.GetID("NOT"));
+  l9_world_task_ids.emplace_back(org_task_set.GetID("OR_NOT"));
+  l9_world_task_ids.emplace_back(org_task_set.GetID("AND"));
+  l9_world_task_ids.emplace_back(org_task_set.GetID("OR"));
+  l9_world_task_ids.emplace_back(org_task_set.GetID("AND_NOT"));
+  l9_world_task_ids.emplace_back(org_task_set.GetID("NOR"));
+  l9_world_task_ids.emplace_back(org_task_set.GetID("XOR"));
+  l9_world_task_ids.emplace_back(org_task_set.GetID("EQU"));
+
+  l9_world_task_values[org_task_set.GetID("NOT")] = 1.0;
+  l9_world_task_values[org_task_set.GetID("OR_NOT")] = 1.0;
+  l9_world_task_values[org_task_set.GetID("AND")] = 1.0;
+  l9_world_task_values[org_task_set.GetID("OR")] = 1.0;
+  l9_world_task_values[org_task_set.GetID("AND_NOT")] = 1.0;
+  l9_world_task_values[org_task_set.GetID("NOR")] = 1.0;
+  l9_world_task_values[org_task_set.GetID("XOR")] = 1.0;
+  l9_world_task_values[org_task_set.GetID("EQU")] = 1.0;
 
 }
 
