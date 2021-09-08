@@ -307,6 +307,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
       std::cout << "  " << world_ptr->GetName() << std::endl;
       std::cout << "    Pop size: " << world_ptr->GetNumOrgs() << std::endl;
       std::cout << "    Aggregate performance: " << world_ptr->GetAggregateTaskPerformance() << std::endl;
+      // world_ptr->GetRandomOrg().GetHardware().PrintGenome(std::cout);
     }
 
     // Do selection

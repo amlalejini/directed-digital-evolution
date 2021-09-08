@@ -303,29 +303,29 @@ void DirectedDevoWorld<ORG,TASK>::RunStep() {
     }
   }
 
-  if (this->GetUpdate() == 4095 ) {
-    /////////////////////////////////////////////////////////////////
-    std::cout << "  Population:";
-    for (size_t i = 0; i < pop.size(); ++i) {
-      if (this->IsOccupied(i)) {
-        std::cout << " {"
-          << "id:"<<i<<","
-          << "merit:"<<pop[i]->GetMerit();
-          // << "pheno:"<<pop[i]->GetPhenotype().num_ones << ",";
-          // << "ones:"<< pop[i]->GetGenome().CountOnes();
-      } else {
-        std::cout << " {id:"<<i<<","<<"dead";
-      }
-      std::cout << ",weight:"<<scheduler.GetWeightMap().GetWeight(i)<<"}";
-    }
-    std::cout << std::endl;
-    // std::cout << "  Resource levels (after update): ";
-    // for (size_t i = 0; i < this->GetSize(); ++i) {
-    //   if (this->IsOccupied(i)) std::cout << " {id-"<<i<<" " << this->GetOrg(i).GetResources() << "}";
-    // }
-    // std::cout << std::endl;
-    /////////////////////////////////////////////////////////////////
-  }
+  // if (this->GetUpdate() == 4095 ) {
+  //   /////////////////////////////////////////////////////////////////
+  //   std::cout << "  Population:";
+  //   for (size_t i = 0; i < pop.size(); ++i) {
+  //     if (this->IsOccupied(i)) {
+  //       std::cout << " {"
+  //         << "id:"<<i<<","
+  //         << "merit:"<<pop[i]->GetMerit();
+  //         // << "pheno:"<<pop[i]->GetPhenotype().num_ones << ",";
+  //         // << "ones:"<< pop[i]->GetGenome().CountOnes();
+  //     } else {
+  //       std::cout << " {id:"<<i<<","<<"dead";
+  //     }
+  //     std::cout << ",weight:"<<scheduler.GetWeightMap().GetWeight(i)<<"}";
+  //   }
+  //   std::cout << std::endl;
+  //   // std::cout << "  Resource levels (after update): ";
+  //   // for (size_t i = 0; i < this->GetSize(); ++i) {
+  //   //   if (this->IsOccupied(i)) std::cout << " {id-"<<i<<" " << this->GetOrg(i).GetResources() << "}";
+  //   // }
+  //   // std::cout << std::endl;
+  //   /////////////////////////////////////////////////////////////////
+  // }
 
   // TODO - any data recording, etc here
 

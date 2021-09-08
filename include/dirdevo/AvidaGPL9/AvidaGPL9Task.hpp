@@ -244,6 +244,7 @@ void AvidaGPL9Task::SetupInstLib() {
     [](hardware_t& hw, const hardware_t::inst_t& inst) {
       emp_assert(hw.GetInputBuffer().size(), "Input buffer should contain at least one element");
       const size_t input_ptr = hw.AdvanceInputPointer();    // Returns the current input pointer value and then advances the pointer.
+      emp_assert(input_ptr < hw.GetInputBuffer().size(), input_ptr, hw.GetInputBuffer().size());
       const auto input_val = hw.GetInputBuffer()[input_ptr];
       hw.regs[inst.args[0]] = input_val;
     },

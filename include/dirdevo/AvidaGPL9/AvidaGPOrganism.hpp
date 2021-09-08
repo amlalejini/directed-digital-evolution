@@ -92,7 +92,6 @@ public:
 
   size_t GetAge() const { return age; }
 
-
   void OnBeforeRepro() override { }
 
   void OnOffspringReady(this_t& offspring) override { }

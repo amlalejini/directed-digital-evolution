@@ -72,7 +72,7 @@ public:
   size_t AdvanceInputPointer() {
     emp_assert(input_buffer.size());
     const size_t ret_val=input_pointer;
-    input_pointer = input_pointer+1 % input_buffer.size();
+    input_pointer = (input_pointer+1) % input_buffer.size();
     return ret_val;
   }
 
