@@ -50,9 +50,16 @@ public:
   static genome_t GenerateAncestralGenome(const EXPERIMENT_T& exp, const WORLD_T& world) {
     hardware_t hw(world.GetTask().GetInstLib()); // need this dummy hardware because of the wonky way AvidaGP is implemented
     // TODO - load common ancestor from file! For now, just push some nops.
-    for (size_t i = 0; i < 100; ++i) {
+    hw.PushInst("Scope", 0);
+    for (size_t i = 0; i < 94; ++i) {
       hw.PushInst("Nop");
     }
+    hw.PushInst("GetLen", 15);
+    hw.PushInst("Countdown", 15, 1);
+    hw.PushInst("CopyInst", 0);
+    hw.PushInst("Scope", 0);
+    hw.PushInst("DivideSelf");
+
     return hw.GetGenome();
   }
 
