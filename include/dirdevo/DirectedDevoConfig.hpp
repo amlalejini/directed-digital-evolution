@@ -27,8 +27,11 @@ EMP_BUILD_CONFIG(DirectedDevoConfig,
   VALUE(POPULATION_SAMPLING_SIZE, size_t, 1, "How many genomes to sample from each population when forming propagules (after population selection)?"),
 
   GROUP(BITSET_GENOME_SETTINGS, "Settings specific to bitset genomes"),
-  VALUE(BITSET_MUTATOR_PER_SITE_SUBSTITUTION_RATE, double, 0.01, "Per-site substitution rate for bitset genomes")
+  VALUE(BITSET_MUTATOR_PER_SITE_SUBSTITUTION_RATE, double, 0.01, "Per-site substitution rate for bitset genomes"),
   // GROUP(ONEMAX_ORG_SETTINGS, "Settings specific to the onemax organism"),
+
+  GROUP(AVIDAGP_ORG_SETTINGS, "Settings specific to the AvidaGP organisms "),
+  VALUE(AVIDAGP_ORG_AGE_LIMIT, size_t, 20, "Organisms die when instructions executed = AGE_LIMIT*length")
 );
 
 } // namespace dirdevo

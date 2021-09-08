@@ -15,6 +15,7 @@
 
 namespace dirdevo {
 
+/// TODO - allow merit to be proportional to genome size (if we allow for variable-length genomes)
 /// TODO - move events into proper place once things are more settled (task vs organism vs world)
 class AvidaGPL9Task : public BaseTask<AvidaGPL9Task, AvidaGPOrganism> {
 
@@ -133,6 +134,9 @@ public:
   void AfterOrgProcessStep(org_t& org) override {
     // TODO - process organism output?
     /*todo*/
+    // Is organism still alive?
+    const size_t age_limit = org.GetGenome().GetSize()*world.config.AVIDAGP_ORG_AGE_LIMIT();
+    org.SetDead(org.GetAge() >= age_limit);
   }
 
   /// Called before organism is removed from the world.

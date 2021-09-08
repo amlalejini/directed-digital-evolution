@@ -298,6 +298,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
 
     if (extinct_worlds.size() == worlds.size()) {
       std::cout << "All of the worlds are extinct." << std::endl;
+      // TODO - when exiting because all worlds are extinct, cleanly do snapshot, etc
+      break;
     }
 
     std::cout << "Evaluation summary: " << std::endl;
