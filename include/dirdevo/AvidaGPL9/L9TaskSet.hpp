@@ -22,19 +22,19 @@ void AddLogic9Tasks(TASK_SET& task_set) {
     1,
     "ECHO boolean logic function"
   );
-  // NOT
-  task_set.AddTask(
-    "NOT",
-    [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() == 1); return logic::NOT(inputs[0]); },
-    1,
-    "NOT boolean logic function"
-  );
   // NAND
   task_set.AddTask(
     "NAND",
     [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() == 2); return logic::NAND(inputs[0], inputs[1]); },
     2,
     "NAND boolean logic function"
+  );
+  // NOT
+  task_set.AddTask(
+    "NOT",
+    [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() == 1); return logic::NOT(inputs[0]); },
+    1,
+    "NOT boolean logic function"
   );
   // OR_NOT
   task_set.AddTask(

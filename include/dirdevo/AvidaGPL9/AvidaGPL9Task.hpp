@@ -6,6 +6,8 @@
 
 #include "emp/hardware/AvidaCPU_InstLib.hpp"
 #include "emp/tools/string_utils.hpp"
+#include "emp/base/vector.hpp"
+#include "emp/datastructs/vector_utils.hpp"
 
 #include "../BaseTask.hpp"
 #include "../DirectedDevoWorld.hpp"
@@ -47,15 +49,22 @@ protected:
   org_task_set_t org_task_set;
   L9EnvironmentBank env_bank;
 
-  emp::vector<double> l9_indiv_task_values; ///< Value of each logic function.
-  emp::vector<double> l9_world_task_values; ///< What value does each logic function have to the world?
+  emp::vector<double> l9_indiv_task_values;    ///< Configured value of each logic function (for individuals).
+  emp::vector<double> l9_world_task_values;    ///< Configured value of each logic function (for a world)
   emp::vector<size_t> l9_indiv_task_ids;       ///< Which logic functions (as task ids) confer bonuses for individual reproduction?
   emp::vector<size_t> l9_world_task_ids;       ///< Which logic functions (as task ids) confer bonuses for world selection?
 
-  emp::vector<size_t> l9_world_task_performance; ///< Counts of how many times each logic task has been performed in the world.
+  emp::vector<size_t> l9_world_task_performance; ///< Counts of how many times each logic task has been performed in the world. Used to calculate world scores.
+
+  emp::vector<double> world_scores; ///< Set during evaluation. Score for each world objective (corresponds to l9_world_task_ids)
+  double world_agg_score=0;         ///< Set during evaluation. World's aggregate score (sum of objective scores).
+
+  std::function<double(const org_t&)> calc_merit_fun;
 
   void SetupInstLib();
   void SetupTaskValues();
+  void SetupMeritCalcFun();
+  void SetupWorldTaskPerformanceFun();
 
 public:
   AvidaGPL9Task(world_t& w) :
@@ -81,20 +90,11 @@ public:
     // Configure individual and world logic tasks.
     SetupTaskValues();
 
+    // Configure merit calculation
+    SetupMeritCalcFun();
 
     // Wire up the aggregate task performance function
-    aggregate_performance_fun = [this]() { return 0; };
-
-    // Wire up the performance function set (used for multi-objective/-task selection schemes)
-    // TODO - fill this out!
-    for (size_t i = 0; i < 10; ++i) { // <-- this is a placeholder just to get things to compile
-      performance_fun_set.emplace_back(
-        [i, this]() {
-          // importantly, i is copy-captured
-          return 0;
-        }
-      );
-    }
+    SetupWorldTaskPerformanceFun();
 
     fresh_eval=false;
 
@@ -117,12 +117,31 @@ public:
       l9_world_task_performance.end(),
       0
     );
+
+    std::fill(
+      world_scores.begin(),
+      world_scores.end(),
+      0.0
+    );
+
+    world_agg_score=0;
   }
 
-  /// Evaluate the world on this task (count ones).
+  /// Evaluate the world on this task.
   void Evaluate() override {
+    std::cout << world.GetName() << " tasks:";
+    for (size_t i =0; i < org_task_set.GetSize(); ++i) {
+      std::cout << " " << org_task_set.GetName(i) << ":" << l9_world_task_performance[i];
+    }
+    std::cout << std::endl;
 
-
+    emp_assert(world_scores.size() == l9_world_task_ids.size());
+    emp_assert(l9_world_task_performance.size() == l9_world_task_values.size());
+    for (size_t i = 0; i < l9_world_task_ids.size(); ++i) {
+      const size_t task_id = l9_world_task_ids[i];
+      world_scores[i] = l9_world_task_performance[task_id] * l9_world_task_values[task_id];
+    }
+    world_agg_score = emp::Sum(world_scores);
 
     fresh_eval=true; // mark task evaluation
   }
@@ -139,11 +158,23 @@ public:
 
   /// Called when the offspring has been constructed but has not been placed yet.
   void OnOffspringReady(org_t& offspring, org_t& parent) override {
+    // Calculate merit based on parent's phenotype.
+    const double merit = calc_merit_fun(parent);
+
     // Reset parent and offspring phenotypes
     offspring.GetPhenotype().Reset(org_task_set.GetSize());
     parent.GetPhenotype().Reset(org_task_set.GetSize());
 
-    // TODO - set parent & offspring merit to be based on parent's phenotype
+    // Set offspring and parent's merit to be a function of the parent's phenotype
+    offspring.SetMerit(merit);
+    parent.SetMerit(merit);
+
+    // Parent gets reset, but doesn't get re-placed. Need to give it a new environment and reset its input buffer.
+    // TODO - move this into a function
+    const size_t parent_env_id = world.GetRandom().GetUInt(env_bank.GetSize());
+    parent.GetHardware().SetEnvID(parent_env_id);
+    parent.GetHardware().GetInputBuffer() = env_bank.GetEnvironment(parent_env_id).input_buffer;
+
   }
 
   /// Called when org is being placed (@ position) in the world
@@ -331,7 +362,7 @@ void AvidaGPL9Task::SetupTaskValues() {
   l9_indiv_task_ids.emplace_back(org_task_set.GetID("ECHO"));
   l9_indiv_task_ids.emplace_back(org_task_set.GetID("NAND"));
   l9_indiv_task_values[org_task_set.GetID("ECHO")] = 1.0;
-  l9_indiv_task_values[org_task_set.GetID("NAND")] = 1.0;
+  l9_indiv_task_values[org_task_set.GetID("NAND")] = 2.0;
 
   l9_world_task_ids.emplace_back(org_task_set.GetID("NOT"));
   l9_world_task_ids.emplace_back(org_task_set.GetID("OR_NOT"));
@@ -351,6 +382,46 @@ void AvidaGPL9Task::SetupTaskValues() {
   l9_world_task_values[org_task_set.GetID("XOR")] = 1.0;
   l9_world_task_values[org_task_set.GetID("EQU")] = 1.0;
 
+  // Setup
+  world_scores.resize(l9_world_task_ids.size(), 0.0);
+  world_agg_score=0;
+
+}
+
+void AvidaGPL9Task::SetupMeritCalcFun() {
+  // TODO - this is where we could implement options for different merit calculations
+  calc_merit_fun = [this](const org_t& org) {
+    double merit = 1.0; // Base merit = 1.0
+    // for each indiv task performed (>= 1), multiple base merit by 2^{indiv task value}
+    for (auto task_id : l9_indiv_task_ids) {
+      emp_assert(task_id < l9_indiv_task_values.size());
+      // Get credit if organism performed indiv task >= 1 time (only get credit for each task once)
+      if (org.GetPhenotype().org_task_performances[task_id] >= 1) {
+        merit *= emp::Pow2(l9_indiv_task_values[task_id]) ;
+      }
+    }
+    // todo - test this function
+    return merit;
+  };
+}
+
+void AvidaGPL9Task::SetupWorldTaskPerformanceFun() {
+
+  aggregate_performance_fun = [this]() {
+    return world_agg_score;
+  };
+
+  // Wire up the performance function set (used for multi-objective/-task selection schemes)
+  // TODO - fill this out!
+  for (size_t i = 0; i < world_scores.size(); ++i) { // <-- this is a placeholder just to get things to compile
+    performance_fun_set.emplace_back(
+      [i, this]() {
+        emp_assert(i < world_scores.size());
+        // importantly, i is copy-captured
+        return world_scores[i];
+      }
+    );
+  }
 }
 
 } // namespace dirdevo

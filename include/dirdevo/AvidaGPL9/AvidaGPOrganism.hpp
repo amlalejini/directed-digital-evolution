@@ -102,8 +102,11 @@ public:
 
   void OnBeforeRepro() override { }
 
-  void OnOffspringReady(this_t& offspring) override { }
-  // TODO - reset parent!
+  void OnOffspringReady(this_t& offspring) override {
+    // Reset this (the parent) organism's hardware + reproduction status
+    hardware.ResetReplicatorHardware();
+    repro_ready=false;
+  }
 
   void OnPlacement(size_t position) override {
     // let hardware know where it exists in the world
@@ -114,9 +117,8 @@ public:
     hardware.ResetReplicatorHardware(); // Reset AvidaGP virtual hardware
     dead=false;
     repro_ready=false;
-    new_born=true;
+    new_born=true;     // TODO - do something with new_born or cut it?
     age=0;
-    // TODO - reset phenotype
   }
 
   void OnDeath(size_t position) override { /*TODO*/ }
