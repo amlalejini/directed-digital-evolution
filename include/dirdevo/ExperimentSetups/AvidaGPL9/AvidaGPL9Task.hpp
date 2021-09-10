@@ -9,8 +9,9 @@
 #include "emp/base/vector.hpp"
 #include "emp/datastructs/vector_utils.hpp"
 
-#include "../BaseTask.hpp"
-#include "../DirectedDevoWorld.hpp"
+#include "../../BaseTask.hpp"
+#include "../../DirectedDevoWorld.hpp"
+
 #include "AvidaGPOrganism.hpp"
 #include "AvidaGPReplicator.hpp"
 #include "L9TaskSet.hpp"

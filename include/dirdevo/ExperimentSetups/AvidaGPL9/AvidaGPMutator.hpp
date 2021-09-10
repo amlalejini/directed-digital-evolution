@@ -11,7 +11,7 @@
 #include "emp/hardware/AvidaGP.hpp"
 #include "emp/math/Range.hpp"
 
-#include "dirdevo/AvidaGPL9/AvidaGPReplicator.hpp"
+#include "AvidaGPReplicator.hpp"
 
 namespace dirdevo {
 

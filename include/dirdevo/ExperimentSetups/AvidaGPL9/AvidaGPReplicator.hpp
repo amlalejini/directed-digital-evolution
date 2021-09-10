@@ -8,7 +8,7 @@
 #include "emp/hardware/AvidaGP.hpp"
 #include "emp/base/vector.hpp"
 
-#include "../BaseOrganism.hpp"
+#include "../../BaseOrganism.hpp"
 
 // STATUS: In progress
 

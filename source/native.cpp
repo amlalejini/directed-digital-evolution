@@ -11,17 +11,17 @@
 #include "dirdevo/DirectedDevoExperiment.hpp"
 
 // ONE MAX
-#include "dirdevo/OneMax/OneMaxOrganism.hpp"
-#include "dirdevo/Mutator/BitSetMutator.hpp"
-#include "dirdevo/OneMax/OneMaxTask.hpp"
+#include "dirdevo/mutator/BitSetMutator.hpp"
+#include "dirdevo/ExperimentSetups/OneMax/OneMaxOrganism.hpp"
+#include "dirdevo/ExperimentSetups/OneMax/OneMaxTask.hpp"
 
 // SGP-LITE
 // #include "directed-digital-evolution/Organism/SGPLiteOrganism.hpp"
 
 // AVIDAGP-L9
-#include "dirdevo/AvidaGPL9/AvidaGPOrganism.hpp"
-#include "dirdevo/AvidaGPL9/AvidaGPL9Task.hpp"
-#include "dirdevo/Mutator/AvidaGPMutator.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPOrganism.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPL9Task.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPMutator.hpp"
 
 // This is the main function for the NATIVE version of directed-digital-evolution.
 

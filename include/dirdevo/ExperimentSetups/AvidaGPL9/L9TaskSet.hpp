@@ -6,8 +6,8 @@
 #include <map>
 #include <unordered_set>
 
-#include "../utility/TaskSet.hpp"
-#include "../utility/boolean_logic_impls.hpp"
+#include "../../utility/TaskSet.hpp"
+#include "../../utility/boolean_logic_impls.hpp"
 
 namespace dirdevo {
 
