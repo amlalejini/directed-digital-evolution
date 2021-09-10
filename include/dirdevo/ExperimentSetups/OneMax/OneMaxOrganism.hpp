@@ -2,7 +2,7 @@
 #ifndef DIRECTED_DEVO_DIRECTED_DEVO_ONEMAX_ORGANISM_HPP_INCLUDE
 #define DIRECTED_DEVO_DIRECTED_DEVO_ONEMAX_ORGANISM_HPP_INCLUDE
 
-#include "../BaseOrganism.hpp"
+#include "../../BaseOrganism.hpp"
 
 namespace dirdevo {
 
@@ -60,7 +60,8 @@ public:
   phenotype_t & GetPhenotype() { return phenotype; }
   const phenotype_t & GetPhenotype() const { return phenotype; }
 
-  // todo - make a virtual base function?
+  // TODO - figure out way to automatically strip out unimplemented organism function calls from world/experiment
+  void OnInjectReady() override { }
 
   void OnBeforeRepro() override { }
 

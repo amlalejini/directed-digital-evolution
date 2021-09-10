@@ -2,7 +2,7 @@
 #ifndef DIRECTED_DEVO_DIRECTED_DEVO_ONE_MAX_TASK_HPP_INCLUDE
 #define DIRECTED_DEVO_DIRECTED_DEVO_ONE_MAX_TASK_HPP_INCLUDE
 
-#include "../BaseTask.hpp"
+#include "../../BaseTask.hpp"
 
 namespace dirdevo {
 
@@ -107,6 +107,8 @@ public:
 
   // --- ORGANISM-LEVEL EVENT HOOKS ---
   // These are always called AFTER the organism's equivalent functions.
+
+  void OnOrgInjectReady(org_t& org) override { }
 
   /// Called when parent is about to reproduce, but before an offspring has been constructed.
   void OnBeforeOrgRepro(org_t & parent) override { /*todo*/ }

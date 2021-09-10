@@ -19,8 +19,8 @@
 
 #include "DirectedDevoConfig.hpp"
 #include "DirectedDevoWorld.hpp"
-#include "Selection/SelectionSchemes.hpp"
-#include "BasePeripheral.hpp"
+#include "BasePeripheral.hpp"             /// TODO - fully integrate the peripheral component!
+#include "selection/SelectionSchemes.hpp"
 
 namespace dirdevo {
 
