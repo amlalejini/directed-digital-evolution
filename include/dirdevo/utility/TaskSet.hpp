@@ -12,6 +12,9 @@
 namespace dirdevo {
 
 // TODO - clean up language world task vs organism task
+/// TaskSet defines a set of Tasks where each task can be identified by a numeric ID and a string name.
+/// A Task defines a mapping from a given set (vector) of inputs (INPUT_T) to a given output (OUTPUT_T).
+/// This mapping is specified by the task's calc_output_fun, which takes a vector of inputs and maps it to the correct output for the given task.
 template<typename INPUT_T, typename OUTPUT_T>
 class TaskSet {
 
@@ -44,6 +47,7 @@ public:
 
   };
 
+  /// Defines a single instance of a task. I.e., a particular set of inputs and the correct output as calculated by the Task definition.
   struct Instance {
     size_t task_id;
     emp::vector<input_t> inputs;
