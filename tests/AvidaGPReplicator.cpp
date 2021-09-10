@@ -6,9 +6,9 @@
 
 #include "emp/math/Random.hpp"
 
-#include "dirdevo/AvidaGPL9/AvidaGPOrganism.hpp"
-#include "dirdevo/AvidaGPL9/AvidaGPL9Task.hpp"
-#include "dirdevo/Mutator/AvidaGPMutator.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPOrganism.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPL9Task.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPMutator.hpp"
 
 #include "dirdevo/DirectedDevoWorld.hpp"
 #include "dirdevo/DirectedDevoConfig.hpp"

@@ -6,11 +6,11 @@
 
 #include "emp/datastructs/vector_utils.hpp"
 
-#include "dirdevo/Selection/Elite.hpp"
-#include "dirdevo/Selection/Lexicase.hpp"
-#include "dirdevo/Selection/NonDominatedElite.hpp"
-#include "dirdevo/Selection/Tournament.hpp"
-#include "dirdevo/Selection/Roulette.hpp"
+#include "dirdevo/selection/Elite.hpp"
+#include "dirdevo/selection/Lexicase.hpp"
+#include "dirdevo/selection/NonDominatedElite.hpp"
+#include "dirdevo/selection/Tournament.hpp"
+#include "dirdevo/selection/Roulette.hpp"
 
 TEST_CASE("Test Elite Selection", "[selection][elite]")
 {

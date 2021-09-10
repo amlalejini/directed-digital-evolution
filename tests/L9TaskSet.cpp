@@ -6,7 +6,7 @@
 
 #include "emp/datastructs/vector_utils.hpp"
 
-#include "dirdevo/AvidaGPL9/L9TaskSet.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGPL9/L9TaskSet.hpp"
 
 TEST_CASE("L9 TaskSet", "[l9][TaskSet]")
 {

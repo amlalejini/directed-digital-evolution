@@ -9,8 +9,8 @@
 #include "emp/datastructs/map_utils.hpp"
 #include "emp/datastructs/set_utils.hpp"
 
-#include "dirdevo/AvidaGPL9/L9TaskSet.hpp"
-#include "dirdevo/AvidaGPL9/L9EnvironmentBank.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGPL9/L9TaskSet.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGPL9/L9EnvironmentBank.hpp"
 
 TEST_CASE("L9EnvironmentBank", "[l9]")
 {
