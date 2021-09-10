@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <functional>
+#include <filesystem>
 
 #include "emp/base/vector.hpp"
 #include "emp/datastructs/vector_utils.hpp"
@@ -172,7 +173,13 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
   // PROBLEM - can't do out-of-world injection for genomes
   for (auto world_ptr : worlds) {
     std::function<genome_t(this_t&, world_t&)> get_ancestor_genome;
+    // TODO - Make ancestor loading a little smarter? E.g., allow different ancestors for different worlds? Can hack into the load function (using the world name to differentiate).
     if (config.LOAD_ANCESTOR_FROM_FILE()) {
+      // check that file exists
+      if (!std::filesystem::exists(config.ANCESTOR_FILE())) {
+        std::cout << "Ancestor file does not exist. " << config.ANCESTOR_FILE() << std::endl;
+        std::exit(EXIT_FAILURE);
+      }
       get_ancestor_genome = [](this_t& experiment, world_t& world) {
         return org_t::LoadAncestralGenome(experiment, world);
       };

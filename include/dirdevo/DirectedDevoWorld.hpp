@@ -218,6 +218,8 @@ public:
   task_t& GetTask() { return task; }
   const task_t& GetTask() const { return task; }
 
+  const config_t& GetConfig() const { return config; }
+
 };
 
 template<typename ORG, typename TASK>
