@@ -171,8 +171,18 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
   // Seed each world with an initial common ancestor
   // PROBLEM - can't do out-of-world injection for genomes
   for (auto world_ptr : worlds) {
-    auto ancestral_genome = org_t::GenerateAncestralGenome(*this, *world_ptr);
-    world_ptr->InjectAt(ancestral_genome, 0); // TODO - Random location to start?
+    std::function<genome_t(this_t&, world_t&)> get_ancestor_genome;
+    if (config.LOAD_ANCESTOR_FROM_FILE()) {
+      get_ancestor_genome = [](this_t& experiment, world_t& world) {
+        return org_t::LoadAncestralGenome(experiment, world);
+      };
+    } else {
+      get_ancestor_genome = [](this_t& experiment, world_t& world) {
+        return org_t::GenerateAncestralGenome(experiment, world);
+      };
+    }
+    // auto ancestral_genome = ;
+    world_ptr->InjectAt(get_ancestor_genome(*this, *world_ptr), 0); // TODO - Random location to start?
   }
 
   // Adjust initial scheduler weights according to initial population!

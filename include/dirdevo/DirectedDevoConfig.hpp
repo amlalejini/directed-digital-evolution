@@ -11,6 +11,8 @@ EMP_BUILD_CONFIG(DirectedDevoConfig,
   VALUE(SEED, int, -1, "Seed for a simulation"),
   VALUE(NUM_POPS, size_t, 1, "Number of populations. Must be > 0"),
   VALUE(EPOCHS, size_t, 100, "Number of iterations of population-level selection to perform."),
+  VALUE(LOAD_ANCESTOR_FROM_FILE, bool, false, "Should the ancestral genome be loaded from file? NOTE - the experiment setup must implement this functionality."),
+  VALUE(ANCESTOR_FILE, std::string, "ancestor.gen", "Path to file containing ancestor genome to be loaded"),
 
   GROUP(LOCAL_WORLD_SETTINGS, "Settings for each local population (world)"),
   VALUE(AVG_STEPS_PER_ORG, size_t, 30, "On average, how many steps per organism do we allot on each world update? Must be >= 1."),

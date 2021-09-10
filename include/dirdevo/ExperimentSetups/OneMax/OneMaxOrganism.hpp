@@ -31,6 +31,12 @@ public:
     return genome_t(false);
   }
 
+  template<typename EXPERIMENT_T, typename WORLD_T>
+  static genome_t LoadAncestralGenome(const EXPERIMENT_T& exp, const WORLD_T& world) {
+    emp_assert(false, "OneMaxOrganism does not support the loading ancestral genomes from file");
+    return this_t::GenerateAncestralGenome(exp, world);
+  }
+
 protected:
   genome_t genome;
   phenotype_t phenotype;
