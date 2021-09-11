@@ -37,7 +37,10 @@ EMP_BUILD_CONFIG(DirectedDevoConfig,
 
   GROUP(AVIDAGP_MUTATION_SETTINGS, "Settings specific to AvidaGP mutation"),
   VALUE(AVIDAGP_MUT_RATE_INST_SUB, double, 0.01, "Instruction substitution rate (applied per-instruction)"),
-  VALUE(AVIDAGP_MUT_RATE_ARG_SUB, double, 0.025, "Instruction argument substitution rate (applied per-argument)")
+  VALUE(AVIDAGP_MUT_RATE_ARG_SUB, double, 0.025, "Instruction argument substitution rate (applied per-argument)"),
+
+  GROUP(AVIDAGP_ENV_SETTINGS, "Settings specific to AvidaGP environment/task"),
+  VALUE(AVIDAGP_ENV_FILE, std::string, "environment.json", "Path to the environment file that specifies which tasks are rewarded at organism and world level")
 
 );
 

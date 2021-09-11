@@ -99,40 +99,40 @@ protected:
     return env;
   }
 
-  /// Internal function. Generate count number of task environment instances, adding each to the environment bank.
-  /// Each environment is guaranteed to have unique outputs for teach possible task.
-  void Generate(size_t count) {
-    // TODO - guarantee that every environment is unique?
-    // std::unordered_set<std::pair<input_t,input_t>> env_buffers; // Use to make sure each environment is unique
-    environment_bank.resize(count, nullptr);
-    for (size_t n = 0; n < count; n++) {
-      environment_bank[n] = emp::NewPtr<Environment>(BuildEnvironment());
-      // environment_bank.emplace_back(BuildEnvironment());
-    }
-  }
-
 public:
 
   L9EnvironmentBank(
     emp::Random& rnd,
-    task_set_t& a_task_set,
-    size_t num_environments
+    task_set_t& a_task_set
   ) :
     random(rnd),
     task_set(a_task_set)
-  {
-    emp_assert(num_environments > 0, "Can't have a size-0 environment bank.");
-    Generate(num_environments);
-  }
+  { ; }
 
   ~L9EnvironmentBank() {
-    for (emp::Ptr<Environment> env : environment_bank) {
-      env.Delete();
+    Clear();
+  }
+
+  /// Generate count number of task environment instances, adding each to the environment bank.
+  /// Each environment is guaranteed to have unique outputs for teach possible task.
+  /// WARNING - calling this function will delete any existing environments in this bank, invalidating references to them.
+  void GenerateBank(size_t count) {
+    Clear();
+    // TODO - guarantee that every environment is unique?
+    environment_bank.resize(count, nullptr);
+    for (size_t n = 0; n < count; n++) {
+      environment_bank[n] = emp::NewPtr<Environment>(BuildEnvironment());
     }
   }
 
-  size_t GetSize() const { return environment_bank.size(); }
+  void Clear() {
+    for (emp::Ptr<Environment> env : environment_bank) {
+      env.Delete();
+    }
+    environment_bank.clear();
+  }
 
+  size_t GetSize() const { return environment_bank.size(); }
 
   const Environment& GetEnvironment(size_t i) const { emp_assert(i < GetSize()); return *(environment_bank[i]); }
 

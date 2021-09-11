@@ -3,11 +3,14 @@
 #define DIRECTED_DEVO_AVIDAGP_L9_TASK_HPP_INCLUDE
 
 #include <algorithm>
+#include <filesystem>
 
 #include "emp/hardware/AvidaCPU_InstLib.hpp"
 #include "emp/tools/string_utils.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/datastructs/vector_utils.hpp"
+
+#include "json/json.hpp"
 
 #include "../../BaseTask.hpp"
 #include "../../DirectedDevoWorld.hpp"
@@ -71,12 +74,12 @@ public:
   AvidaGPL9Task(world_t& w) :
     base_t(w),
     org_task_set(),
-    env_bank(world.GetRandom(), org_task_set, this_t::ENV_BANK_SIZE),
-    l9_indiv_task_values(org_task_set.GetSize(), 0.0),
-    l9_world_task_values(org_task_set.GetSize(), 0.0),
+    env_bank(world.GetRandom(), org_task_set),
+    l9_indiv_task_values(),
+    l9_world_task_values(),
     l9_indiv_task_ids(),
     l9_world_task_ids(),
-    l9_world_task_performance(org_task_set.GetSize(), 0)
+    l9_world_task_performance()
   { ; }
 
   inst_lib_t& GetInstLib() { return inst_lib; }
@@ -342,48 +345,89 @@ void AvidaGPL9Task::SetupInstLib() {
 }
 
 void AvidaGPL9Task::SetupTaskValues() {
-  // Reset existing values
+  // todo - add tasks to org task set
+  // (1) Parse environment file
+  if (!std::filesystem::exists(world.GetConfig().AVIDAGP_ENV_FILE())) {
+    std::cout << "Environment file does not exist. " << world.GetConfig().AVIDAGP_ENV_FILE() << std::endl;
+    std::exit(EXIT_FAILURE);
+  }
+  std::ifstream env_ifstream(world.GetConfig().AVIDAGP_ENV_FILE());
+  nlohmann::json env_json;
+  env_ifstream >> env_json;
+  emp_assert(env_json.contains("organism"), "Improperly configured environment file. Failed to find 'organism' key.");
+  emp_assert(env_json.contains("world"), "Improperly configured environment file. Failed to find 'world' key.");
+
+  // Get the set of tasks (world and )
+  std::unordered_set<std::string> loaded_env_task_set; // Keep track of which tasks we should add to the org_task_set
+  emp::vector<std::string> loaded_env_task_order;      // Would prefer to order tasks in the order they appeared in the environment file.
+  // Start with organism tasks, then world tasks
+  emp_assert(env_json["organism"].contains("tasks"));
+  emp_assert(env_json["world"].contains("tasks"));
+  auto& org_task_json = env_json["organism"]["tasks"];
+  auto& world_task_json = env_json["world"]["tasks"];
+  for (auto& task : org_task_json) {
+    emp_assert(task.contains("name"));
+    if (emp::Has(loaded_env_task_set, task["name"])) continue;
+    loaded_env_task_set.emplace(task["name"]);
+    loaded_env_task_order.emplace_back(task["name"]);
+  }
+  for (auto& task : world_task_json) {
+    emp_assert(task.contains("name"));
+    if (emp::Has(loaded_env_task_set, task["name"])) continue;
+    loaded_env_task_set.emplace(task["name"]);
+    loaded_env_task_order.emplace_back(task["name"]);
+  }
+
+  // std::cout << loaded_env_task_order << std::endl;
+  // Build the task set
+  org_task_set.AddTasksByName(loaded_env_task_order);
+  emp_assert(org_task_set.GetSize() == loaded_env_task_set.size());
+  // Generate the environment bank
+  env_bank.GenerateBank(this_t::ENV_BANK_SIZE);
+  // Setup task performance tracking vector
+  l9_world_task_performance.resize(org_task_set.GetSize());
+  std::fill(
+    l9_world_task_performance.begin(),
+    l9_world_task_performance.end(),
+    0
+  );
+
+  // Assign to each task (at organism and at world level)
+  // FIRST, assign values to organism-level tasks.
   l9_indiv_task_values.resize(org_task_set.GetSize(), 0.0);
   std::fill(
     l9_indiv_task_values.begin(),
     l9_indiv_task_values.end(),
     0.0
   );
+  l9_indiv_task_ids.clear();
+  for (auto& task : org_task_json) {
+    emp_assert(task.contains("value"));
+    const std::string task_name = task["name"];
+    const double task_value = task["value"];
+    const size_t task_id = org_task_set.GetID(task_name);
+    l9_indiv_task_ids.emplace_back(task_id);
+    l9_indiv_task_values[task_id] = task_value;
+  }
 
+  // Next, assign values to world-level tasks.
   l9_world_task_values.resize(org_task_set.GetSize(), 0.0);
   std::fill(
     l9_world_task_values.begin(),
     l9_world_task_values.end(),
     0.0
   );
-  l9_indiv_task_ids.clear();
   l9_world_task_ids.clear();
+  for (auto& task : world_task_json) {
+    emp_assert(task.contains("value"));
+    const std::string task_name = task["name"];
+    const double task_value = task["value"];
+    const size_t task_id = org_task_set.GetID(task_name);
+    l9_world_task_ids.emplace_back(task_id);
+    l9_world_task_values[task_id] = task_value;
+  }
 
-  // TODO - allow a configuration file to specify these values
-  l9_indiv_task_ids.emplace_back(org_task_set.GetID("ECHO"));
-  l9_indiv_task_ids.emplace_back(org_task_set.GetID("NAND"));
-  l9_indiv_task_values[org_task_set.GetID("ECHO")] = 1.0;
-  l9_indiv_task_values[org_task_set.GetID("NAND")] = 2.0;
-
-  l9_world_task_ids.emplace_back(org_task_set.GetID("NOT"));
-  l9_world_task_ids.emplace_back(org_task_set.GetID("OR_NOT"));
-  l9_world_task_ids.emplace_back(org_task_set.GetID("AND"));
-  l9_world_task_ids.emplace_back(org_task_set.GetID("OR"));
-  l9_world_task_ids.emplace_back(org_task_set.GetID("AND_NOT"));
-  l9_world_task_ids.emplace_back(org_task_set.GetID("NOR"));
-  l9_world_task_ids.emplace_back(org_task_set.GetID("XOR"));
-  l9_world_task_ids.emplace_back(org_task_set.GetID("EQU"));
-
-  l9_world_task_values[org_task_set.GetID("NOT")] = 1.0;
-  l9_world_task_values[org_task_set.GetID("OR_NOT")] = 1.0;
-  l9_world_task_values[org_task_set.GetID("AND")] = 1.0;
-  l9_world_task_values[org_task_set.GetID("OR")] = 1.0;
-  l9_world_task_values[org_task_set.GetID("AND_NOT")] = 1.0;
-  l9_world_task_values[org_task_set.GetID("NOR")] = 1.0;
-  l9_world_task_values[org_task_set.GetID("XOR")] = 1.0;
-  l9_world_task_values[org_task_set.GetID("EQU")] = 1.0;
-
-  // Setup
+  // Configure the world score tracking based on world task configuration
   world_scores.resize(l9_world_task_ids.size(), 0.0);
   world_agg_score=0;
 
