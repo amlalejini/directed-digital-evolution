@@ -13,6 +13,19 @@ TEST_CASE("L9 TaskSet", "[l9][TaskSet]")
 
   dirdevo::L9TaskSet task_set;
 
+  task_set.AddTasksByName({
+    "ECHO",
+    "NOT",
+    "NAND",
+    "OR_NOT",
+    "AND",
+    "OR",
+    "AND_NOT",
+    "NOR",
+    "XOR",
+    "EQU"
+  });
+
   CHECK(task_set.GetSize() == 10);
   CHECK(task_set.HasTask("ECHO"));
   CHECK(task_set.HasTask("NOT"));
