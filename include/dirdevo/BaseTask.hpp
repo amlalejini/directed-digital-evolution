@@ -8,6 +8,7 @@
 #include "emp/base/vector.hpp"
 
 #include "DirectedDevoWorld.hpp"
+#include "utility/ConfigSnapshotEntry.hpp"
 
 namespace dirdevo {
 
@@ -44,6 +45,8 @@ public:
   bool IsEvalFresh() const { return fresh_eval; }
 
   // --- WORLD-LEVEL EVENT HOOKS ---
+
+  virtual emp::vector<ConfigSnapshotEntry> GetConfigSnapshotEntries() { return {}; } // By default, return an empty vector.
 
   /// OnWorldSetup called at end of constructor/world setup
   virtual void OnWorldSetup() { emp_assert(false, "Derived task class must implement this function."); }

@@ -68,10 +68,8 @@ public:
   /// Loads an ancestral genome from file.
   template<typename EXPERIMENT_T, typename WORLD_T>
   static genome_t LoadAncestralGenome(const EXPERIMENT_T& exp, const WORLD_T& world) {
-    std::cout << "Loading ancestral genome from file" << std::endl;
     hardware_t hw(world.GetTask().GetInstLib()); // need this dummy hardware because of the wonky way AvidaGP is implemented
     hw.Load(world.GetConfig().ANCESTOR_FILE());
-    std::cout << "done loading" << std::endl;
     return hw.GetGenome();
   }
 

@@ -14,6 +14,9 @@ EMP_BUILD_CONFIG(DirectedDevoConfig,
   VALUE(LOAD_ANCESTOR_FROM_FILE, bool, false, "Should the ancestral genome be loaded from file? NOTE - the experiment setup must implement this functionality."),
   VALUE(ANCESTOR_FILE, std::string, "ancestor.gen", "Path to file containing ancestor genome to be loaded"),
 
+  GROUP(OUTPUT_SETTINGS, "Settings specific to experiment output"),
+  VALUE(OUTPUT_DIR, std::string, "output", "Where should the experiment dump output?"),
+
   GROUP(LOCAL_WORLD_SETTINGS, "Settings for each local population (world)"),
   VALUE(AVG_STEPS_PER_ORG, size_t, 30, "On average, how many steps per organism do we allot on each world update? Must be >= 1."),
   VALUE(UPDATES_PER_EPOCH, size_t, 100, "How many updates should we run each local population for during an period of evolution?"),

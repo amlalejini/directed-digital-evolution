@@ -10,6 +10,7 @@
 
 #include "utility/ProbabilisticScheduler.hpp"
 #include "DirectedDevoConfig.hpp"
+#include "utility/ConfigSnapshotEntry.hpp"
 
 namespace dirdevo {
 
@@ -187,7 +188,6 @@ public:
     task.OnWorldSetup(); // Tell the task that the world has been configured.
     aggregate_performance_fun = task.GetAggregatePerformanceFun(); // TODO - test that this wiring works as expected!
 
-    std::cout << "DirectedDevoWorld constructed." << std::endl;
   }
 
   const std::string& GetName() const { return name; }
@@ -213,6 +213,18 @@ public:
 
   double GetAggregateTaskPerformance() { emp_assert(task.IsEvalFresh()); return aggregate_performance_fun(); }
   double GetSubTaskPerformance(size_t i);
+
+  emp::vector<ConfigSnapshotEntry> GetConfigSnapshotEntries() {
+    emp::vector<ConfigSnapshotEntry> entries(task.GetConfigSnapshotEntries()); // Grab all of the task-specific entries
+    // Add world entries
+    entries.emplace_back(
+      "world_size",
+      emp::to_string(this->GetSize()),
+      "world__" + GetName()
+    );
+    return entries;
+  }
+
   size_t GetNumSubTasks();
 
   task_t& GetTask() { return task; }

@@ -87,6 +87,54 @@ public:
 
   // --- WORLD-LEVEL EVENT HOOKS ---
 
+  emp::vector<ConfigSnapshotEntry> GetConfigSnapshotEntries() override {
+     emp::vector<ConfigSnapshotEntry> entries;
+     const std::string source("world__" + world.GetName() + "__task");
+     entries.emplace_back(
+       "org_task_set_size",
+       emp::to_string(org_task_set.GetSize()),
+       source
+     );
+     entries.emplace_back(
+       "env_bank_size",
+       emp::to_string(env_bank.GetSize()),
+       source
+     );
+     entries.emplace_back(
+       "inst_set_size",
+       emp::to_string(inst_lib.GetSize()),
+       source
+     );
+    // Individual tasks
+    std::ostringstream stream;
+    stream << "\"[";
+    for (size_t i = 0; i < l9_indiv_task_ids.size(); ++i) {
+      if (i) stream << ",";
+      stream << org_task_set.GetName(l9_indiv_task_ids[i]);
+    }
+    stream << "]\"";
+    entries.emplace_back(
+      "indiv_tasks",
+      stream.str(),
+      source
+    );
+
+    // World-level tasks
+    stream.str("");
+    stream << "\"[";
+    for (size_t i = 0; i < l9_world_task_ids.size(); ++i) {
+      if (i) stream << ",";
+      stream << org_task_set.GetName(l9_world_task_ids[i]);
+    }
+    stream << "]\"";
+    entries.emplace_back(
+      "world_tasks",
+      stream.str(),
+      source
+    );
+    return entries;
+  }
+
   /// OnWorldSetup called at end of constructor/world setup
   void OnWorldSetup() override {
     // TODO - configure task based on world's configuration
@@ -228,7 +276,6 @@ public:
 };
 
 void AvidaGPL9Task::SetupInstLib() {
-  std::cout << "Setting up instruction library." << std::endl;
 
   ///////////////////////////////////////////////////////////////////////////////////
   // Add default instructions

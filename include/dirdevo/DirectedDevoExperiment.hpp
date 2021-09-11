@@ -12,6 +12,7 @@
 #include <unordered_set>
 #include <functional>
 #include <filesystem>
+#include <sys/stat.h>
 
 #include "emp/base/vector.hpp"
 #include "emp/datastructs/vector_utils.hpp"
@@ -22,6 +23,7 @@
 #include "DirectedDevoWorld.hpp"
 #include "BasePeripheral.hpp"             /// TODO - fully integrate the peripheral component!
 #include "selection/SelectionSchemes.hpp"
+#include "utility/ConfigSnapshotEntry.hpp"
 
 namespace dirdevo {
 
@@ -77,6 +79,8 @@ protected:
   bool setup=false;
   size_t cur_epoch=0;
 
+  std::string output_dir; ///< Formatted output directory
+
   /// Setup the experiment based on the given configuration (called internally).
   void Setup();
 
@@ -86,6 +90,7 @@ protected:
   /// Configure population selection (called internally).
   void SetupSelection();
   void SetupEliteSelection();
+  void SetupDataCollection();
 
   // TODO - allow for different sampling techniques / ways of forming propagules
   // - e.g., each propagules comes from a single world? each propagule is a mixture of all worlds?
@@ -200,6 +205,9 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
   // Setup selection
   SetupSelection();
 
+  // Setup data collection
+  SetupDataCollection();
+
   // TODO - should config snapshot be here or elsewhere?
   SnapshotConfig();
   setup = true;
@@ -227,6 +235,22 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupSelecti
     // code should never reach this else (unless I forget to add a selection scheme here that is in the valid selection method set)
     emp_assert(false, "Unimplemented selection scheme.", config.SELECTION_METHOD());
   }
+}
+
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCollection() {
+  output_dir = config.OUTPUT_DIR();
+  if (setup) {
+    // anything we need to do if this function is called post-setup
+  } else {
+    mkdir(output_dir.c_str(), ACCESSPERMS);
+    if(output_dir.back() != '/') {
+      output_dir += '/';
+    }
+  }
+
+  // TODO - Configure data collection!
+
 }
 
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
@@ -263,14 +287,49 @@ template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typenam
 void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SnapshotConfig(
   const std::string& filename /*= "experiment-config.csv"*/
 ) {
-  std::cout << "Snapshotting experiment configuration..." << std::endl;
 
-  // TODO - actually snapshot configuration
+  emp::DataFile snapshot_file(output_dir + "/run_config.csv");
+  std::function<std::string(void)> get_param;
+  std::function<std::string(void)> get_value;
+  std::function<std::string(void)> get_source;
+  snapshot_file.AddFun<std::string>(
+    [&get_param]() { return get_param(); },
+    "parameter"
+  );
+  snapshot_file.AddFun<std::string>(
+    [&get_value]() { return get_value(); },
+    "value"
+  );
+  snapshot_file.AddFun<std::string>(
+    [&get_source]() { return get_source(); },
+    "source"
+  );
+
+  snapshot_file.PrintHeaderKeys();
+
+  // CUSTOM STUFF would go here!
+
+  // Snapshot config
+  get_source = []() { return "experiment"; };
   for (const auto & entry : config) {
-    std::cout << "  * " <<  entry.first << " = " << emp::to_string(entry.second->GetValue()) << std::endl;
+    get_param = [&entry]() { return entry.first; };
+    get_value = [&entry]() { return emp::to_string(entry.second->GetValue()); };
+    snapshot_file.Update();
   }
 
-  std::cout << "...done snapshotting." << std::endl;
+  // Collect and snapshot downstream configuration
+  emp::vector<ConfigSnapshotEntry> entries;
+  for (auto world_ptr : worlds) {
+    auto world_entries = world_ptr->GetConfigSnapshotEntries();
+    std::copy(world_entries.begin(), world_entries.end(), std::back_inserter(entries));
+  }
+  for (const auto& entry : entries) {
+    get_param = [&entry]() { return entry.param; };
+    get_value = [&entry]() { return entry.value; };
+    get_source = [&entry]() { return entry.source; };
+    snapshot_file.Update();
+  }
+
 }
 
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
