@@ -26,3 +26,7 @@ doc/_build/
 package-lock.json
 node_modules/
 coverage_include/
+
+directed-digital-experiment
+*.cfg
+output/
