@@ -19,7 +19,8 @@ TEST_CASE("L9EnvironmentBank", "[l9]")
   emp::Random random(seed);
 
   // Create a size-10 environment bank
-  dirdevo::L9EnvironmentBank env_bank10(random, task_set, 10);
+  dirdevo::L9EnvironmentBank env_bank10(random, task_set);
+  env_bank10.GenerateBank(10);
   CHECK(env_bank10.GetSize() == 10);
   // Is each environment collision-free?
   for (size_t i = 0; i < env_bank10.GetSize(); ++i) {
@@ -40,7 +41,8 @@ TEST_CASE("L9EnvironmentBank", "[l9]")
   }
 
   // Create a big environment bank.
-  dirdevo::L9EnvironmentBank env_bank10000(random, task_set, 10000);
+  dirdevo::L9EnvironmentBank env_bank10000(random, task_set);
+  env_bank10000.GenerateBank(10000);
   CHECK(env_bank10000.GetSize() == 10000);
 
 }
