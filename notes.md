@@ -14,7 +14,6 @@
   - Clean up task terminology
   - implement data tracking
     - world population snapshots
-    - world summary
     - systematics
   - implement more interesting organisms / tasks
   - allow for EC-style evolution (sync gens, individual evaluation), have different ECWorld that experiment configures?
@@ -22,9 +21,15 @@
   - Add more tasks? (e.g., arithmetic that uses different 'resources' and io receptors)
     - e.g., allow for: does rewarding different tasks (that we don't necessarily care about) improve actual objective performance (e.g., equ)?
   - Allow for instruction
-  - Rebrand brom AvidaGPL9 to just AvidaGP?
+  - Rebrand from AvidaGPL9 to just AvidaGP?
   - Add support for multiple IO channels
     - Will need a task set, environment bank for each channel; need io buffers for each channel; need to track performances by channel
+  - test CPU/test world
+    - Allow organism traces, test for viability, get phenotype
+    - OR, run an analyze mode?
+    - Run until replication OR until time limit up
+  - track generations?
+  - setup systematics file (add phylodiversity file too?)
 - Nice things
   - Refactor each components responsibilities => now that things are more fleshed out, does everyone's roles make sense? e.g., does it make sense for the organism to be responsible for generating ancestral genotypes? should the world's task be renamed something else (it's more than just a task => it manages all the specifics of the particular setup).
   - Isolate bug in IndexMap where you provide an initial weight(?)
