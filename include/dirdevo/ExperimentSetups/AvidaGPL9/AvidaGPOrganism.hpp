@@ -79,6 +79,7 @@ protected:
   hardware_t hardware;
 
   size_t age = 0;
+  size_t generation = 0;
 
   using base_t::dead;
   using base_t::repro_ready;
@@ -108,6 +109,7 @@ public:
     repro_ready=false;
     new_born=true;
     age=0;
+    generation=0;
   }
 
   void OnBeforeRepro() override { }
@@ -115,6 +117,7 @@ public:
   void OnOffspringReady(this_t& offspring) override {
     // Reset this (the parent) organism's hardware + reproduction status
     hardware.ResetReplicatorHardware();
+    generation++; // TODO - should parent generation counter increase when it divides? Or stay the same?
     repro_ready=false;
   }
 
@@ -129,6 +132,8 @@ public:
     repro_ready=false;
     new_born=true;     // TODO - do something with new_born or cut it?
     age=0;
+    // note, this happens before parent's OnOffspringReady is called
+    generation=parent.generation+1; // TODO - should parent generation counter increase when it divides?
   }
 
   void OnDeath(size_t position) override { /*TODO*/ }

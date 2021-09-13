@@ -59,6 +59,7 @@ public:
       },
       "task_performance"
     );
+    // TODO - average generation
   }
 
 protected:
