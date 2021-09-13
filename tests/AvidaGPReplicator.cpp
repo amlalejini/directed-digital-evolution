@@ -23,6 +23,7 @@ TEST_CASE("AvidaGPReplicator on AvidaGPL9Task", "[l9]") {
   // Need to build a world with an AvidaGPL9 task for the correct instruction set.
   dirdevo::DirectedDevoConfig config;
   config.SEED(2);
+  config.AVIDAGP_ENV_FILE("example-environment.json");
   emp::Random random(config.SEED());
   world_t world(config, random);
 
