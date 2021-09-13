@@ -506,7 +506,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
     for (auto world_ptr : worlds) {
       std::cout << "Running world " << world_ptr->GetName() << std::endl;
       cur_world = world_ptr;
-
+      world_ptr->SetEpoch(cur_epoch);
       for (size_t u = 0; u <= config.UPDATES_PER_EPOCH(); u++) {
         world_ptr->RunStep();
       }
@@ -573,7 +573,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
     const size_t propagule_offset = max_world_size*worlds.size(); // Propagules will have positions offset past all valid world positions
     // For each genome
     size_t genome_counter = 0;
-    const size_t transfer_time = cur_epoch*config.UPDATES_PER_EPOCH();
+    const size_t transfer_time = (cur_epoch+1)*config.UPDATES_PER_EPOCH(); // cur_epoch+1 because this is at the end of an epoch (so after its updates have elapsed)
     for (size_t prop_i = 0; prop_i < propagules.size(); ++prop_i) {
       for (size_t gen_i = 0; gen_i < propagules[prop_i].size(); ++gen_i) {
         TransferOrg& transfer_org = propagules[prop_i][gen_i];

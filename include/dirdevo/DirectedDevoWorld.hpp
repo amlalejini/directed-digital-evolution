@@ -107,12 +107,14 @@ protected:
   std::function<double(void)> aggregate_performance_fun;
   pop_struct_t pop_struct;
   size_t world_id=0;
+  size_t cur_epoch=0;
 
   /// Wraps the shared
   // TODO - setup ability to strip out systematics tracking (because it can be a performance hit)
   struct SharedSystematicsWrapper {
     emp::Ptr<systematics_t> sys_ptr; ///< NON-OWNING. Pointer to the systematics manager shared by each world in an experiment.
     size_t offset=0;                 ///< world_id*GetSize()
+    size_t time_offset=0;
 
     void SetNextParent(size_t pos) {
       emp_assert(sys_ptr);
@@ -123,12 +125,12 @@ protected:
     void AddOrg(org_t& org, size_t pos, size_t update) {
       emp_assert(sys_ptr);
       // From the systematics manager's perspective, all worlds are part of pop_0 (for their WorldPosition args)
-      sys_ptr->AddOrg(org, {offset+pos, 0}, (int)update);
+      sys_ptr->AddOrg(org, {offset+pos, 0}, (int)(update+time_offset));
     }
 
     void RemoveOrgAfterRepro(size_t pos, size_t update) {
       emp_assert(sys_ptr);
-      sys_ptr->RemoveOrgAfterRepro({offset+pos, 0}, (int)update);
+      sys_ptr->RemoveOrgAfterRepro({offset+pos, 0}, (int)(update+time_offset));
       // TODO
     }
 
@@ -282,10 +284,11 @@ public:
     shared_systematics_wrapper.sys_ptr = sys;
     shared_systematics_wrapper.offset = world_id * max_world_size;
     std::cout << "Systematics offset ("<<world_id<<"): " << shared_systematics_wrapper.offset << std::endl;
+  }
 
-    // OnBeforePlacement(
-
-    // );
+  void SetEpoch(size_t epoch) {
+    cur_epoch = epoch;
+    shared_systematics_wrapper.time_offset = epoch * config.UPDATES_PER_EPOCH();
   }
 
   /// Force a re-sync of scheduler weights with organism merits
