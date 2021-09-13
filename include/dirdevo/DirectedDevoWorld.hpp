@@ -45,13 +45,23 @@ public:
 
   };
 
+  // Helpful type aliases
   using base_t = emp::World<ORG>;
   using this_t = DirectedDevoWorld<ORG, TASK>;
   using task_t = TASK;
   using scheduler_t = ProbabilisticScheduler;
   using pop_struct_t = PopStructureDesc;
   using org_t = ORG;
+  using genome_t = typename base_t::genome_t;
   using config_t = DirectedDevoConfig;
+  using systematics_t = emp::Systematics<org_t, genome_t>; // TODO - work out how to add on extra taxon-associated data tracking if necessary!
+  using taxon_t = typename systematics_t::taxon_t;
+
+  // Public functions in base type that we want to use w/out this reference
+  using base_t::GetUpdate;
+  using base_t::GetOrg;
+  using base_t::GetSize;
+  using base_t::GetNumOrgs;
 
   static bool IsValidPopStructure(const std::string & mode);
   static POP_STRUCTURE PopStructureStrToMode(const std::string & mode);
@@ -98,6 +108,40 @@ protected:
   pop_struct_t pop_struct;
   size_t world_id=0;
 
+  /// Wraps the shared
+  // TODO - setup ability to strip out systematics tracking (because it can be a performance hit)
+  struct SharedSystematicsWrapper {
+    emp::Ptr<systematics_t> sys_ptr; ///< NON-OWNING. Pointer to the systematics manager shared by each world in an experiment.
+    size_t offset=0;                 ///< world_id*GetSize()
+
+    void SetNextParent(size_t pos) {
+      emp_assert(sys_ptr);
+      sys_ptr->SetNextParent(pos + offset);
+    }
+
+    // TODO - fix time!
+    void AddOrg(org_t& org, size_t pos, size_t update) {
+      emp_assert(sys_ptr);
+      // From the systematics manager's perspective, all worlds are part of pop_0 (for their WorldPosition args)
+      sys_ptr->AddOrg(org, {offset+pos, 0}, (int)update);
+    }
+
+    void RemoveOrgAfterRepro(size_t pos, size_t update) {
+      emp_assert(sys_ptr);
+      sys_ptr->RemoveOrgAfterRepro({offset+pos, 0}, (int)update);
+      // TODO
+    }
+
+    void Update() {
+      emp_assert(sys_ptr);
+      sys_ptr->Update();
+    }
+
+    /// Is the shared systematics manager active?
+    bool IsActive() const { return sys_ptr != nullptr; }
+
+  } shared_systematics_wrapper;
+
   void SetPopStructure(const pop_struct_t & pop_struct); // TODO - clean this up more!
 
 public:
@@ -141,6 +185,7 @@ public:
     this->OnPlacement(
       [this](size_t pos) {
         auto& org = this->GetOrg(pos);
+        shared_systematics_wrapper.AddOrg(org, pos, GetUpdate());
         org.OnPlacement(pos);                        // Tell the organism about its placement.
         task.OnOrgPlacement(org, pos);               // Tell the task about organism placement.
         scheduler.AdjustWeight(pos, org.GetMerit()); // Update scheduler weights last.
@@ -154,6 +199,7 @@ public:
         org.OnDeath(pos);
         task.OnOrgDeath(org, pos);
         scheduler.AdjustWeight(pos, 0); // Update scheduler weights last.
+        shared_systematics_wrapper.RemoveOrgAfterRepro(pos, GetUpdate());
       }
     );
 
@@ -197,10 +243,12 @@ public:
     this->OnOffspringReady(
       [this](org_t& offspring, size_t parent_pos) {
         this->DoMutationsOrg(offspring); // Do mutations on offspring ready, but before parent sees offspring.
+        shared_systematics_wrapper.SetNextParent(parent_pos); // TODO - only call this if shared systematics setup
         auto& parent = this->GetOrg(parent_pos);
         offspring.OnBirth(parent);                // Tell offspring about it's birthday!
         parent.OnOffspringReady(offspring);       // Tell parent that it's offspring is ready
         task.OnOffspringReady(offspring, parent); // Tell task that this offspring was born from this parent.
+        // shared_systematics_wrapper.AddOrg(offspring, )
       }
     );
 
@@ -221,10 +269,24 @@ public:
   const std::string& GetName() const { return name; }
   size_t GetWorldID() const { return world_id; }
 
+  SharedSystematicsWrapper& GetSharedSystematics() { return shared_systematics_wrapper; }
+
   bool IsExtinct() const { return extinct; }
 
   /// Configure the average number of steps distributed to each organism per world update
   void SetAvgOrgStepsPerUpdate(size_t avg_steps);
+
+  /// Configure shared systematics
+  void SetSharedSystematics(emp::Ptr<systematics_t> sys, size_t max_world_size) {
+    // if (shared_systematics_wrapper.sys_ptr) return; // Currently, this might do wonky things if called twice?
+    shared_systematics_wrapper.sys_ptr = sys;
+    shared_systematics_wrapper.offset = world_id * max_world_size;
+    std::cout << "Systematics offset ("<<world_id<<"): " << shared_systematics_wrapper.offset << std::endl;
+
+    // OnBeforePlacement(
+
+    // );
+  }
 
   /// Force a re-sync of scheduler weights with organism merits
   void SyncSchedulerWeights();
@@ -310,17 +372,10 @@ void DirectedDevoWorld<ORG,TASK>::SyncSchedulerWeights() {
   }
 }
 
-// template<typename ORG, typename TASK>
-// void DirectedDevoWorld<ORG,TASK>::Run(size_t updates) {
-//   for (size_t u = 0; u < updates; u++) {
-//     RunStep();
-//   }
-// }
-
 template<typename ORG, typename TASK>
 void DirectedDevoWorld<ORG,TASK>::RunStep() {
   // Tell task that we're about to run an update
-  task.OnBeforeWorldUpdate(this->GetUpdate());
+  task.OnBeforeWorldUpdate(GetUpdate());
 
   // Check assumptions about the state of the world.
   const size_t num_orgs = this->GetNumOrgs();
@@ -384,7 +439,8 @@ void DirectedDevoWorld<ORG,TASK>::RunStep() {
   // TODO - any data recording, etc here
 
   // Update the world
-  task.OnWorldUpdate(this->GetUpdate()); // Guarantee that this is called before externally-attached on update functions
+  task.OnWorldUpdate(GetUpdate()); // Guarantee that this is called before externally-attached on update functions
+  shared_systematics_wrapper.Update();
   this->Update();
 }
 

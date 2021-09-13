@@ -36,6 +36,8 @@ namespace dirdevo {
 template<typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL=BasePeripheral>
 class DirectedDevoExperiment {
 public:
+  struct TransferOrg;
+
   // --- Publically available types ---
   using this_t = DirectedDevoExperiment<WORLD,ORG,MUTATOR,TASK,PERIPHERAL>;
   using org_t = ORG;
@@ -47,12 +49,23 @@ public:
 
   using mutator_t = MUTATOR;
   using genome_t = typename org_t::genome_t;
-  using propagule_t = emp::vector<genome_t>;
+  using propagule_t = emp::vector<TransferOrg>;
 
   // TODO - add mutation tracking to systematics?
   using systematics_t = emp::Systematics<org_t, genome_t>;
 
   const std::unordered_set<std::string> valid_selection_methods={"elite","tournament","lexicase"};
+
+  /// Propagules are vectors of TransferGenomes. A TransferGenome wraps information about the genomes sampled to form propagules.
+  /// Necessary for stitching together phylogeny tracking across transfers.
+  struct TransferOrg {
+    emp::Ptr<org_t> org;
+    size_t original_pos=0;
+    size_t transfer_pos=0;
+    // genome_t genome;
+    // TransferOrg(const genome_t& g, size_t p) : org(g), original_pos(p), transfer_pos(0) { ; }
+
+  };
 
 protected:
 
@@ -71,7 +84,7 @@ protected:
   // TODO - should more state information get passed through the propagule? If so, genome_t => org_t?
   emp::vector<size_t> selected;                     ///< Tracks the ids of worlds selected for 'reproduction' on this step. (useful for data tracking)
 
-  emp::vector< emp::vector<genome_t> > propagules;
+  emp::vector< propagule_t > propagules;
   std::unordered_set<size_t> extinct_worlds;        ///< Set of worlds that are extinct.
   std::unordered_set<size_t> live_worlds;           ///< Set of worlds that are not extinct.
 
@@ -83,16 +96,14 @@ protected:
   // std::function<double(size_t)>
   // emp::vector<std::function<double(size_t)> performance_criteria;
 
+  size_t max_world_size=0;
   bool setup=false;
   size_t cur_epoch=0;
   bool record_epoch=false;
   emp::Ptr<world_t> cur_world=nullptr; ///< NON-OWNING. Used internally for data tracking.
 
-
   emp::Ptr<emp::DataFile> world_summary_file; ///< Manages world update summary output. (is updated during world updates; for each world)
   emp::Ptr<emp::DataFile> world_evaluation_file; ///< Manages world evaluation output. (is updated after each world's evaluation)
-  // TODO - world selection file?
-  // TODO - world evaluation file
 
   std::string output_dir;                     ///< Formatted output directory
 
@@ -110,7 +121,7 @@ protected:
   // TODO - allow for different sampling techniques / ways of forming propagules
   // - e.g., each propagules comes from a single world? each propagule is a mixture of all worlds?
   //        'propagule' crossover?
-  propagule_t Sample(world_t& world); // NOTE - should this live in the experiment or the world class?
+  void Sample(world_t& world, propagule_t& sample_into); // NOTE - should this live in the experiment or the world class?
   void SeedWithPropagule(world_t& world, propagule_t& propagule);
 
   /// Output the experiment's configuration as a .csv file.
@@ -138,6 +149,12 @@ public:
     }
     if (world_summary_file) world_summary_file.Delete();
     if (world_evaluation_file) world_evaluation_file.Delete();
+    // Clean up any undeleted propagule organism pointers
+    for (propagule_t& propagule : propagules) {
+      for (size_t i = 0; i < propagule.size(); ++i) {
+        if (propagule[i].org) propagule[i].org.Delete();
+      }
+    }
     if (systematics) systematics.Delete();
   }
 
@@ -178,6 +195,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
 
   // Initialize each world.
   worlds.resize(config.NUM_POPS());
+  max_world_size=0;
   for (size_t i = 0; i < config.NUM_POPS(); ++i) {
     worlds[i] = emp::NewPtr<world_t>(
       config,
@@ -191,6 +209,14 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
       // TODO - add support for mutation tracking!
       return mutator.Mutate(org.GetGenome(), rnd);
     });
+    max_world_size = emp::Max(worlds[i]->GetSize(), max_world_size);
+  }
+
+  // Configure systematics tracking (TODO - allow systematics tracking to be stripped out for performance)
+  systematics = emp::NewPtr<systematics_t>([](const org_t& org) { return org.GetGenome(); });
+  systematics->SetTrackSynchronous(false); // Tell systematics that we have asynchronous generations
+  for (auto world_ptr : worlds) {
+    world_ptr->SetSharedSystematics(systematics, max_world_size);
   }
 
   // Seed each world with an initial common ancestor
@@ -220,9 +246,6 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
   for (auto world_ptr : worlds) {
     world_ptr->SyncSchedulerWeights();
   }
-
-  // TODO - is this where we want systematics setup?
-  systematics = emp::NewPtr<systematics_t>([](const org_t& org) { return org.GetGenome(); });
 
   // Setup selection
   SetupSelection();
@@ -366,15 +389,22 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupEliteSe
 }
 
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
-emp::vector<typename ORG::genome_t> DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Sample(world_t& world) {
+// emp::vector<typename DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::TransferOrg>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Sample(world_t& world, propagule_t& sample_into) {
   emp_assert(!world.IsExtinct(), "Attempting to sample from an extinct population.");
   // sample randomly (for now)
-  propagule_t sample;
+  // propagule_t sample;
+  sample_into.clear();
   // extinct worlds shouldn't get selected (unless everything went extinct or we're doing random selection...)
   for (size_t i = 0; i < config.POPULATION_SAMPLING_SIZE(); ++i) {
-    sample.emplace_back(world.GetRandomOrg().GetGenome());
+    const size_t sampled_pos = world.GetRandomOrgID();
+    const size_t world_pos_offset = world.GetSharedSystematics().offset;
+    emp_assert(world.IsOccupied({sampled_pos}));
+    sample_into.emplace_back();
+    sample_into.back().org = emp::NewPtr<org_t>(world.GetOrg(sampled_pos).GetGenome());
+    sample_into.back().original_pos = world_pos_offset + sampled_pos;
   }
-  return sample;
+  // return sample;
 }
 
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
@@ -383,7 +413,9 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SeedWithProp
   emp_assert(propagule.size() <= world.GetSize(), "Propagule size cannot exceed world size.", propagule.size(), world.GetSize());
   for (size_t i = 0; i < propagule.size(); ++i) {
    const size_t pos = i; // TODO - use a slightly better method of distributing the propagule!
-   world.InjectAt(propagule[i], {pos});
+   // need to set next parent
+   systematics->SetNextParent(propagule[i].transfer_pos);
+   world.InjectAt(propagule[i].org->GetGenome(), {pos});
   }
 }
 
@@ -467,6 +499,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
     // Is this an epoch that we want to record data for?
     // - Either correct interval or final epoch.
     record_epoch = !(cur_epoch % config.OUTPUT_SUMMARY_EPOCH_RESOLUTION()) || (cur_epoch == config.EPOCHS());
+    const bool snapshot_phylogeny = !(cur_epoch % config.OUTPUT_PHYLOGENY_SNAPSHOT_EPOCH_RESOLUTION()) || (cur_epoch == config.EPOCHS());
     // NOTE, should use onupdate to trigger update signals?
 
     // Run worlds forward X updates.
@@ -486,7 +519,14 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
       (worlds[world_id]->IsExtinct()) ? extinct_worlds.insert(world_id) : live_worlds.insert(world_id);
     }
 
-    if (extinct_worlds.size() == worlds.size()) {
+    const bool all_worlds_extinct = extinct_worlds.size() == worlds.size();
+    if (snapshot_phylogeny) {
+      // TODO - allow phylogeny tracking to be optional
+      systematics->Snapshot(output_dir + "phylogeny_" + emp::to_string(cur_epoch) + ".csv");
+    }
+
+
+    if (all_worlds_extinct) {
       std::cout << "All of the worlds are extinct." << std::endl;
       // TODO - when exiting because all worlds are extinct, cleanly do snapshot, etc
       break;
@@ -499,6 +539,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
       std::cout << "    Aggregate performance: " << world_ptr->GetAggregateTaskPerformance() << std::endl;
       // world_ptr->GetRandomOrg().GetHardware().PrintGenome(std::cout);
     }
+
+    // TODO - If this is the final epoch, we don't need to do selection/sampling/founding
 
     // Do selection
     do_selection_fun(selected);
@@ -522,16 +564,44 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
       }
       // Sample from the selected world to form the propagule.
       // TODO - will need to tweak this code if we complicate propagule formation
-      propagules[i] = Sample(*worlds[selected_pop_id]);
+      // propagules[i] = Sample(*worlds[selected_pop_id]);
+      Sample(*worlds[selected_pop_id], propagules[i]);
     }
 
     // Reset worlds + inject propagules into them!
+    // TODO - fix systematics continuity
+    const size_t propagule_offset = max_world_size*worlds.size(); // Propagules will have positions offset past all valid world positions
+    // For each genome
+    size_t genome_counter = 0;
+    const size_t transfer_time = cur_epoch*config.UPDATES_PER_EPOCH();
+    for (size_t prop_i = 0; prop_i < propagules.size(); ++prop_i) {
+      for (size_t gen_i = 0; gen_i < propagules[prop_i].size(); ++gen_i) {
+        TransferOrg& transfer_org = propagules[prop_i][gen_i];
+        systematics->SetNextParent(transfer_org.original_pos);
+        systematics->AddOrg(*(transfer_org.org), {propagule_offset+genome_counter, 0}, (int)transfer_time);
+        transfer_org.transfer_pos = propagule_offset+genome_counter;
+        ++genome_counter;
+      }
+    }
+
     for (size_t i = 0; i < config.NUM_POPS(); ++i) {
       auto& world = *(worlds[i]);
       world.DirectedDevoReset(); // Clear our the world.
       emp_assert(propagules[i].size(), "Propagule is empty.");
-      SeedWithPropagule(world, propagules[i]);
+      SeedWithPropagule(world, propagules[i]); // NOTE - this will handle connecting injected organisms to transfer organisms in propagule
     }
+
+    // Now, we need to remove each of the temporary propagule organisms from the systematics tracking.
+    for (size_t prop_i = 0; prop_i < propagules.size(); ++prop_i) {
+      for (size_t gen_i = 0; gen_i < propagules[prop_i].size(); ++gen_i) {
+        TransferOrg& transfer_org = propagules[prop_i][gen_i];
+        transfer_org.org.Delete(); // Delete transfer organism
+        transfer_org.org = nullptr;
+        systematics->RemoveOrgAfterRepro(transfer_org.transfer_pos, transfer_time);
+      }
+    }
+    // Update the systematics manager
+    systematics->Update();   // TODO - check if this throws off evolutionary distinctiveness measure?
 
     // Report summary information(?)
     // std::cout << "epoch " << cur_epoch << std::endl;

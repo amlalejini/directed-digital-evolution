@@ -17,10 +17,9 @@ EMP_BUILD_CONFIG(DirectedDevoConfig,
   GROUP(OUTPUT_SETTINGS, "Settings specific to experiment output"),
   VALUE(OUTPUT_DIR, std::string, "output", "Where should the experiment dump output?"),
   VALUE(OUTPUT_COLLECT_WORLD_UPDATE_SUMMARY, bool, true, "Collect world update summary data?"),
-  // VALUE(OUTPUT_COLLECT_WORLD_EVAL_SUMMARY, bool, true, "Collect world evaluation summary data?"),
   VALUE(OUTPUT_SUMMARY_EPOCH_RESOLUTION, size_t, 1, "Epoch resolution for recording summary data"),
   VALUE(OUTPUT_SUMMARY_UPDATE_RESOLUTION, size_t, 100, "Output resolution for recording summary data"),
-
+  VALUE(OUTPUT_PHYLOGENY_SNAPSHOT_EPOCH_RESOLUTION, size_t, 10, "How often to output a snapshot of the phylogeny?"),
 
   GROUP(LOCAL_WORLD_SETTINGS, "Settings for each local population (world)"),
   VALUE(AVG_STEPS_PER_ORG, size_t, 30, "On average, how many steps per organism do we allot on each world update? Must be >= 1."),
