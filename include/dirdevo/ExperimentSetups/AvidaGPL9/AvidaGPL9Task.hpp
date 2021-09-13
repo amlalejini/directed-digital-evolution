@@ -39,6 +39,28 @@ public:
 
   static constexpr size_t ENV_BANK_SIZE = 100000;
 
+  /// Attaches data file functions to summary file. Updated at configured world update interval.
+  static void AttachWorldUpdateDataFileFunctions(
+    emp::DataFile& summary_file,
+    const std::function<emp::Ptr<world_t>(void)>& get_world
+  ) {
+    // Output task performance profile
+    summary_file.AddFun<std::string>(
+      [get_world]() {
+        const this_t& task = get_world()->GetTask();
+        std::ostringstream stream;
+        stream << "\"{";
+        for (size_t i = 0; i < task.org_task_set.GetSize(); ++i) {
+          if (i) stream << ",";
+          stream << task.org_task_set.GetName(i) << ":" << task.l9_world_task_performance[i];
+        }
+        stream << "}\"";
+        return stream.str();
+      },
+      "task_performance"
+    );
+  }
+
 protected:
 
   using base_t::aggregate_performance_fun;

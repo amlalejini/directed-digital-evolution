@@ -18,6 +18,7 @@
 #include "emp/datastructs/vector_utils.hpp"
 #include "emp/Evolve/World.hpp"
 #include "emp/tools/string_utils.hpp"
+#include "emp/data/DataFile.hpp"
 
 #include "DirectedDevoConfig.hpp"
 #include "DirectedDevoWorld.hpp"
@@ -42,6 +43,8 @@ public:
   using config_t = DirectedDevoConfig;
   using pop_struct_t = typename world_t::POP_STRUCTURE;
   using peripheral_t = PERIPHERAL;
+  using world_container_file_t = emp::ContainerDataFile<emp::vector<emp::Ptr<world_t>>>;
+
 
   // using mutator_t = typename org_t::mutator_t; // TODO - move the mutator out of the organism? Makes it weird that the task needs to care about mutators....
   using mutator_t = MUTATOR;
@@ -78,8 +81,12 @@ protected:
 
   bool setup=false;
   size_t cur_epoch=0;
+  bool record_epoch=false;
+  emp::Ptr<world_t> cur_world=nullptr; ///< NON-OWNING. Used internally for data tracking.
 
-  std::string output_dir; ///< Formatted output directory
+
+  emp::Ptr<emp::DataFile> world_summary_file; ///< Manages world summary output. (is updated during world updates)
+  std::string output_dir;                     ///< Formatted output directory
 
   /// Setup the experiment based on the given configuration (called internally).
   void Setup();
@@ -121,6 +128,7 @@ public:
     for (auto world : worlds) {
       if (world != nullptr) world.Delete();
     }
+    if (world_summary_file) world_summary_file.Delete();
   }
 
   /// Run experiment for configured number of EPOCHS
@@ -164,7 +172,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
     worlds[i] = emp::NewPtr<world_t>(
       config,
       random,
-      "population_"+emp::to_string(i)
+      "world_"+emp::to_string(i),
+      i
     );
     worlds[i]->SetAvgOrgStepsPerUpdate(config.AVG_STEPS_PER_ORG());
     // configure world's mutation function
@@ -242,6 +251,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
   output_dir = config.OUTPUT_DIR();
   if (setup) {
     // anything we need to do if this function is called post-setup
+    if (world_summary_file) world_summary_file.Delete();
   } else {
     mkdir(output_dir.c_str(), ACCESSPERMS);
     if(output_dir.back() != '/') {
@@ -250,6 +260,35 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
   }
 
   // TODO - Configure data collection!
+
+  // Generally useful functions
+  std::function<size_t(void)> get_epoch = [this]() { return cur_epoch; };
+
+  // World update summary information
+  if (config.OUTPUT_COLLECT_UPDATE_SUMMARY()) {
+    // Attach data file update to world on update signals
+    for (size_t i = 0; i < worlds.size(); ++i) {
+      // Trigger world summary on correct updates
+      worlds[i]->OnUpdate(
+        [this](size_t u){
+          if (record_epoch) {
+            // record this update if final or at recording interval
+            const bool record_update = !(u % config.OUTPUT_SUMMARY_UPDATE_RESOLUTION()) || (u == config.UPDATES_PER_EPOCH());
+            if (!record_update) return;
+            // TODO - update current world (somehow switch between which world is providing information)
+            world_summary_file->Update();
+          }
+        }
+      );
+    }
+    // TODO - rename world_summary file and associated functions?
+    world_summary_file = emp::NewPtr<emp::DataFile>(output_dir + "world_summary.csv");
+    // Experiment level functions
+    world_summary_file->AddFun<size_t>(get_epoch,"epoch");
+    // World-level functions
+    world_t::AttachWorldUpdateDataFileFunctions(*world_summary_file, [this](){ return cur_world; });
+    world_summary_file->PrintHeaderKeys();
+  }
 
 }
 
@@ -357,13 +396,24 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
   for (cur_epoch = 0; cur_epoch <= config.EPOCHS(); ++cur_epoch) {
     std::cout << "==== EPOCH " << cur_epoch << "====" << std::endl;
 
+    // Refresh epoch-level bookkeeping
     extinct_worlds.clear();
     live_worlds.clear();
+
+    // Is this an epoch that we want to record data for?
+    // - Either correct interval or final epoch.
+    record_epoch = !(cur_epoch % config.OUTPUT_SUMMARY_EPOCH_RESOLUTION()) || (cur_epoch == config.EPOCHS());
+    // NOTE, should use onupdate to trigger update signals?
 
     // Run worlds forward X updates.
     for (auto world_ptr : worlds) {
       std::cout << "Running world " << world_ptr->GetName() << std::endl;
-      world_ptr->Run(config.UPDATES_PER_EPOCH());
+      cur_world = world_ptr;
+
+      for (size_t u = 0; u <= config.UPDATES_PER_EPOCH(); u++) {
+        world_ptr->RunStep();
+      }
+
     }
 
     // Do evaluation (could move this into previous loop if I don't add anything else here that requires all worlds to have been run)

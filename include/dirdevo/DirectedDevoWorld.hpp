@@ -56,6 +56,31 @@ public:
   static bool IsValidPopStructure(const std::string & mode);
   static POP_STRUCTURE PopStructureStrToMode(const std::string & mode);
 
+  static void AttachWorldUpdateDataFileFunctions(
+    emp::DataFile& summary_file,
+    const std::function<emp::Ptr<this_t>(void)>& get_world
+  ) {
+    summary_file.AddFun<size_t>(
+      [get_world]() {
+        return get_world()->GetUpdate();
+      },
+      "world_update"
+    );
+    summary_file.AddFun<size_t>(
+      [get_world]() {
+        return get_world()->GetWorldID();
+      },
+      "world_id"
+    );
+    summary_file.AddFun<size_t>(
+      [get_world]() {
+        return get_world()->GetNumOrgs();
+      },
+      "num_orgs"
+    );
+    task_t::AttachWorldUpdateDataFileFunctions(summary_file, get_world);
+  }
+
 protected:
 
   using base_t::pop;
@@ -71,6 +96,7 @@ protected:
   task_t task;                        /// Used to track task performance
   std::function<double(void)> aggregate_performance_fun;
   pop_struct_t pop_struct;
+  size_t world_id=0;
 
   void SetPopStructure(const pop_struct_t & pop_struct); // TODO - clean this up more!
 
@@ -80,7 +106,8 @@ public:
   DirectedDevoWorld(
     const config_t& cfg,
     emp::Random & rnd,
-    const std::string & name=""
+    const std::string & name="",
+    size_t id=0
   ) :
     base_t(rnd, name),
     config(cfg),
@@ -91,7 +118,8 @@ public:
       cfg.LOCAL_GRID_WIDTH(),
       cfg.LOCAL_GRID_HEIGHT(),
       cfg.LOCAL_GRID_DEPTH()
-    )
+    ),
+    world_id(id)
   {
 
     /// TODO - document the order of signal calls in the world!
@@ -176,11 +204,11 @@ public:
       }
     );
 
-    this->OnUpdate(
-      [this](size_t u) {
-        task.OnWorldUpdate(u);
-      }
-    );
+    // this->OnUpdate( // Removed this to guarantee it is called before
+    //   [this](size_t u) {
+    //     task.OnWorldUpdate(u);
+    //   }
+    // );
 
     // Configure population structure.
     SetPopStructure(pop_struct);
@@ -191,6 +219,7 @@ public:
   }
 
   const std::string& GetName() const { return name; }
+  size_t GetWorldID() const { return world_id; }
 
   bool IsExtinct() const { return extinct; }
 
@@ -204,7 +233,7 @@ public:
   void RunStep();
 
   /// Run world forward for given number of updates
-  void Run(size_t updates);
+  // void Run(size_t updates);
 
   /// Evaluate the world (make sure task performance is current)
   void Evaluate();
@@ -281,12 +310,12 @@ void DirectedDevoWorld<ORG,TASK>::SyncSchedulerWeights() {
   }
 }
 
-template<typename ORG, typename TASK>
-void DirectedDevoWorld<ORG,TASK>::Run(size_t updates) {
-  for (size_t u = 0; u < updates; u++) {
-    RunStep();
-  }
-}
+// template<typename ORG, typename TASK>
+// void DirectedDevoWorld<ORG,TASK>::Run(size_t updates) {
+//   for (size_t u = 0; u < updates; u++) {
+//     RunStep();
+//   }
+// }
 
 template<typename ORG, typename TASK>
 void DirectedDevoWorld<ORG,TASK>::RunStep() {
@@ -355,6 +384,7 @@ void DirectedDevoWorld<ORG,TASK>::RunStep() {
   // TODO - any data recording, etc here
 
   // Update the world
+  task.OnWorldUpdate(this->GetUpdate()); // Guarantee that this is called before externally-attached on update functions
   this->Update();
 }
 
