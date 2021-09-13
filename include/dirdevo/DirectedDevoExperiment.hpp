@@ -17,6 +17,7 @@
 #include "emp/base/vector.hpp"
 #include "emp/datastructs/vector_utils.hpp"
 #include "emp/Evolve/World.hpp"
+#include "emp/Evolve/Systematics.hpp"
 #include "emp/tools/string_utils.hpp"
 #include "emp/data/DataFile.hpp"
 
@@ -43,13 +44,13 @@ public:
   using config_t = DirectedDevoConfig;
   using pop_struct_t = typename world_t::POP_STRUCTURE;
   using peripheral_t = PERIPHERAL;
-  using world_container_file_t = emp::ContainerDataFile<emp::vector<emp::Ptr<world_t>>>;
 
-
-  // using mutator_t = typename org_t::mutator_t; // TODO - move the mutator out of the organism? Makes it weird that the task needs to care about mutators....
   using mutator_t = MUTATOR;
   using genome_t = typename org_t::genome_t;
   using propagule_t = emp::vector<genome_t>;
+
+  // TODO - add mutation tracking to systematics?
+  using systematics_t = emp::Systematics<org_t, genome_t>;
 
   const std::unordered_set<std::string> valid_selection_methods={"elite","tournament","lexicase"};
 
@@ -60,16 +61,19 @@ protected:
   emp::vector<emp::Ptr<world_t>> worlds;   ///< How many "populations" are we applying directed evolution to?
 
   pop_struct_t local_pop_struct=pop_struct_t::MIXED;
-  mutator_t mutator; ///< Responsible for mutating organisms across worlds. NOTE - currently, mutator is shared; individual worlds cannot tweak settings (i.e., no high/low mutation worlds).
-  peripheral_t peripheral; ///< Peripheral components that should exist at the experiment level.
+  mutator_t mutator;                    ///< Responsible for mutating organisms across worlds. NOTE - currently, mutator is shared; individual worlds cannot tweak settings (i.e., no high/low mutation worlds).
+  peripheral_t peripheral;              ///< Peripheral components that should exist at the experiment level.
+  emp::Ptr<systematics_t> systematics;  ///< Phylogeny tracking
 
   std::function<void(emp::vector<size_t>&)> do_selection_fun;
   emp::vector<std::function<double(void)>> aggregate_score_funs;
 
   // TODO - should more state information get passed through the propagule? If so, genome_t => org_t?
+  emp::vector<size_t> selected;                     ///< Tracks the ids of worlds selected for 'reproduction' on this step. (useful for data tracking)
+
   emp::vector< emp::vector<genome_t> > propagules;
-  std::unordered_set<size_t> extinct_worlds; /// Set of worlds that are extinct.
-  std::unordered_set<size_t> live_worlds;    /// Set of worlds that are not extinct.
+  std::unordered_set<size_t> extinct_worlds;        ///< Set of worlds that are extinct.
+  std::unordered_set<size_t> live_worlds;           ///< Set of worlds that are not extinct.
 
   // TODO - have a criteria vector of functions that access quality criteria (for lexicase, multi obj opt)?
   // TODO - Have a task construct that manages performance criteria, etc?
@@ -85,7 +89,11 @@ protected:
   emp::Ptr<world_t> cur_world=nullptr; ///< NON-OWNING. Used internally for data tracking.
 
 
-  emp::Ptr<emp::DataFile> world_summary_file; ///< Manages world summary output. (is updated during world updates)
+  emp::Ptr<emp::DataFile> world_summary_file; ///< Manages world update summary output. (is updated during world updates; for each world)
+  emp::Ptr<emp::DataFile> world_evaluation_file; ///< Manages world evaluation output. (is updated after each world's evaluation)
+  // TODO - world selection file?
+  // TODO - world evaluation file
+
   std::string output_dir;                     ///< Formatted output directory
 
   /// Setup the experiment based on the given configuration (called internally).
@@ -129,6 +137,8 @@ public:
       if (world != nullptr) world.Delete();
     }
     if (world_summary_file) world_summary_file.Delete();
+    if (world_evaluation_file) world_evaluation_file.Delete();
+    if (systematics) systematics.Delete();
   }
 
   /// Run experiment for configured number of EPOCHS
@@ -211,6 +221,9 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
     world_ptr->SyncSchedulerWeights();
   }
 
+  // TODO - is this where we want systematics setup?
+  systematics = emp::NewPtr<systematics_t>([](const org_t& org) { return org.GetGenome(); });
+
   // Setup selection
   SetupSelection();
 
@@ -234,6 +247,9 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupSelecti
   }
   // todo - wire up function sets
 
+  selected.clear();
+  selected.resize(config.NUM_POPS(), 0);
+
   if (config.SELECTION_METHOD() == "elite") {
     SetupEliteSelection();
   } else if (config.SELECTION_METHOD() == "tournament") {
@@ -252,6 +268,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
   if (setup) {
     // anything we need to do if this function is called post-setup
     if (world_summary_file) world_summary_file.Delete();
+    if (world_evaluation_file) world_evaluation_file.Delete();
   } else {
     mkdir(output_dir.c_str(), ACCESSPERMS);
     if(output_dir.back() != '/') {
@@ -265,7 +282,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
   std::function<size_t(void)> get_epoch = [this]() { return cur_epoch; };
 
   // World update summary information
-  if (config.OUTPUT_COLLECT_UPDATE_SUMMARY()) {
+  if (config.OUTPUT_COLLECT_WORLD_UPDATE_SUMMARY()) {
     // Attach data file update to world on update signals
     for (size_t i = 0; i < worlds.size(); ++i) {
       // Trigger world summary on correct updates
@@ -290,6 +307,54 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
     world_summary_file->PrintHeaderKeys();
   }
 
+  //////////////////////////////////
+  // EVALUATION
+  world_evaluation_file = emp::NewPtr<emp::DataFile>(output_dir + "world_evaluation.csv");
+  // Experiment level functions
+  // epoch
+  world_evaluation_file->AddFun<size_t>(get_epoch, "epoch");
+
+  // scores
+  world_evaluation_file->AddFun<std::string>(
+    [this]() {
+      std::ostringstream stream;
+      stream << "\"[";
+      for (size_t i = 0; i < worlds.size(); ++i) {
+        if (i) stream << ",";
+        stream << aggregate_score_funs[i]();
+      }
+      stream << "]\"";
+      return stream.str();
+    },
+    "aggregate_scores"
+  );
+
+  // TODO - disaggregated scores
+
+  // selected
+  world_evaluation_file->AddFun<std::string>(
+    [this]() {
+      std::ostringstream stream;
+      stream << "\"[";
+      for (size_t i = 0; i < selected.size(); ++i) {
+        if (i) stream << ",";
+        stream << selected[i];
+      }
+      stream << "]\"";
+      return stream.str();
+    },
+    "selected"
+  );
+
+  // unique selected
+  world_evaluation_file->AddFun<size_t>(
+    [this]() {
+      return std::unordered_set<size_t>(selected.begin(), selected.end()).size();
+    },
+    "num_unique_selected"
+  );
+
+  world_evaluation_file->PrintHeaderKeys();
 }
 
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
@@ -391,7 +456,6 @@ bool DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::ValidateConf
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
 void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
   // Create vector to hold the distribution of population ids selected each epoch
-  emp::vector<size_t> selected(config.NUM_POPS(), 0);
 
   for (cur_epoch = 0; cur_epoch <= config.EPOCHS(); ++cur_epoch) {
     std::cout << "==== EPOCH " << cur_epoch << "====" << std::endl;
@@ -438,6 +502,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
 
     // Do selection
     do_selection_fun(selected);
+
+    if (record_epoch) world_evaluation_file->Update();
 
     // std::cout << "selected:" << selected << std::endl;
 

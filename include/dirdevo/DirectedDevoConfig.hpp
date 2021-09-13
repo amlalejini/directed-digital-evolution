@@ -16,7 +16,8 @@ EMP_BUILD_CONFIG(DirectedDevoConfig,
 
   GROUP(OUTPUT_SETTINGS, "Settings specific to experiment output"),
   VALUE(OUTPUT_DIR, std::string, "output", "Where should the experiment dump output?"),
-  VALUE(OUTPUT_COLLECT_UPDATE_SUMMARY, bool, true, "Collect update summary data?"),
+  VALUE(OUTPUT_COLLECT_WORLD_UPDATE_SUMMARY, bool, true, "Collect world update summary data?"),
+  // VALUE(OUTPUT_COLLECT_WORLD_EVAL_SUMMARY, bool, true, "Collect world evaluation summary data?"),
   VALUE(OUTPUT_SUMMARY_EPOCH_RESOLUTION, size_t, 1, "Epoch resolution for recording summary data"),
   VALUE(OUTPUT_SUMMARY_UPDATE_RESOLUTION, size_t, 100, "Output resolution for recording summary data"),
 
