@@ -102,8 +102,9 @@ protected:
   bool record_epoch=false;
   emp::Ptr<world_t> cur_world=nullptr; ///< NON-OWNING. Used internally for data tracking.
 
-  emp::Ptr<emp::DataFile> world_summary_file; ///< Manages world update summary output. (is updated during world updates; for each world)
-  emp::Ptr<emp::DataFile> world_evaluation_file; ///< Manages world evaluation output. (is updated after each world's evaluation)
+  emp::Ptr<emp::DataFile> world_summary_file=nullptr;     ///< Manages world update summary output. (is updated during world updates; for each world)
+  emp::Ptr<emp::DataFile> world_evaluation_file=nullptr;  ///< Manages world evaluation output. (is updated after each world's evaluation)
+  emp::Ptr<emp::DataFile> world_systematics_file=nullptr; ///<
 
   std::string output_dir;                     ///< Formatted output directory
 
@@ -147,14 +148,20 @@ public:
     for (auto world : worlds) {
       if (world != nullptr) world.Delete();
     }
+
+    // Clean up data files
     if (world_summary_file) world_summary_file.Delete();
     if (world_evaluation_file) world_evaluation_file.Delete();
+    if (world_systematics_file) world_systematics_file.Delete();
+
     // Clean up any undeleted propagule organism pointers
     for (propagule_t& propagule : propagules) {
       for (size_t i = 0; i < propagule.size(); ++i) {
         if (propagule[i].org) propagule[i].org.Delete();
       }
     }
+
+    // Clean up the shared (between worlds) systematics manager
     if (systematics) systematics.Delete();
   }
 
@@ -292,6 +299,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
     // anything we need to do if this function is called post-setup
     if (world_summary_file) world_summary_file.Delete();
     if (world_evaluation_file) world_evaluation_file.Delete();
+    if (world_systematics_file) world_systematics_file.Delete();
   } else {
     mkdir(output_dir.c_str(), ACCESSPERMS);
     if(output_dir.back() != '/') {
@@ -304,7 +312,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
   // Generally useful functions
   std::function<size_t(void)> get_epoch = [this]() { return cur_epoch; };
 
-  // World update summary information
+  //////////////////////////////////
+  // WORLD UPDATE SUMMARY
   if (config.OUTPUT_COLLECT_WORLD_UPDATE_SUMMARY()) {
     // Attach data file update to world on update signals
     for (size_t i = 0; i < worlds.size(); ++i) {
@@ -331,7 +340,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
   }
 
   //////////////////////////////////
-  // EVALUATION
+  // WORLD EVALUATION
   world_evaluation_file = emp::NewPtr<emp::DataFile>(output_dir + "world_evaluation.csv");
   // Experiment level functions
   // epoch
@@ -378,6 +387,19 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
   );
 
   world_evaluation_file->PrintHeaderKeys();
+
+  //////////////////////////////////
+  // Systematics
+  world_systematics_file = emp::NewPtr<emp::DataFile>(output_dir + "systematics.csv");
+  world_systematics_file->AddVar(cur_epoch, "epoch");
+  world_systematics_file->AddFun<size_t>( [this](){ return systematics->GetNumActive(); }, "num_taxa", "Number of unique taxonomic groups currently active." );
+  world_systematics_file->AddFun<size_t>( [this](){ return systematics->GetTotalOrgs(); }, "total_orgs", "Number of organisms tracked." );
+  world_systematics_file->AddFun<double>( [this](){ return systematics->GetAveDepth(); }, "ave_depth", "Average Phylogenetic Depth of Organisms." );
+  world_systematics_file->AddFun<size_t>( [this](){ return systematics->GetNumRoots(); }, "num_roots", "Number of independent roots for phylogenies." );
+  world_systematics_file->AddFun<int>(    [this](){ return systematics->GetMRCADepth(); }, "mrca_depth", "Phylogenetic Depth of the Most Recent Common Ancestor (-1=none)." );
+  world_systematics_file->AddFun<double>( [this](){ return systematics->CalcDiversity(); }, "diversity", "Genotypic Diversity (entropy of taxa in population)." );
+  world_systematics_file->PrintHeaderKeys();
+
 }
 
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
@@ -500,6 +522,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
     // - Either correct interval or final epoch.
     record_epoch = !(cur_epoch % config.OUTPUT_SUMMARY_EPOCH_RESOLUTION()) || (cur_epoch == config.EPOCHS());
     const bool snapshot_phylogeny = !(cur_epoch % config.OUTPUT_PHYLOGENY_SNAPSHOT_EPOCH_RESOLUTION()) || (cur_epoch == config.EPOCHS());
+    const bool record_systematics = !(cur_epoch % config.OUTPUT_SYSTEMATICS_EPOCH_RESOLUTION()) || (cur_epoch == config.EPOCHS());
+
     // NOTE, should use onupdate to trigger update signals?
 
     // Run worlds forward X updates.
@@ -602,6 +626,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
     }
     // Update the systematics manager
     systematics->Update();   // TODO - check if this throws off evolutionary distinctiveness measure?
+
+    if (record_systematics) world_systematics_file->Update();
 
     // Report summary information(?)
     // std::cout << "epoch " << cur_epoch << std::endl;

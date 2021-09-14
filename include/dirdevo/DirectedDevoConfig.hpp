@@ -20,6 +20,7 @@ EMP_BUILD_CONFIG(DirectedDevoConfig,
   VALUE(OUTPUT_SUMMARY_EPOCH_RESOLUTION, size_t, 1, "Epoch resolution for recording summary data"),
   VALUE(OUTPUT_SUMMARY_UPDATE_RESOLUTION, size_t, 100, "Output resolution for recording summary data"),
   VALUE(OUTPUT_PHYLOGENY_SNAPSHOT_EPOCH_RESOLUTION, size_t, 10, "How often to output a snapshot of the phylogeny?"),
+  VALUE(OUTPUT_SYSTEMATICS_EPOCH_RESOLUTION, size_t, 1, "Interval (in epochs) to output to systematics file"),
 
   GROUP(LOCAL_WORLD_SETTINGS, "Settings for each local population (world)"),
   VALUE(AVG_STEPS_PER_ORG, size_t, 30, "On average, how many steps per organism do we allot on each world update? Must be >= 1."),
