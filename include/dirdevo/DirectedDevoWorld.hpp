@@ -108,6 +108,7 @@ protected:
   pop_struct_t pop_struct;
   size_t world_id=0;
   size_t cur_epoch=0;
+  bool track_systematics=false;
 
   /// Wraps the shared
   // TODO - setup ability to strip out systematics tracking (because it can be a performance hit)
@@ -187,7 +188,9 @@ public:
     this->OnPlacement(
       [this](size_t pos) {
         auto& org = this->GetOrg(pos);
-        shared_systematics_wrapper.AddOrg(org, pos, GetUpdate());
+        if (track_systematics) {
+          shared_systematics_wrapper.AddOrg(org, pos, GetUpdate());
+        }
         org.OnPlacement(pos);                        // Tell the organism about its placement.
         task.OnOrgPlacement(org, pos);               // Tell the task about organism placement.
         scheduler.AdjustWeight(pos, org.GetMerit()); // Update scheduler weights last.
@@ -201,7 +204,7 @@ public:
         org.OnDeath(pos);
         task.OnOrgDeath(org, pos);
         scheduler.AdjustWeight(pos, 0); // Update scheduler weights last.
-        shared_systematics_wrapper.RemoveOrgAfterRepro(pos, GetUpdate());
+        if (track_systematics) shared_systematics_wrapper.RemoveOrgAfterRepro(pos, GetUpdate());
       }
     );
 
@@ -245,12 +248,11 @@ public:
     this->OnOffspringReady(
       [this](org_t& offspring, size_t parent_pos) {
         this->DoMutationsOrg(offspring); // Do mutations on offspring ready, but before parent sees offspring.
-        shared_systematics_wrapper.SetNextParent(parent_pos); // TODO - only call this if shared systematics setup
+        if (track_systematics) shared_systematics_wrapper.SetNextParent(parent_pos); // TODO - only call this if shared systematics setup
         auto& parent = this->GetOrg(parent_pos);
         offspring.OnBirth(parent);                // Tell offspring about it's birthday!
         parent.OnOffspringReady(offspring);       // Tell parent that it's offspring is ready
         task.OnOffspringReady(offspring, parent); // Tell task that this offspring was born from this parent.
-        // shared_systematics_wrapper.AddOrg(offspring, )
       }
     );
 
@@ -283,6 +285,7 @@ public:
     // if (shared_systematics_wrapper.sys_ptr) return; // Currently, this might do wonky things if called twice?
     shared_systematics_wrapper.sys_ptr = sys;
     shared_systematics_wrapper.offset = world_id * max_world_size;
+    track_systematics = true;
     std::cout << "Systematics offset ("<<world_id<<"): " << shared_systematics_wrapper.offset << std::endl;
   }
 
@@ -443,7 +446,7 @@ void DirectedDevoWorld<ORG,TASK>::RunStep() {
 
   // Update the world
   task.OnWorldUpdate(GetUpdate()); // Guarantee that this is called before externally-attached on update functions
-  shared_systematics_wrapper.Update();
+  if (track_systematics) shared_systematics_wrapper.Update();
   this->Update();
 }
 
