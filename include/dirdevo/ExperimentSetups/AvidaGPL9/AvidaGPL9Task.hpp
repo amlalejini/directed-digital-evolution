@@ -161,18 +161,18 @@ public:
   /// OnWorldSetup called at end of constructor/world setup
   void OnWorldSetup() override {
     // TODO - configure task based on world's configuration
-
+    std::cout << "  SetupTaskValues" << std::endl;
     // Configure individual and world logic tasks.
     SetupTaskValues();
-
+    std::cout << "  SetupMeritCalcFun" << std::endl;
     // Configure merit calculation
     SetupMeritCalcFun();
-
+    std::cout << "  SetupWorldTaskPerformanceFun" << std::endl;
     // Wire up the aggregate task performance function
     SetupWorldTaskPerformanceFun();
 
     fresh_eval=false;
-
+    std::cout << "  SetupInstLib" << std::endl;
     SetupInstLib();
   }
 
