@@ -161,18 +161,14 @@ public:
   /// OnWorldSetup called at end of constructor/world setup
   void OnWorldSetup() override {
     // TODO - configure task based on world's configuration
-    std::cout << "  SetupTaskValues" << std::endl;
     // Configure individual and world logic tasks.
     SetupTaskValues();
-    std::cout << "  SetupMeritCalcFun" << std::endl;
     // Configure merit calculation
     SetupMeritCalcFun();
-    std::cout << "  SetupWorldTaskPerformanceFun" << std::endl;
     // Wire up the aggregate task performance function
     SetupWorldTaskPerformanceFun();
 
     fresh_eval=false;
-    std::cout << "  SetupInstLib" << std::endl;
     SetupInstLib();
   }
 
@@ -417,19 +413,16 @@ void AvidaGPL9Task::SetupInstLib() {
 void AvidaGPL9Task::SetupTaskValues() {
   // todo - add tasks to org task set
   // (1) Parse environment file
-  std::cout << world.GetConfig().AVIDAGP_ENV_FILE() << std::endl;
-  std::cout << std::filesystem::exists(world.GetConfig().AVIDAGP_ENV_FILE()) << std::endl;
-  if (!std::filesystem::exists(world.GetConfig().AVIDAGP_ENV_FILE())) {
+  // std::cout << world.GetConfig().AVIDAGP_ENV_FILE() << std::endl;
+  // std::cout << std::filesystem::exists(world.GetConfig().AVIDAGP_ENV_FILE()) << std::endl;
+  const bool env_file_exists = std::filesystem::exists(world.GetConfig().AVIDAGP_ENV_FILE());
+  if (!env_file_exists) {
     std::cout << "Environment file does not exist. " << world.GetConfig().AVIDAGP_ENV_FILE() << std::endl;
     std::exit(EXIT_FAILURE);
   }
-  std::cout << "    boop?" << std::endl;
   std::ifstream env_ifstream(world.GetConfig().AVIDAGP_ENV_FILE());
-  std::cout << "    bop?" << std::endl;
   nlohmann::json env_json;
-  std::cout << "    beep?" << std::endl;
   env_ifstream >> env_json;
-  std::cout << "    blap?" << std::endl;
   emp_assert(env_json.contains("organism"), "Improperly configured environment file. Failed to find 'organism' key.");
   emp_assert(env_json.contains("world"), "Improperly configured environment file. Failed to find 'world' key.");
 
