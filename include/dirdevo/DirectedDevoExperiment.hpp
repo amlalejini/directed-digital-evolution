@@ -27,6 +27,8 @@
 #include "selection/SelectionSchemes.hpp"
 #include "utility/ConfigSnapshotEntry.hpp"
 
+#include "selection/BaseSelect.hpp"
+
 namespace dirdevo {
 
 // TODO - we're using one uniform configuration type, so just hand off configs and let things configure themselves.
@@ -69,22 +71,26 @@ public:
 
 protected:
 
-  const config_t& config;        ///< Experiment configuration (REMINDER: the config object must exist beyond lifetime of this experiment object!)
-  emp::Random random;            ///< Random number generators (shared across worlds)
+  const config_t& config;                  ///< Experiment configuration (REMINDER: the config object must exist beyond lifetime of this experiment object!)
+  emp::Random random;                      ///< Random number generators (shared across worlds)
   emp::vector<emp::Ptr<world_t>> worlds;   ///< How many "populations" are we applying directed evolution to?
 
   pop_struct_t local_pop_struct=pop_struct_t::MIXED;
-  mutator_t mutator;                    ///< Responsible for mutating organisms across worlds. NOTE - currently, mutator is shared; individual worlds cannot tweak settings (i.e., no high/low mutation worlds).
-  peripheral_t peripheral;              ///< Peripheral components that should exist at the experiment level.
-  emp::Ptr<systematics_t> systematics;  ///< Phylogeny tracking
+  mutator_t mutator;                            ///< Responsible for mutating organisms across worlds. NOTE - currently, mutator is shared; individual worlds cannot tweak settings (i.e., no high/low mutation worlds).
+  peripheral_t peripheral;                      ///< Peripheral components that should exist at the experiment level.
+  emp::Ptr<systematics_t> systematics=nullptr;  ///< Phylogeny tracking
 
-  std::function<void(emp::vector<size_t>&)> do_selection_fun;
+  emp::Ptr<BaseSelect> selector=nullptr;
+  // std::function<emp::vector<size_t>&(void)> get_selected;
+
+  // std::function<void(emp::vector<size_t>&)> do_selection_fun;
+  std::function<emp::vector<size_t>&(void)> do_selection_fun;
   emp::vector<std::function<double(void)>> aggregate_score_funs;
 
   // TODO - should more state information get passed through the propagule? If so, genome_t => org_t?
-  emp::vector<size_t> selected;                     ///< Tracks the ids of worlds selected for 'reproduction' on this step. (useful for data tracking)
+  // emp::vector<size_t> selected;                     ///< Tracks the ids of worlds selected for 'reproduction' on this step. (useful for data tracking)
 
-  emp::vector< propagule_t > propagules;
+  emp::vector<propagule_t> propagules;
   std::unordered_set<size_t> extinct_worlds;        ///< Set of worlds that are extinct.
   std::unordered_set<size_t> live_worlds;           ///< Set of worlds that are not extinct.
 
@@ -117,6 +123,9 @@ protected:
   /// Configure population selection (called internally).
   void SetupSelection();
   void SetupEliteSelection();
+  void SetupTournamentSelection();
+
+  /// Configure data collection
   void SetupDataCollection();
 
   // TODO - allow for different sampling techniques / ways of forming propagules
@@ -163,6 +172,9 @@ public:
 
     // Clean up the shared (between worlds) systematics manager
     if (systematics) systematics.Delete();
+
+    // Clean up the selector
+    if (selector) selector.Delete();
   }
 
   /// Run experiment for configured number of EPOCHS
@@ -277,13 +289,13 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupSelecti
   }
   // todo - wire up function sets
 
-  selected.clear();
-  selected.resize(config.NUM_POPS(), 0);
+  // selected.clear();
+  // selected.resize(config.NUM_POPS(), 0);
 
   if (config.SELECTION_METHOD() == "elite") {
     SetupEliteSelection();
   } else if (config.SELECTION_METHOD() == "tournament") {
-    emp_assert(false);
+    SetupTournamentSelection();
   } else if (config.SELECTION_METHOD() == "lexicase") {
     emp_assert(false);
   } else {
@@ -368,6 +380,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
     [this]() {
       std::ostringstream stream;
       stream << "\"[";
+      const auto& selected = selector->GetSelected();
       for (size_t i = 0; i < selected.size(); ++i) {
         if (i) stream << ",";
         stream << selected[i];
@@ -381,6 +394,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
   // unique selected
   world_evaluation_file->AddFun<size_t>(
     [this]() {
+      const auto& selected = selector->GetSelected();
       return std::unordered_set<size_t>(selected.begin(), selected.end()).size();
     },
     "num_unique_selected"
@@ -405,8 +419,24 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
 void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupEliteSelection() {
   // calling the do selected function should population selected with the ids of populations to sample 'propagules' from
-  do_selection_fun = [this](emp::vector<size_t>& selected) {
-    dirdevo::EliteSelect(selected, aggregate_score_funs, config.ELITE_SEL_NUM_ELITES());
+  // do_selection_fun = [this](emp::vector<size_t>& selected) {
+  //   dirdevo::EliteSelect(selected, aggregate_score_funs, config.ELITE_SEL_NUM_ELITES());
+  //
+  // };
+}
+
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupTournamentSelection() {
+
+  selector = emp::NewPtr<TournamentSelect>(
+    random,
+    aggregate_score_funs,
+    config.TOURNAMENT_SEL_TOURN_SIZE()
+  );
+
+  do_selection_fun = [this]() -> emp::vector<size_t>& {
+    emp::Ptr<TournamentSelect> sel = selector.Cast<TournamentSelect>();
+    return (*sel)(config.NUM_POPS());
   };
 }
 
@@ -567,7 +597,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
     // TODO - If this is the final epoch, we don't need to do selection/sampling/founding
 
     // Do selection
-    do_selection_fun(selected);
+    // do_selection_fun(selected);
+    auto& selected = do_selection_fun();
 
     if (record_epoch) world_evaluation_file->Update();
 

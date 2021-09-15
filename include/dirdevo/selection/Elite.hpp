@@ -44,7 +44,7 @@ emp::vector<size_t> EliteSelect(const emp::vector<double>& scores, size_t e_coun
 }
 
 
-void EliteSelect(emp::vector<size_t> & selected, const emp::vector<std::function<double(void)>>& score_funs, size_t e_count=1) {
+void EliteSelect(emp::vector<size_t>& selected, const emp::vector<std::function<double(void)>>& score_funs, size_t e_count=1) {
   emp_assert(e_count > 0, e_count);
   emp_assert(e_count <= score_funs.size(), e_count, score_funs.size());
 
