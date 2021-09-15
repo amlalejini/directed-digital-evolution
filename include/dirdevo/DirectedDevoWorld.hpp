@@ -168,7 +168,7 @@ public:
     ),
     world_id(id)
   {
-
+    std::cout << "World constructor" << std::endl;
     /// TODO - document the order of signal calls in the world!
     /// TODO - is there a way to strip out unused functions?
 
@@ -261,13 +261,13 @@ public:
     //     task.OnWorldUpdate(u);
     //   }
     // );
-
+    std::cout << "SetPopStructure" << std::endl;
     // Configure population structure.
     SetPopStructure(pop_struct);
-
+    std::cout << "task.OnWorldSetup" << std::endl;
     task.OnWorldSetup(); // Tell the task that the world has been configured.
+    std::cout << "task.GetAggregatePerformanceFun" << std::endl;
     aggregate_performance_fun = task.GetAggregatePerformanceFun(); // TODO - test that this wiring works as expected!
-
   }
 
   const std::string& GetName() const { return name; }
