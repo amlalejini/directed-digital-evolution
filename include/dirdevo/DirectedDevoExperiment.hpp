@@ -25,9 +25,9 @@
 #include "DirectedDevoWorld.hpp"
 #include "BasePeripheral.hpp"             /// TODO - fully integrate the peripheral component!
 #include "selection/SelectionSchemes.hpp"
+#include "selection/BaseSelect.hpp"
 #include "utility/ConfigSnapshotEntry.hpp"
 
-#include "selection/BaseSelect.hpp"
 
 namespace dirdevo {
 
@@ -418,16 +418,19 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
 
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
 void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupEliteSelection() {
-  // calling the do selected function should population selected with the ids of populations to sample 'propagules' from
-  // do_selection_fun = [this](emp::vector<size_t>& selected) {
-  //   dirdevo::EliteSelect(selected, aggregate_score_funs, config.ELITE_SEL_NUM_ELITES());
-  //
-  // };
+  selector = emp::NewPtr<EliteSelect>(
+    aggregate_score_funs,
+    config.ELITE_SEL_NUM_ELITES()
+  );
+
+  do_selection_fun = [this]() -> emp::vector<size_t>& {
+    emp::Ptr<EliteSelect> sel = selector.Cast<EliteSelect>();
+    return (*sel)(config.NUM_POPS());
+  };
 }
 
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
 void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupTournamentSelection() {
-
   selector = emp::NewPtr<TournamentSelect>(
     random,
     aggregate_score_funs,

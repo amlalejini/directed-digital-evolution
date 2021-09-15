@@ -6,68 +6,54 @@
 
 #include "emp/base/vector.hpp"
 
-// TODO - convert this into struct w/() operator overloads if we want to track state information during selection?
-//      - or if we need to configure the selection scheme up front and then;
-//      problem with struct: requires you to hold on to it, so you need to know its type => Experiment needs one of each selection type that it knows about (which is probably fine)
+#include "BaseSelect.hpp"
 
 namespace dirdevo {
 
-/// ==ELITE== Selection picks a set of the most fit individuals from the population to move to
-/// the next generation.  Find top e_count individuals and make copy_count copies of each.
-/// @param e_count How many distinct organisms should be chosen, starting from the most fit.
-/// @param copy_count How many copies should be made of each elite organism?
-/// @return vector of selected ids (indices into scores)
-emp::vector<size_t> EliteSelect(const emp::vector<double>& scores, size_t e_count=1, size_t copy_count=1) {
-  emp_assert(e_count > 0, e_count);
-  emp_assert(e_count <= scores.size(), e_count, scores.size());
-  emp_assert(copy_count > 0, copy_count);
+struct EliteSelect : public BaseSelect {
+  using score_fun_t = std::function<double(void)>;
 
-  emp::vector<size_t> selected(e_count*copy_count, 0);
+  emp::vector<score_fun_t>& score_funs; ///< One function for each selection candidate (e.g., each member of the population)
+  size_t elite_count;                  ///< How many distinct candidates should be chosen (in rank order by score)
 
-  std::multimap<double, size_t> fit_map;
-  for (size_t id = 0; id < scores.size(); ++id) {
-    fit_map.insert( std::make_pair(scores[id], id) );
-  }
+  EliteSelect(
+    emp::vector<score_fun_t>& a_score_funs,
+    size_t a_elite_count=1
+  ) :
+    score_funs(a_score_funs),
+    elite_count(a_elite_count)
+  { }
 
-  // Grab the top fitnesses and move them into selected.
-  auto m = fit_map.rbegin();
-  for (size_t i = 0; i < e_count; ++i) {
-    const size_t repro_id = m->second;
-    for (size_t c=0; c < copy_count; ++c) {
-      const size_t selected_idx = (i*copy_count)+c;
-      selected[selected_idx] = repro_id;
+  emp::vector<size_t>& operator()(size_t n) override {
+    emp_assert(elite_count <= score_funs.size(), elite_count, score_funs.size());
+
+    selected.resize(n, 0);
+
+    const size_t num_candidates = score_funs.size();
+
+    std::multimap<double, size_t> fit_map;
+    for (size_t id = 0; id < num_candidates; ++id) {
+      fit_map.insert(
+        std::make_pair(score_funs[id](), id)
+      );
     }
-    ++m;
+
+    // Identify the elites
+    emp::vector<size_t> elites(elite_count, 0);
+    auto m = fit_map.rbegin();
+    for (size_t i = 0; i < elite_count; ++i) {
+      elites[i] = m->second;
+      ++m;
+    }
+    // Fill selected with elites
+    for (size_t i = 0; i < n; ++i) {
+      selected[i] = elites[i % elite_count];
+    }
+
+    return selected;
   }
 
-  return selected;
-}
-
-
-void EliteSelect(emp::vector<size_t>& selected, const emp::vector<std::function<double(void)>>& score_funs, size_t e_count=1) {
-  emp_assert(e_count > 0, e_count);
-  emp_assert(e_count <= score_funs.size(), e_count, score_funs.size());
-
-  // sort fitnesses
-  std::multimap<double, size_t> fit_map;
-  // for (size_t id = 0; id < scores.size(); ++id) {
-  for (size_t id = 0; id < score_funs.size(); ++id) {
-    fit_map.insert( std::make_pair(score_funs[id](), id) );
-  }
-
-  // Grab the top fitnesses and move them into selected.
-  auto m = fit_map.rbegin();
-  emp::vector<size_t> elite_ids(e_count, 0);
-  for (size_t i = 0; i < e_count; ++i) {
-    const size_t repro_id = m->second;
-    elite_ids[i] = repro_id;
-  }
-
-  // fill selected with elites
-  for (size_t i = 0; i < selected.size(); ++i) {
-    selected[i] = elite_ids[i % e_count];
-  }
-}
+};
 
 } // namespace dirdevo
 

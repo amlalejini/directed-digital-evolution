@@ -36,11 +36,6 @@ struct TournamentSelect : public BaseSelect {
     const size_t num_candidates = score_funs.size();
 
     selected.resize(n, 0); // Update size of selected
-    std::fill(
-      selected.begin(),
-      selected.end(),
-      0
-    );
 
     emp::vector<size_t> entries(tournament_size, 0); // Used to keep track of tournament entries for each tournament
 
