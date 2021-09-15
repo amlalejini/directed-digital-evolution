@@ -24,8 +24,8 @@ TEST_CASE("AvidaGPReplicator on AvidaGPL9Task", "[l9]") {
   dirdevo::DirectedDevoConfig config;
   config.SEED(2);
   config.AVIDAGP_ENV_FILE("example-environment.json");
-  // emp::Random random(config.SEED());
-  // world_t world(config, random);
+  emp::Random random(config.SEED());
+  world_t world(config, random);
 
   // // Build a replicator using world's task instruction library
   // dirdevo::AvidaGPReplicator agp_hardware(world.GetTask().GetInstLib());
