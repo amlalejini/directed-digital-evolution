@@ -81,26 +81,14 @@ protected:
   emp::Ptr<systematics_t> systematics=nullptr;  ///< Phylogeny tracking
 
   emp::Ptr<BaseSelect> selector=nullptr;
-  // std::function<emp::vector<size_t>&(void)> get_selected;
 
-  // std::function<void(emp::vector<size_t>&)> do_selection_fun;
   std::function<emp::vector<size_t>&(void)> do_selection_fun;
-  emp::vector<std::function<double(void)>> aggregate_score_funs;
-
-  // TODO - should more state information get passed through the propagule? If so, genome_t => org_t?
-  // emp::vector<size_t> selected;                     ///< Tracks the ids of worlds selected for 'reproduction' on this step. (useful for data tracking)
+  emp::vector<std::function<double(void)>> aggregate_score_funs;          ///< One function for each world.
+  emp::vector< emp::vector<std::function<double(void)>> > score_fun_sets; ///< One set of functions for each world. Where each function corresponds to a single objective.
 
   emp::vector<propagule_t> propagules;
   std::unordered_set<size_t> extinct_worlds;        ///< Set of worlds that are extinct.
   std::unordered_set<size_t> live_worlds;           ///< Set of worlds that are not extinct.
-
-  // TODO - have a criteria vector of functions that access quality criteria (for lexicase, multi obj opt)?
-  // TODO - Have a task construct that manages performance criteria, etc?
-  //        The task would know about the organism type and encode how to evaluate a population of those organisms
-  //        I.e., given a world of a compatible type (e.g., bitorgs), it can evaluate the world's performance
-  //        If there's a organism-task mismatch, shit won't compile (which is what we want)!
-  // std::function<double(size_t)>
-  // emp::vector<std::function<double(size_t)> performance_criteria;
 
   size_t max_world_size=0;
   bool setup=false;
@@ -279,7 +267,9 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
 
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
 void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupSelection() {
+
   // Wire up aggregate score functions
+  aggregate_score_funs.clear();
   for (size_t pop_id = 0; pop_id < config.NUM_POPS(); ++pop_id) {
     aggregate_score_funs.emplace_back(
       [this, pop_id]() {
@@ -287,10 +277,23 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupSelecti
       }
     );
   }
-  // todo - wire up function sets
 
-  // selected.clear();
-  // selected.resize(config.NUM_POPS(), 0);
+  // Wire up function sets
+  score_fun_sets.clear();
+  std::unordered_set<size_t> fun_set_sizes;
+  for (size_t pop_id = 0; pop_id < config.NUM_POPS(); ++pop_id) {
+    score_fun_sets.emplace_back();
+    const size_t fun_set_size = worlds[pop_id]->GetNumSubTasks();
+    fun_set_sizes.emplace(fun_set_size);
+    for (size_t fun_i = 0; fun_i < worlds[pop_id]->GetNumSubTasks(); ++fun_i) {
+      score_fun_sets[pop_id].emplace_back(
+        [this, pop_id, fun_i] () {
+          return worlds[pop_id]->GetSubTaskPerformance(fun_i);
+        }
+      );
+    }
+  }
+  emp_assert(fun_set_sizes.size() == 1, "Not all worlds have same number of sub task performance functions");
 
   if (config.SELECTION_METHOD() == "elite") {
     SetupEliteSelection();
@@ -594,7 +597,12 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
       std::cout << "  " << world_ptr->GetName() << std::endl;
       std::cout << "    Pop size: " << world_ptr->GetNumOrgs() << std::endl;
       std::cout << "    Aggregate performance: " << world_ptr->GetAggregateTaskPerformance() << std::endl;
-      // world_ptr->GetRandomOrg().GetHardware().PrintGenome(std::cout);
+      std::cout << "    Criteria performances: ";
+      for (size_t fun_i = 0; fun_i < world_ptr->GetNumSubTasks(); ++fun_i) {
+        if (fun_i) std::cout << " ";
+        std::cout << world_ptr->GetSubTaskPerformance(fun_i);
+      }
+      std::cout << std::endl;
     }
 
     // TODO - If this is the final epoch, we don't need to do selection/sampling/founding

@@ -38,9 +38,8 @@ protected:
 
 public:
 
-  perf_fun_t GetAggregatePerformanceFun() { return aggregate_performance_fun; }
-
-  emp::vector<perf_fun_t> & GetPerformanceFunSet() { return performance_fun_set; }
+  perf_fun_t& GetAggregatePerformanceFun() { return aggregate_performance_fun; }
+  emp::vector<perf_fun_t>& GetPerformanceFunSet() { return performance_fun_set; }
 
   bool IsEvalFresh() const { return fresh_eval; }
 

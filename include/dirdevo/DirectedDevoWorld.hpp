@@ -305,7 +305,16 @@ public:
   void DirectedDevoReset();
 
   double GetAggregateTaskPerformance() { emp_assert(task.IsEvalFresh()); return aggregate_performance_fun(); }
-  double GetSubTaskPerformance(size_t i);
+  double GetSubTaskPerformance(size_t i) {
+    emp_assert(task.IsEvalFresh());
+    const auto& fun_set = task.GetPerformanceFunSet();
+    emp_assert(i < fun_set.size(), i, fun_set.size());
+    return fun_set[i]();
+  };
+  size_t GetNumSubTasks() {
+    const auto& fun_set = task.GetPerformanceFunSet();
+    return fun_set.size();
+  }
 
   emp::vector<ConfigSnapshotEntry> GetConfigSnapshotEntries() {
     emp::vector<ConfigSnapshotEntry> entries(task.GetConfigSnapshotEntries()); // Grab all of the task-specific entries
@@ -317,8 +326,6 @@ public:
     );
     return entries;
   }
-
-  size_t GetNumSubTasks();
 
   task_t& GetTask() { return task; }
   const task_t& GetTask() const { return task; }
