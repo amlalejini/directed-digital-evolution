@@ -417,6 +417,8 @@ void AvidaGPL9Task::SetupInstLib() {
 void AvidaGPL9Task::SetupTaskValues() {
   // todo - add tasks to org task set
   // (1) Parse environment file
+  std::cout << world.GetConfig().AVIDAGP_ENV_FILE() << std::endl;
+  std::cout << std::filesystem::exists(world.GetConfig().AVIDAGP_ENV_FILE()) << std::endl;
   if (!std::filesystem::exists(world.GetConfig().AVIDAGP_ENV_FILE())) {
     std::cout << "Environment file does not exist. " << world.GetConfig().AVIDAGP_ENV_FILE() << std::endl;
     std::exit(EXIT_FAILURE);
