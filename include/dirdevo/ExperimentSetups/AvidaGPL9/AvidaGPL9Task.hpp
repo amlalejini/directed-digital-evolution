@@ -421,9 +421,13 @@ void AvidaGPL9Task::SetupTaskValues() {
     std::cout << "Environment file does not exist. " << world.GetConfig().AVIDAGP_ENV_FILE() << std::endl;
     std::exit(EXIT_FAILURE);
   }
+  std::cout << "    boop?" << std::endl;
   std::ifstream env_ifstream(world.GetConfig().AVIDAGP_ENV_FILE());
+  std::cout << "    bop?" << std::endl;
   nlohmann::json env_json;
+  std::cout << "    beep?" << std::endl;
   env_ifstream >> env_json;
+  std::cout << "    blap?" << std::endl;
   emp_assert(env_json.contains("organism"), "Improperly configured environment file. Failed to find 'organism' key.");
   emp_assert(env_json.contains("world"), "Improperly configured environment file. Failed to find 'world' key.");
 
