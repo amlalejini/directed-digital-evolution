@@ -362,7 +362,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
   // epoch
   world_evaluation_file->AddFun<size_t>(get_epoch, "epoch");
 
-  // scores
+  // aggregate scores
   world_evaluation_file->AddFun<std::string>(
     [this]() {
       std::ostringstream stream;
@@ -377,7 +377,25 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
     "aggregate_scores"
   );
 
-  // TODO - disaggregated scores
+  // scores (by world, by function)
+  world_evaluation_file->AddFun<std::string>(
+    [this]() {
+      std::ostringstream stream;
+      stream << "\"[[";
+      for (size_t i = 0; i < worlds.size(); ++i) {
+        emp_assert(i < score_fun_sets.size());
+        if (i) stream << ",[";
+        for (size_t fun_i = 0; fun_i < score_fun_sets[i].size(); ++fun_i) {
+          if (fun_i) stream << ",";
+          stream << score_fun_sets[i][fun_i]();
+        }
+        stream << "]";
+      }
+      stream << "]\"";
+      return stream.str();
+    },
+    "scores"
+  );
 
   // selected
   world_evaluation_file->AddFun<std::string>(
