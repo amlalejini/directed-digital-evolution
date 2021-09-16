@@ -41,13 +41,12 @@ public:
 
   /// Attaches data file functions to summary file. Updated at configured world update interval.
   static void AttachWorldUpdateDataFileFunctions(
-    emp::DataFile& summary_file,
-    const std::function<emp::Ptr<world_t>(void)>& get_world
+    WorldAwareDataFile<world_t>& summary_file
   ) {
     // Output task performance profile
     summary_file.AddFun<std::string>(
-      [get_world]() {
-        const this_t& task = get_world()->GetTask();
+      [&summary_file]() {
+        const this_t& task = summary_file.GetCurWorld().GetTask();
         std::ostringstream stream;
         stream << "\"{";
         for (size_t i = 0; i < task.org_task_set.GetSize(); ++i) {

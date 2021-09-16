@@ -11,6 +11,7 @@
 #include "utility/ProbabilisticScheduler.hpp"
 #include "DirectedDevoConfig.hpp"
 #include "utility/ConfigSnapshotEntry.hpp"
+#include "utility/WorldAwareDataFile.hpp"
 
 namespace dirdevo {
 
@@ -67,28 +68,27 @@ public:
   static POP_STRUCTURE PopStructureStrToMode(const std::string & mode);
 
   static void AttachWorldUpdateDataFileFunctions(
-    emp::DataFile& summary_file,
-    const std::function<emp::Ptr<this_t>(void)>& get_world
+    WorldAwareDataFile<this_t>& summary_file
   ) {
-    summary_file.AddFun<size_t>(
-      [get_world]() {
-        return get_world()->GetUpdate();
+    summary_file.template AddFun<size_t>(
+      [&summary_file]() {
+        return summary_file.GetCurWorld().GetUpdate();
       },
       "world_update"
     );
-    summary_file.AddFun<size_t>(
-      [get_world]() {
-        return get_world()->GetWorldID();
+    summary_file.template AddFun<size_t>(
+      [&summary_file]() {
+        return summary_file.GetCurWorld().GetWorldID();
       },
       "world_id"
     );
-    summary_file.AddFun<size_t>(
-      [get_world]() {
-        return get_world()->GetNumOrgs();
+    summary_file.template AddFun<size_t>(
+      [&summary_file]() {
+        return summary_file.GetCurWorld().GetNumOrgs();
       },
       "num_orgs"
     );
-    task_t::AttachWorldUpdateDataFileFunctions(summary_file, get_world);
+    task_t::AttachWorldUpdateDataFileFunctions(summary_file);
   }
 
 protected:

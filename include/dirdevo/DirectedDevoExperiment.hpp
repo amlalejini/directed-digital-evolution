@@ -27,7 +27,7 @@
 #include "selection/SelectionSchemes.hpp"
 #include "selection/BaseSelect.hpp"
 #include "utility/ConfigSnapshotEntry.hpp"
-
+#include "utility/WorldAwareDataFile.hpp"
 
 namespace dirdevo {
 
@@ -48,6 +48,7 @@ public:
   using config_t = DirectedDevoConfig;
   using pop_struct_t = typename world_t::POP_STRUCTURE;
   using peripheral_t = PERIPHERAL;
+  using world_aware_data_file_t = WorldAwareDataFile<world_t>;
 
   using mutator_t = MUTATOR;
   using genome_t = typename org_t::genome_t;
@@ -64,9 +65,6 @@ public:
     emp::Ptr<org_t> org;
     size_t original_pos=0;
     size_t transfer_pos=0;
-    // genome_t genome;
-    // TransferOrg(const genome_t& g, size_t p) : org(g), original_pos(p), transfer_pos(0) { ; }
-
   };
 
 protected:
@@ -94,9 +92,8 @@ protected:
   bool setup=false;
   size_t cur_epoch=0;
   bool record_epoch=false;
-  emp::Ptr<world_t> cur_world=nullptr; ///< NON-OWNING. Used internally for data tracking.
 
-  emp::Ptr<emp::DataFile> world_summary_file=nullptr;     ///< Manages world update summary output. (is updated during world updates; for each world)
+  emp::Ptr<world_aware_data_file_t> world_summary_file=nullptr;     ///< Manages world update summary output. (is updated during world updates; for each world)
   emp::Ptr<emp::DataFile> world_evaluation_file=nullptr;  ///< Manages world evaluation output. (is updated after each world's evaluation)
   emp::Ptr<emp::DataFile> world_systematics_file=nullptr; ///<
 
@@ -335,23 +332,22 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
     for (size_t i = 0; i < worlds.size(); ++i) {
       // Trigger world summary on correct updates
       worlds[i]->OnUpdate(
-        [this](size_t u){
+        [this, i](size_t u) {
           if (record_epoch) {
             // record this update if final or at recording interval
             const bool record_update = !(u % config.OUTPUT_SUMMARY_UPDATE_RESOLUTION()) || (u == config.UPDATES_PER_EPOCH());
             if (!record_update) return;
-            // TODO - update current world (somehow switch between which world is providing information)
-            world_summary_file->Update();
+            world_summary_file->Update(worlds[i]);
           }
         }
       );
     }
     // TODO - rename world_summary file and associated functions?
-    world_summary_file = emp::NewPtr<emp::DataFile>(output_dir + "world_summary.csv");
+    world_summary_file = emp::NewPtr<world_aware_data_file_t>(output_dir + "world_summary.csv");
     // Experiment level functions
-    world_summary_file->AddFun<size_t>(get_epoch,"epoch");
+    world_summary_file->template AddFun<size_t>(get_epoch,"epoch");
     // World-level functions
-    world_t::AttachWorldUpdateDataFileFunctions(*world_summary_file, [this](){ return cur_world; });
+    world_t::AttachWorldUpdateDataFileFunctions(*world_summary_file);
     world_summary_file->PrintHeaderKeys();
   }
 
@@ -597,7 +593,6 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
     // Run worlds forward X updates.
     for (auto world_ptr : worlds) {
       std::cout << "Running world " << world_ptr->GetName() << std::endl;
-      cur_world = world_ptr;
       world_ptr->SetEpoch(cur_epoch);
       for (size_t u = 0; u <= config.UPDATES_PER_EPOCH(); u++) {
         world_ptr->RunStep();
@@ -662,12 +657,10 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
       }
       // Sample from the selected world to form the propagule.
       // TODO - will need to tweak this code if we complicate propagule formation
-      // propagules[i] = Sample(*worlds[selected_pop_id]);
       Sample(*worlds[selected_pop_id], propagules[i]);
     }
 
     // Reset worlds + inject propagules into them!
-    // TODO - fix systematics continuity
     const size_t propagule_offset = max_world_size*worlds.size(); // Propagules will have positions offset past all valid world positions
     // For each genome
     size_t genome_counter = 0;
