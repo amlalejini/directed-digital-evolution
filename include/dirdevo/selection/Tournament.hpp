@@ -15,17 +15,17 @@ struct TournamentSelect : public BaseSelect {
 
   using score_fun_t = std::function<double(void)>;
 
-  emp::Random& random;
   emp::vector<score_fun_t>& score_funs;     ///< One function for each selection candidate (e.g., each member of the population)
+  emp::Random& random;
   size_t tournament_size;
 
   TournamentSelect(
-    emp::Random& a_random,
     emp::vector<score_fun_t>& a_score_funs,
+    emp::Random& a_random,
     size_t a_tournament_size=4
   ) :
-    random(a_random),
     score_funs(a_score_funs),
+    random(a_random),
     tournament_size(a_tournament_size)
   { }
 

@@ -112,6 +112,7 @@ protected:
   void SetupSelection();
   void SetupEliteSelection();
   void SetupTournamentSelection();
+  void SetupLexicaseSelection();
 
   /// Configure data collection
   void SetupDataCollection();
@@ -300,7 +301,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupSelecti
   } else if (config.SELECTION_METHOD() == "tournament") {
     SetupTournamentSelection();
   } else if (config.SELECTION_METHOD() == "lexicase") {
-    emp_assert(false);
+    SetupLexicaseSelection();
   } else {
     // code should never reach this else (unless I forget to add a selection scheme here that is in the valid selection method set)
     emp_assert(false, "Unimplemented selection scheme.", config.SELECTION_METHOD());
@@ -435,13 +436,26 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupEliteSe
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
 void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupTournamentSelection() {
   selector = emp::NewPtr<TournamentSelect>(
-    random,
     aggregate_score_funs,
+    random,
     config.TOURNAMENT_SEL_TOURN_SIZE()
   );
 
   do_selection_fun = [this]() -> emp::vector<size_t>& {
     emp::Ptr<TournamentSelect> sel = selector.Cast<TournamentSelect>();
+    return (*sel)(config.NUM_POPS());
+  };
+}
+
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupLexicaseSelection() {
+  selector = emp::NewPtr<LexicaseSelect>(
+    score_fun_sets,
+    random
+  );
+
+  do_selection_fun = [this]() -> emp::vector<size_t>& {
+    emp::Ptr<LexicaseSelect> sel = selector.Cast<LexicaseSelect>();
     return (*sel)(config.NUM_POPS());
   };
 }
