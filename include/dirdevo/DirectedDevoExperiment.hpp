@@ -57,7 +57,7 @@ public:
   // TODO - add mutation tracking to systematics?
   using systematics_t = emp::Systematics<org_t, genome_t>;
 
-  const std::unordered_set<std::string> valid_selection_methods={"elite","tournament","lexicase"};
+  const std::unordered_set<std::string> valid_selection_methods={"elite","tournament","lexicase","non-dominated-elite"};
 
   /// Propagules are vectors of TransferGenomes. A TransferGenome wraps information about the genomes sampled to form propagules.
   /// Necessary for stitching together phylogeny tracking across transfers.
@@ -110,6 +110,7 @@ protected:
   void SetupEliteSelection();
   void SetupTournamentSelection();
   void SetupLexicaseSelection();
+  void SetupNonDominatedEliteSelection();
 
   /// Configure data collection
   void SetupDataCollection();
@@ -299,6 +300,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupSelecti
     SetupTournamentSelection();
   } else if (config.SELECTION_METHOD() == "lexicase") {
     SetupLexicaseSelection();
+  } else if (config.SELECTION_METHOD() == "non-dominated-elite") {
+    SetupNonDominatedEliteSelection();
   } else {
     // code should never reach this else (unless I forget to add a selection scheme here that is in the valid selection method set)
     emp_assert(false, "Unimplemented selection scheme.", config.SELECTION_METHOD());
@@ -470,6 +473,19 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupLexicas
 
   do_selection_fun = [this]() -> emp::vector<size_t>& {
     emp::Ptr<LexicaseSelect> sel = selector.Cast<LexicaseSelect>();
+    return (*sel)(config.NUM_POPS());
+  };
+}
+
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupNonDominatedEliteSelection() {
+  selector = emp::NewPtr<NonDominatedEliteSelect>(
+    score_fun_sets,
+    random
+  );
+
+  do_selection_fun = [this]() -> emp::vector<size_t>& {
+    emp::Ptr<NonDominatedEliteSelect> sel = selector.Cast<NonDominatedEliteSelect>();
     return (*sel)(config.NUM_POPS());
   };
 }
