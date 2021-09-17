@@ -102,6 +102,8 @@ public:
   const hardware_t& GetHardware() const { return hardware; }
 
   size_t GetAge() const { return age; }
+  void IncGeneration(size_t inc=1) { generation += inc; }
+  size_t GetGeneration() const { return generation; }
 
   void OnInjectReady() override {
     hardware.ResetReplicatorHardware();
@@ -117,7 +119,6 @@ public:
   void OnOffspringReady(this_t& offspring) override {
     // Reset this (the parent) organism's hardware + reproduction status
     hardware.ResetReplicatorHardware();
-    generation++; // TODO - should parent generation counter increase when it divides? Or stay the same?
     repro_ready=false;
   }
 
@@ -127,13 +128,15 @@ public:
   }
 
   void OnBirth(this_t& parent) override {
+    // note, this happens before parent's OnOffspringReady is called
     hardware.ResetReplicatorHardware(); // Reset AvidaGP virtual hardware
     dead=false;
     repro_ready=false;
     new_born=true;     // TODO - do something with new_born or cut it?
     age=0;
-    // note, this happens before parent's OnOffspringReady is called
-    generation=parent.generation+1; // TODO - should parent generation counter increase when it divides?
+    // when an organism divides, it and its offspring have an incremented generation
+    parent.IncGeneration();
+    generation=parent.GetGeneration();
   }
 
   void OnDeath(size_t position) override { /*TODO*/ }

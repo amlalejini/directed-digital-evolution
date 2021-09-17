@@ -58,7 +58,22 @@ public:
       },
       "task_performance"
     );
-    // TODO - average generation
+    // Average generation
+    summary_file.AddFun<double>(
+      [&summary_file]() {
+        double total_generation=0;
+        size_t num_orgs=0;
+        world_t& world = summary_file.GetCurWorld();
+        for (size_t pop_id = 0; pop_id < world.GetSize(); ++pop_id) {
+          if (!world.IsOccupied({pop_id,0})) continue;
+          num_orgs += 1;
+          total_generation += world.GetOrg(pop_id).GetGeneration();
+        }
+        return (num_orgs > 0) ? total_generation / (double)num_orgs : 0;
+      },
+      "avg_generation"
+    );
+
   }
 
 protected:
