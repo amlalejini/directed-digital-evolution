@@ -232,6 +232,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
   // Configure systematics tracking (TODO - allow systematics tracking to be stripped out for performance)
   systematics = emp::NewPtr<systematics_t>([](const org_t& org) { return org.GetGenome(); });
   systematics->SetTrackSynchronous(false); // Tell systematics that we have asynchronous generations
+  systematics->AddPairwiseDistanceDataNode();
+  systematics->AddPhylogeneticDiversityDataNode();
   for (auto world_ptr : worlds) {
     world_ptr->SetSharedSystematics(systematics, max_world_size);
   }
@@ -340,8 +342,6 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
     }
   }
 
-  // TODO - Configure data collection!
-
   // Generally useful functions
   std::function<size_t(void)> get_epoch = [this]() { return cur_epoch; };
 
@@ -442,6 +442,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
 
   //////////////////////////////////
   // Systematics
+  // basic stuff
   world_systematics_file = emp::NewPtr<emp::DataFile>(output_dir + "systematics.csv");
   world_systematics_file->AddVar(cur_epoch, "epoch");
   world_systematics_file->AddFun<size_t>( [this](){ return systematics->GetNumActive(); }, "num_taxa", "Number of unique taxonomic groups currently active." );
@@ -450,6 +451,10 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
   world_systematics_file->AddFun<size_t>( [this](){ return systematics->GetNumRoots(); }, "num_roots", "Number of independent roots for phylogenies." );
   world_systematics_file->AddFun<int>(    [this](){ return systematics->GetMRCADepth(); }, "mrca_depth", "Phylogenetic Depth of the Most Recent Common Ancestor (-1=none)." );
   world_systematics_file->AddFun<double>( [this](){ return systematics->CalcDiversity(); }, "diversity", "Genotypic Diversity (entropy of taxa in population)." );
+  // phylodiversity
+  world_systematics_file->AddStats(*systematics->GetDataNode("pairwise_distance"), "genotype_pairwise_distance", "pairwise distance for a single update", true, true);
+  world_systematics_file->AddCurrent(*systematics->GetDataNode("phylogenetic_diversity"), "genotype_current_phylogenetic_diversity", "current phylogenetic_diversity", true, true);
+
   world_systematics_file->PrintHeaderKeys();
 
 }

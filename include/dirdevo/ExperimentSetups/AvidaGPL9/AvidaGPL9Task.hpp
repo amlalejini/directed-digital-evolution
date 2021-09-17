@@ -277,8 +277,6 @@ public:
 
   /// Called just after the organism's process step function is called.
   void AfterOrgProcessStep(org_t& org) override {
-    // TODO - process organism output?
-
     // Analyze organism output buffer
     auto& output_buffer = org.GetHardware().GetOutputBuffer();
     for (auto value : output_buffer) {
