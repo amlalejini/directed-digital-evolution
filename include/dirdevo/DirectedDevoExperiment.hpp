@@ -64,7 +64,7 @@ public:
     "non-dominated-elite",
     "non-dominated-tournament",
     "random",
-    "no-select"
+    "none"
   };
 
   /// Propagules are vectors of TransferGenomes. A TransferGenome wraps information about the genomes sampled to form propagules.
@@ -317,6 +317,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupSelecti
     SetupNonDominatedTournamentSelection();
   } else if (config.SELECTION_METHOD() == "random") {
     SetupRandomSelection();
+  } else if (config.SELECTION_METHOD() == "none") {
+    SetupNoSelection();
   } else {
     // code should never reach this else (unless I forget to add a selection scheme here that is in the valid selection method set)
     emp_assert(false, "Unimplemented selection scheme.", config.SELECTION_METHOD());
@@ -522,11 +524,22 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupNonDomi
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
 void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupRandomSelection() {
   selector = emp::NewPtr<RandomSelect>(
-    random
+    random,
+    config.NUM_POPS()
   );
 
   do_selection_fun = [this]() -> emp::vector<size_t>& {
     emp::Ptr<RandomSelect> sel = selector.Cast<RandomSelect>();
+    return (*sel)(config.NUM_POPS());
+  };
+}
+
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupNoSelection() {
+  selector = emp::NewPtr<NoSelect>();
+
+  do_selection_fun = [this]() -> emp::vector<size_t>& {
+    emp::Ptr<NoSelect> sel = selector.Cast<NoSelect>();
     return (*sel)(config.NUM_POPS());
   };
 }
