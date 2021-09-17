@@ -57,7 +57,13 @@ public:
   // TODO - add mutation tracking to systematics?
   using systematics_t = emp::Systematics<org_t, genome_t>;
 
-  const std::unordered_set<std::string> valid_selection_methods={"elite","tournament","lexicase","non-dominated-elite"};
+  const std::unordered_set<std::string> valid_selection_methods={
+    "elite",
+    "tournament",
+    "lexicase",
+    "non-dominated-elite",
+    "non-dominated-tournament"
+  };
 
   /// Propagules are vectors of TransferGenomes. A TransferGenome wraps information about the genomes sampled to form propagules.
   /// Necessary for stitching together phylogeny tracking across transfers.
@@ -111,6 +117,7 @@ protected:
   void SetupTournamentSelection();
   void SetupLexicaseSelection();
   void SetupNonDominatedEliteSelection();
+  void SetupNonDominatedTournamentSelection();
 
   /// Configure data collection
   void SetupDataCollection();
@@ -302,6 +309,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupSelecti
     SetupLexicaseSelection();
   } else if (config.SELECTION_METHOD() == "non-dominated-elite") {
     SetupNonDominatedEliteSelection();
+  } else if (config.SELECTION_METHOD() == "non-dominated-tournament") {
+    SetupNonDominatedTournamentSelection();
   } else {
     // code should never reach this else (unless I forget to add a selection scheme here that is in the valid selection method set)
     emp_assert(false, "Unimplemented selection scheme.", config.SELECTION_METHOD());
@@ -486,6 +495,20 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupNonDomi
 
   do_selection_fun = [this]() -> emp::vector<size_t>& {
     emp::Ptr<NonDominatedEliteSelect> sel = selector.Cast<NonDominatedEliteSelect>();
+    return (*sel)(config.NUM_POPS());
+  };
+}
+
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupNonDominatedTournamentSelection() {
+  selector = emp::NewPtr<NonDominatedTournamentSelect>(
+    score_fun_sets,
+    random,
+    config.TOURNAMENT_SEL_TOURN_SIZE()
+  );
+
+  do_selection_fun = [this]() -> emp::vector<size_t>& {
+    emp::Ptr<NonDominatedTournamentSelect> sel = selector.Cast<NonDominatedTournamentSelect>();
     return (*sel)(config.NUM_POPS());
   };
 }
