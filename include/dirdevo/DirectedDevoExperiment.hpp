@@ -694,6 +694,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
       break;
     }
 
+    #ifndef EMP_NDEBUG
+
     std::cout << "Evaluation summary: " << std::endl;
     for (auto world_ptr : worlds) {
       std::cout << "  " << world_ptr->GetName() << std::endl;
@@ -706,6 +708,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
       }
       std::cout << std::endl;
     }
+    #endif // EMP_NDEBUG
 
     // TODO - If this is the final epoch, we don't need to do selection/sampling/founding
 

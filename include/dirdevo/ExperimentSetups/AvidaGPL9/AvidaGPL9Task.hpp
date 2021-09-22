@@ -214,11 +214,14 @@ public:
 
   /// Evaluate the world on this task.
   void Evaluate() override {
+
+    #ifndef EMP_NDEBUG
     std::cout << world.GetName() << " tasks:";
     for (size_t i =0; i < org_task_set.GetSize(); ++i) {
       std::cout << " " << org_task_set.GetName(i) << ":" << l9_world_task_performance[i];
     }
     std::cout << std::endl;
+    #endif
 
     emp_assert(world_scores.size() == l9_world_task_ids.size());
     emp_assert(l9_world_task_performance.size() == l9_world_task_values.size());
