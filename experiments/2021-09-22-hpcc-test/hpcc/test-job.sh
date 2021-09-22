@@ -8,7 +8,6 @@
 #SBATCH --mem=1000m
 #SBATCH --time=00:01:00
 #SBATCH --account=zamanlh0
-#SBATCH --partition=debug
 #SBATCH --array=1-10
 
 # The application(s) to execute along with its input arguments and options:
