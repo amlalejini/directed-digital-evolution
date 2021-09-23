@@ -1,0 +1,35 @@
+#!/bin/bash
+###############################################################
+#SBATCH --job-name=<<JOB_NAME>>
+#SBATCH --mail-type=FAIL
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem=<<MEMORY_REQUEST>>
+#SBATCH --time=<<TIME_REQUEST>>
+#SBATCH --account=<<ACCOUNT_NAME>>
+#SBATCH --array=<<ARRAY_RANGE>>
+###############################################################
+
+# Modules to load
+module load gcc/9.2.0
+
+# Variables
+JOB_SEED_OFFSET=<<JOB_SEED_OFFSET>>
+SEED=$((JOB_SEED_OFFSET + SLURM_ARRAY_TASK_ID - 1))
+
+EXEC=<<EXEC>>
+CONFIG_DIR=<<CONFIG_DIR>>
+RUN_DIR=<<RUN_DIR>>
+
+# Navigate to run directory, copy over configuration files
+cd ${RUN_DIR}
+cp ${CONFIG_DIR}/*.gen ./
+cp ${CONFIG_DIR}/*.cfg ./
+cp ${CONFIG_DIR}/*.json ./
+cp ${CONFIG_DIR}/${EXEC} ./
+
+# Run the experiment
+<<RUN_COMMANDS>>
+
+# Cleanup the executable (and anything else we don't need hanging out)
+rm ${RUN_DIR}/${EXEC}
