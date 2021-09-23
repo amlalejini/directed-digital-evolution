@@ -578,6 +578,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SeedWithProp
    systematics->SetNextParent(propagule[i].transfer_pos);
    world.InjectAt(propagule[i].org->GetGenome(), {pos});
   }
+  world.SyncSchedulerWeights();
 }
 
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>

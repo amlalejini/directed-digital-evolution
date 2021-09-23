@@ -249,6 +249,7 @@ public:
   void OnOffspringReady(org_t& offspring, org_t& parent) override {
     // Calculate merit based on parent's phenotype.
     const double merit = calc_merit_fun(parent);
+    emp_assert(merit > 0, merit, parent.GetMerit());
 
     // Reset parent and offspring phenotypes
     offspring.GetPhenotype().Reset(org_task_set.GetSize());

@@ -403,6 +403,7 @@ void DirectedDevoWorld<ORG,TASK>::RunStep() {
   const size_t org_step_budget = num_orgs*avg_org_steps_per_update;
   for (size_t step = 0; step < org_step_budget; ++step) {
     // Schedule someone to take a step.
+    emp_assert(scheduler.GetWeightMap().GetWeight() > 0, step, this->GetNumOrgs());
     const size_t org_id = scheduler.GetRandom(); // This should reweight the scheduler automatically.
     auto & org = this->GetOrg(org_id);
     // Step organism forward
@@ -418,6 +419,8 @@ void DirectedDevoWorld<ORG,TASK>::RunStep() {
     // should this organism die?
     if (org.GetDead()) {
       this->DoDeath({org_id});
+      // if everything is dead, break out of this loop
+      if (!this->GetNumOrgs()) break;
     }
   }
 
