@@ -124,7 +124,7 @@ def main():
         run_param_info = {key:condition_dict[key] for key in condition_dict}
         run_param_info["OUTPUT_SUMMARY_UPDATE_RESOLUTION"] = str(condition_dict["UPDATES_PER_EPOCH"])
         run_param_info["OUTPUT_PHYLOGENY_SNAPSHOT_EPOCH_RESOLUTION"] = "500"
-        run_param_info["SEED"] = str(cur_seed)
+        run_param_info["SEED"] = "${SEED}"
 
         fields = list(run_param_info.keys())
         fields.sort()
