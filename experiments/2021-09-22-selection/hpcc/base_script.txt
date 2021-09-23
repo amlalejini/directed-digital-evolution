@@ -21,6 +21,8 @@ EXEC=<<EXEC>>
 CONFIG_DIR=<<CONFIG_DIR>>
 RUN_DIR=<<RUN_DIR>>
 
+# Create the run directory
+mkdir -p ${RUN_DIR}
 # Navigate to run directory, copy over configuration files
 cd ${RUN_DIR}
 cp ${CONFIG_DIR}/*.gen ./
