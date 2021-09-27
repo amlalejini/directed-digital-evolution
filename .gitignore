@@ -32,3 +32,5 @@ directed-digital-experiment
 output/
 
 pyenv/
+
+data/
