@@ -103,11 +103,11 @@ ggplot(
     alpha = 0.5
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
   )
 
 ggsave(
-  paste0(plot_directory, "avg_num_orgs.png")
+  paste0(plot_directory, "avg_num_orgs.pdf")
 )
 ```
 
@@ -142,7 +142,7 @@ ggplot(
   )
 
 ggsave(
-  paste0(plot_directory, "avg_gens.png")
+  paste0(plot_directory, "avg_gens.pdf")
 )
 ```
 
@@ -179,7 +179,7 @@ ggplot(
   )
 
 ggsave(
-  paste0(plot_directory, "max_aggregate_score.png")
+  paste0(plot_directory, "max_aggregate_score.pdf")
 )
 ```
 
@@ -214,7 +214,21 @@ ggplot(
   )
 
 ggsave(
-  paste0(plot_directory, "max_trait_coverage.png")
+  paste0(plot_directory, "max_trait_coverage.pdf")
+)
+```
+
+```{r}
+kruskal.test(
+  formula=max_trait_coverage~SELECTION_METHOD,
+  data=exp_summary_data
+)
+
+pairwise.wilcox.test(
+  x=exp_summary_data$max_trait_coverage,
+  g=exp_summary_data$SELECTION_METHOD,
+  p.adjust.method="bonferroni",
+  exact=FALSE
 )
 ```
 
@@ -249,7 +263,21 @@ ggplot(
   )
 
 ggsave(
-  paste0(plot_directory, "total_trait_coverage.png")
+  paste0(plot_directory, "total_trait_coverage.pdf")
+)
+```
+
+```{r}
+kruskal.test(
+  formula=total_trait_coverage~SELECTION_METHOD,
+  data=exp_summary_data
+)
+
+pairwise.wilcox.test(
+  x=exp_summary_data$total_trait_coverage,
+  g=exp_summary_data$SELECTION_METHOD,
+  p.adjust.method="bonferroni",
+  exact=FALSE
 )
 ```
 
@@ -286,7 +314,7 @@ ggplot(
   )
 
 ggsave(
-  paste0(plot_directory, "avg_unique_selected.png")
+  paste0(plot_directory, "avg_unique_selected.pdf")
 )
 ```
 
@@ -321,7 +349,7 @@ ggplot(
   )
 
 ggsave(
-  paste0(plot_directory, "avg_entropy_selected.png")
+  paste0(plot_directory, "avg_entropy_selected.pdf")
 )
 ```
 
@@ -361,7 +389,7 @@ ggplot(
   )
 
 ggsave(
-  paste0(plot_directory, "mrca_depth.png")
+  paste0(plot_directory, "mrca_depth.pdf")
 )
 ```
 
