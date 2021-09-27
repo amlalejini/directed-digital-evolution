@@ -240,5 +240,9 @@ def main():
         out_content = ",".join(experiment_summary_header) + "\n" + "\n".join(experiment_summary_content_lines)
         fp.write(out_content)
 
+    print(f"Skipped ({len(skipped_runs)}):")
+    for run_dir in skipped_runs:
+        print(f" - {run_dir}")
+
 if __name__ == "__main__":
     main()
