@@ -113,7 +113,7 @@ protected:
   /// Wraps the shared
   // TODO - setup ability to strip out systematics tracking (because it can be a performance hit)
   struct SharedSystematicsWrapper {
-    emp::Ptr<systematics_t> sys_ptr; ///< NON-OWNING. Pointer to the systematics manager shared by each world in an experiment.
+    emp::Ptr<systematics_t> sys_ptr=nullptr; ///< NON-OWNING. Pointer to the systematics manager shared by each world in an experiment.
     size_t offset=0;                 ///< world_id*GetSize()
     size_t time_offset=0;
 
@@ -122,7 +122,6 @@ protected:
       sys_ptr->SetNextParent(pos + offset);
     }
 
-    // TODO - fix time!
     void AddOrg(org_t& org, size_t pos, size_t update) {
       emp_assert(sys_ptr);
       // From the systematics manager's perspective, all worlds are part of pop_0 (for their WorldPosition args)
@@ -132,7 +131,6 @@ protected:
     void RemoveOrgAfterRepro(size_t pos, size_t update) {
       emp_assert(sys_ptr);
       sys_ptr->RemoveOrgAfterRepro({offset+pos, 0}, (int)(update+time_offset));
-      // TODO
     }
 
     void Update() {
@@ -203,7 +201,9 @@ public:
         org.OnDeath(pos);
         task.OnOrgDeath(org, pos);
         scheduler.AdjustWeight(pos, 0); // Update scheduler weights last.
-        if (track_systematics) shared_systematics_wrapper.RemoveOrgAfterRepro(pos, GetUpdate());
+        if (track_systematics) {
+          shared_systematics_wrapper.RemoveOrgAfterRepro(pos, GetUpdate());
+        }
       }
     );
 
@@ -247,7 +247,9 @@ public:
     this->OnOffspringReady(
       [this](org_t& offspring, size_t parent_pos) {
         this->DoMutationsOrg(offspring); // Do mutations on offspring ready, but before parent sees offspring.
-        if (track_systematics) shared_systematics_wrapper.SetNextParent(parent_pos); // TODO - only call this if shared systematics setup
+        if (track_systematics) {
+          shared_systematics_wrapper.SetNextParent(parent_pos);
+        }
         auto& parent = this->GetOrg(parent_pos);
         offspring.OnBirth(parent);                // Tell offspring about it's birthday!
         parent.OnOffspringReady(offspring);       // Tell parent that it's offspring is ready
@@ -295,9 +297,6 @@ public:
 
   /// Run world one step (update) forward
   void RunStep();
-
-  /// Run world forward for given number of updates
-  // void Run(size_t updates);
 
   /// Evaluate the world (make sure task performance is current)
   void Evaluate();

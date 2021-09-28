@@ -1,6 +1,8 @@
 /**
  * @file DirectedDevoExperiment.hpp
  * @brief Defines and manages a directed evolution experiment.
+ *
+ * DIRDEVO_ENABLE_SYS or DIRDEVO_THREADED
  */
 
 #pragma once
@@ -115,6 +117,7 @@ protected:
 
   /// Configure population selection (called internally).
   void SetupSelection();
+  void SetupSystematics();
   void SetupEliteSelection();
   void SetupTournamentSelection();
   void SetupLexicaseSelection();
@@ -229,13 +232,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
     max_world_size = emp::Max(worlds[i]->GetSize(), max_world_size);
   }
 
-  // Configure systematics tracking (TODO - allow systematics tracking to be stripped out for performance)
-  systematics = emp::NewPtr<systematics_t>([](const org_t& org) { return org.GetGenome(); });
-  systematics->SetTrackSynchronous(false); // Tell systematics that we have asynchronous generations
-  systematics->AddPairwiseDistanceDataNode();
-  systematics->AddPhylogeneticDiversityDataNode();
-  for (auto world_ptr : worlds) {
-    world_ptr->SetSharedSystematics(systematics, max_world_size);
+  if (config.TRACK_SYSTEMATICS()) {
+    SetupSystematics();
   }
 
   // Seed each world with an initial common ancestor
@@ -324,6 +322,18 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupSelecti
   } else {
     // code should never reach this else (unless I forget to add a selection scheme here that is in the valid selection method set)
     emp_assert(false, "Unimplemented selection scheme.", config.SELECTION_METHOD());
+  }
+}
+
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupSystematics() {
+  // Configure systematics tracking (TODO - allow systematics tracking to be stripped out for performance)
+  systematics = emp::NewPtr<systematics_t>([](const org_t& org) { return org.GetGenome(); });
+  systematics->SetTrackSynchronous(false); // Tell systematics that we have asynchronous generations
+  systematics->AddPairwiseDistanceDataNode();
+  systematics->AddPhylogeneticDiversityDataNode();
+  for (auto world_ptr : worlds) {
+    world_ptr->SetSharedSystematics(systematics, max_world_size);
   }
 }
 
@@ -442,20 +452,22 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
 
   //////////////////////////////////
   // Systematics
-  // basic stuff
-  world_systematics_file = emp::NewPtr<emp::DataFile>(output_dir + "systematics.csv");
-  world_systematics_file->AddVar(cur_epoch, "epoch");
-  world_systematics_file->AddFun<size_t>( [this](){ return systematics->GetNumActive(); }, "num_taxa", "Number of unique taxonomic groups currently active." );
-  world_systematics_file->AddFun<size_t>( [this](){ return systematics->GetTotalOrgs(); }, "total_orgs", "Number of organisms tracked." );
-  world_systematics_file->AddFun<double>( [this](){ return systematics->GetAveDepth(); }, "ave_depth", "Average Phylogenetic Depth of Organisms." );
-  world_systematics_file->AddFun<size_t>( [this](){ return systematics->GetNumRoots(); }, "num_roots", "Number of independent roots for phylogenies." );
-  world_systematics_file->AddFun<int>(    [this](){ return systematics->GetMRCADepth(); }, "mrca_depth", "Phylogenetic Depth of the Most Recent Common Ancestor (-1=none)." );
-  world_systematics_file->AddFun<double>( [this](){ return systematics->CalcDiversity(); }, "diversity", "Genotypic Diversity (entropy of taxa in population)." );
-  // phylodiversity
-  world_systematics_file->AddStats(*systematics->GetDataNode("pairwise_distance"), "genotype_pairwise_distance", "pairwise distance for a single update", true, true);
-  world_systematics_file->AddCurrent(*systematics->GetDataNode("phylogenetic_diversity"), "genotype_current_phylogenetic_diversity", "current phylogenetic_diversity", true, true);
-
-  world_systematics_file->PrintHeaderKeys();
+  if (config.TRACK_SYSTEMATICS()) {
+    // basic stuff
+    world_systematics_file = emp::NewPtr<emp::DataFile>(output_dir + "systematics.csv");
+    world_systematics_file->AddVar(cur_epoch, "epoch");
+    world_systematics_file->AddFun<size_t>( [this](){ return systematics->GetNumActive(); }, "num_taxa", "Number of unique taxonomic groups currently active." );
+    world_systematics_file->AddFun<size_t>( [this](){ return systematics->GetTotalOrgs(); }, "total_orgs", "Number of organisms tracked." );
+    world_systematics_file->AddFun<double>( [this](){ return systematics->GetAveDepth(); }, "ave_depth", "Average Phylogenetic Depth of Organisms." );
+    world_systematics_file->AddFun<size_t>( [this](){ return systematics->GetNumRoots(); }, "num_roots", "Number of independent roots for phylogenies." );
+    world_systematics_file->AddFun<int>(    [this](){ return systematics->GetMRCADepth(); }, "mrca_depth", "Phylogenetic Depth of the Most Recent Common Ancestor (-1=none)." );
+    world_systematics_file->AddFun<double>( [this](){ return systematics->CalcDiversity(); }, "diversity", "Genotypic Diversity (entropy of taxa in population)." );
+    // phylodiversity
+    world_systematics_file->AddStats(*systematics->GetDataNode("pairwise_distance"), "genotype_pairwise_distance", "pairwise distance for a single update", true, true);
+    world_systematics_file->AddCurrent(*systematics->GetDataNode("phylogenetic_diversity"), "genotype_current_phylogenetic_diversity", "current phylogenetic_diversity", true, true);
+    // write file header
+    world_systematics_file->PrintHeaderKeys();
+  }
 
 }
 
@@ -559,7 +571,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Sample(world
   // extinct worlds shouldn't get selected (unless everything went extinct or we're doing random selection...)
   for (size_t i = 0; i < config.POPULATION_SAMPLING_SIZE(); ++i) {
     const size_t sampled_pos = world.GetRandomOrgID();
-    const size_t world_pos_offset = world.GetSharedSystematics().offset;
+    const size_t world_pos_offset = world.GetSharedSystematics().offset; // 0 if not tracking systematics
     emp_assert(world.IsOccupied({sampled_pos}));
     sample_into.emplace_back();
     sample_into.back().org = emp::NewPtr<org_t>(world.GetOrg(sampled_pos).GetGenome());
@@ -575,7 +587,7 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SeedWithProp
   for (size_t i = 0; i < propagule.size(); ++i) {
    const size_t pos = i; // TODO - use a slightly better method of distributing the propagule!
    // need to set next parent
-   systematics->SetNextParent(propagule[i].transfer_pos);
+   if (config.TRACK_SYSTEMATICS()) systematics->SetNextParent(propagule[i].transfer_pos);
    world.InjectAt(propagule[i].org->GetGenome(), {pos});
   }
   world.SyncSchedulerWeights();
@@ -661,8 +673,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
     // Is this an epoch that we want to record data for?
     // - Either correct interval or final epoch.
     record_epoch = !(cur_epoch % config.OUTPUT_SUMMARY_EPOCH_RESOLUTION()) || (cur_epoch == config.EPOCHS());
-    const bool snapshot_phylogeny = !(cur_epoch % config.OUTPUT_PHYLOGENY_SNAPSHOT_EPOCH_RESOLUTION()) || (cur_epoch == config.EPOCHS());
-    const bool record_systematics = !(cur_epoch % config.OUTPUT_SYSTEMATICS_EPOCH_RESOLUTION()) || (cur_epoch == config.EPOCHS());
+    const bool snapshot_phylogeny = config.TRACK_SYSTEMATICS() && (!(cur_epoch % config.OUTPUT_PHYLOGENY_SNAPSHOT_EPOCH_RESOLUTION()) || (cur_epoch == config.EPOCHS()));
+    const bool record_systematics = config.TRACK_SYSTEMATICS() && (!(cur_epoch % config.OUTPUT_SYSTEMATICS_EPOCH_RESOLUTION()) || (cur_epoch == config.EPOCHS()));
 
     // NOTE, should use onupdate to trigger update signals?
 
@@ -673,7 +685,6 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
       for (size_t u = 0; u <= config.UPDATES_PER_EPOCH(); u++) {
         world_ptr->RunStep();
       }
-
     }
 
     // Do evaluation (could move this into previous loop if I don't add anything else here that requires all worlds to have been run)
@@ -683,11 +694,16 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
     }
 
     const bool all_worlds_extinct = extinct_worlds.size() == worlds.size();
+
+    // Snapshot the phylogeny?
     if (snapshot_phylogeny) {
-      // TODO - allow phylogeny tracking to be optional
       systematics->Snapshot(output_dir + "phylogeny_" + emp::to_string(cur_epoch) + ".csv");
     }
 
+    // Record systematics?
+    if (record_systematics) {
+      world_systematics_file->Update();
+    }
 
     if (all_worlds_extinct) {
       std::cout << "All of the worlds are extinct." << std::endl;
@@ -695,6 +711,8 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
       break;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    // Verbose print statements (only include when compiled in debug mode)
     #ifndef EMP_NDEBUG
 
     std::cout << "Evaluation summary: " << std::endl;
@@ -709,19 +727,17 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
       }
       std::cout << std::endl;
     }
+
     #endif // EMP_NDEBUG
+    ///////////////////////////////////////////////////////////////////////////////////////
 
-    // TODO - If this is the final epoch, we don't need to do selection/sampling/founding
-
-    // Do selection
-    // do_selection_fun(selected);
+    // Do selection: `selected` contains ids of selected populations.
     auto& selected = do_selection_fun();
 
-    if (record_epoch) world_evaluation_file->Update();
-
-    // std::cout << "selected:" << selected << std::endl;
-
-    // selected should hold which populations we should sample from
+    // Record results of evaluation?
+    if (record_epoch) {
+      world_evaluation_file->Update();
+    }
 
     // For each selected world, extract a sample
     propagules.resize(config.NUM_POPS(), {});
@@ -741,16 +757,20 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
 
     // Reset worlds + inject propagules into them!
     const size_t propagule_offset = max_world_size*worlds.size(); // Propagules will have positions offset past all valid world positions
-    // For each genome
-    size_t genome_counter = 0;
+
     const size_t transfer_time = (cur_epoch+1)*config.UPDATES_PER_EPOCH(); // cur_epoch+1 because this is at the end of an epoch (so after its updates have elapsed)
-    for (size_t prop_i = 0; prop_i < propagules.size(); ++prop_i) {
-      for (size_t gen_i = 0; gen_i < propagules[prop_i].size(); ++gen_i) {
-        TransferOrg& transfer_org = propagules[prop_i][gen_i];
-        systematics->SetNextParent(transfer_org.original_pos);
-        systematics->AddOrg(*(transfer_org.org), {propagule_offset+genome_counter, 0}, (int)transfer_time);
-        transfer_org.transfer_pos = propagule_offset+genome_counter;
-        ++genome_counter;
+    if (config.TRACK_SYSTEMATICS()) {
+      // To tie things together in the phylogeny tracking, make new organisms for each sampled organism in each propagule.
+      // Add these organisms to the phylogeny, and use them as parents for injected organisms.
+      size_t genome_counter = 0;
+      for (size_t prop_i = 0; prop_i < propagules.size(); ++prop_i) {
+        for (size_t gen_i = 0; gen_i < propagules[prop_i].size(); ++gen_i) {
+          TransferOrg& transfer_org = propagules[prop_i][gen_i];
+          systematics->SetNextParent(transfer_org.original_pos);
+          systematics->AddOrg(*(transfer_org.org), {propagule_offset+genome_counter, 0}, (int)transfer_time);
+          transfer_org.transfer_pos = propagule_offset+genome_counter;
+          ++genome_counter;
+        }
       }
     }
 
@@ -767,30 +787,23 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
         TransferOrg& transfer_org = propagules[prop_i][gen_i];
         transfer_org.org.Delete(); // Delete transfer organism
         transfer_org.org = nullptr;
-        systematics->RemoveOrgAfterRepro(transfer_org.transfer_pos, transfer_time);
+        if (config.TRACK_SYSTEMATICS()) systematics->RemoveOrgAfterRepro(transfer_org.transfer_pos, transfer_time);
       }
     }
+
     // Update the systematics manager
-    systematics->Update();   // TODO - check if this throws off evolutionary distinctiveness measure?
-
-    if (record_systematics) world_systematics_file->Update();
-
-    // Report summary information(?)
-    // std::cout << "epoch " << cur_epoch << std::endl;
+    if (config.TRACK_SYSTEMATICS()) {
+      systematics->Update();
+    }
   }
-
-  // todo - Final data dump
-
 }
 
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
 void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::RunStep() {
   // Advance each world by one step
   for (auto world_ptr : worlds) {
-    std::cout << "-- Stepping " << world_ptr->GetName() << " --" << std::endl;
     world_ptr->RunStep();
   }
-  // TODO - update transfer(?) counter
 }
 
 } // namespace dirdevo
