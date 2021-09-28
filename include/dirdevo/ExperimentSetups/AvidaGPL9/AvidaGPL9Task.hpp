@@ -37,7 +37,7 @@ public:
   using inst_lib_t = typename hardware_t::inst_lib_t;
   using org_task_set_t = L9TaskSet;
 
-  static constexpr size_t ENV_BANK_SIZE = 100000;
+  static constexpr size_t ENV_BANK_SIZE = 10000;
 
   /// Attaches data file functions to summary file. Updated at configured world update interval.
   static void AttachWorldUpdateDataFileFunctions(
