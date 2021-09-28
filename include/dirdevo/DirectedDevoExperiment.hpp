@@ -358,20 +358,6 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupDataCol
   //////////////////////////////////
   // WORLD UPDATE SUMMARY
   if (config.OUTPUT_COLLECT_WORLD_UPDATE_SUMMARY()) {
-    // Attach data file update to world on update signals
-    for (size_t i = 0; i < worlds.size(); ++i) {
-      // Trigger world summary on correct updates
-      worlds[i]->OnUpdate(
-        [this, i](size_t u) {
-          if (record_epoch) {
-            // record this update if final or at recording interval
-            const bool record_update = !(u % config.OUTPUT_SUMMARY_UPDATE_RESOLUTION()) || (u == config.UPDATES_PER_EPOCH());
-            if (!record_update) return;
-            world_summary_file->Update(worlds[i]);
-          }
-        }
-      );
-    }
     // TODO - rename world_summary file and associated functions?
     world_summary_file = emp::NewPtr<world_aware_data_file_t>(output_dir + "world_summary.csv");
     // Experiment level functions
@@ -684,6 +670,11 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
       world_ptr->SetEpoch(cur_epoch);
       for (size_t u = 0; u <= config.UPDATES_PER_EPOCH(); u++) {
         world_ptr->RunStep();
+        const bool record_update = config.OUTPUT_COLLECT_WORLD_UPDATE_SUMMARY() && (!(u % config.OUTPUT_SUMMARY_UPDATE_RESOLUTION()) || (u == config.UPDATES_PER_EPOCH()));
+        if (record_update) {
+          world_summary_file->Update(world_ptr);
+        }
+        world_ptr->Update();
       }
     }
 

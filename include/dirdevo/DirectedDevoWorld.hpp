@@ -428,7 +428,7 @@ void DirectedDevoWorld<ORG,TASK>::RunStep() {
   // Update the world
   task.OnWorldUpdate(GetUpdate()); // Guarantee that this is called before externally-attached on update functions
   if (track_systematics) shared_systematics_wrapper.Update();
-  this->Update();
+  // this->Update(); // <- MANAGED BY THE EXPERIMENT
 }
 
 template<typename ORG, typename TASK>
