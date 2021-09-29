@@ -7,6 +7,8 @@ Conditions:
   - Total epochs (maintain constant total time): 1800, 600, 100
 - Selection schemes: elite, lexicase, pde, none
 
+Commit hash: `d006f08a0d59d5b55e275d80ca045fbf8b9128d9`
+
 ## Notes
 
 Using threaded version of the software to run this. As such, these experiments won't have phylogeny tracking!
