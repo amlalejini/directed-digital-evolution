@@ -2,7 +2,7 @@
  * @file DirectedDevoExperiment.hpp
  * @brief Defines and manages a directed evolution experiment.
  *
- * DIRDEVO_ENABLE_SYS or DIRDEVO_THREADED
+ * DIRDEVO_THREADING
  */
 
 #pragma once
@@ -31,10 +31,17 @@
 #include "utility/ConfigSnapshotEntry.hpp"
 #include "utility/WorldAwareDataFile.hpp"
 
+#ifdef DIRDEVO_THREADING
+#include <thread>
+#include <mutex>
+#endif // DIRDEVO_THREADED
+
 namespace dirdevo {
 
 // TODO - we're using one uniform configuration type, so just hand off configs and let things configure themselves.
 // TODO - make communication between experiment and components more consistent (e.g., Configuration; let components configure themselves?)
+
+const size_t MAX_WORLD_SEED = 100000;
 
 // PERIPHERAL defines any extra equipment needed to run the experiment (typically something required by the subtasks)
 template<typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL=BasePeripheral>
@@ -80,11 +87,14 @@ public:
 protected:
 
   const config_t& config;                  ///< Experiment configuration (REMINDER: the config object must exist beyond lifetime of this experiment object!)
-  emp::Random random;                      ///< Random number generators (shared across worlds)
+  emp::Random random;                      ///< Experiment-level random number generator.
+  emp::vector<emp::Random> world_rngs;    ///< To minimize shared memory resources between worlds (for threading), each world gets its own (uniquely seeded) random number generator.
+
   emp::vector<emp::Ptr<world_t>> worlds;   ///< How many "populations" are we applying directed evolution to?
 
   pop_struct_t local_pop_struct=pop_struct_t::MIXED;
-  mutator_t mutator;                            ///< Responsible for mutating organisms across worlds. NOTE - currently, mutator is shared; individual worlds cannot tweak settings (i.e., no high/low mutation worlds).
+  // mutator_t mutator;
+  emp::vector<mutator_t> mutators;                 ///< One mutator per world. (to avoid shared memory resources for threading)
   peripheral_t peripheral;                      ///< Peripheral components that should exist at the experiment level.
   emp::Ptr<systematics_t> systematics=nullptr;  ///< Phylogeny tracking
 
@@ -195,6 +205,10 @@ template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typenam
 void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
   if (setup) return; // Don't let myself run Setup more than once.
 
+  #ifdef DIRDEVO_THREADING
+  std::cout << "Compiled with threading enabled." << std::endl;
+  #endif // DIRDEVO_THREADING
+
   // Validate configuration (even in when compiled outside of debug mode!)
   if(!ValidateConfig()) {
     // todo - report which configs are invalid?
@@ -208,10 +222,25 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
   // typename world_t::PopStructureDesc pop_struct(local_pop_struct, config.LOCAL_GRID_WIDTH(), config.LOCAL_GRID_HEIGHT(), config.LOCAL_GRID_DEPTH());
 
   // Configure the mutator
-  mutator_t::Configure(mutator, config);
+  mutators.resize(config.NUM_POPS());
+  for (auto& mutator : mutators) {
+    mutator_t::Configure(mutator, config);
+  }
 
   // Configure the peripheral components
   peripheral.Setup(config);
+
+  #ifdef DIRDEVO_THREADING
+  // NOTE - if number of populations is close to max world seed, this loop might take a really long time...
+  emp_assert(MAX_WORLD_SEED > config.NUM_POPS());
+  std::unordered_set<size_t> world_seeds;
+  while (world_seeds.size() < config.NUM_POPS()) {
+    world_seeds.emplace(random.GetUInt());
+  }
+  for (auto seed : world_seeds) {
+    world_rngs.emplace_back(seed);
+  }
+  #endif // DIRDEVO_THREADING
 
   // Initialize each world.
   worlds.resize(config.NUM_POPS());
@@ -219,15 +248,19 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
   for (size_t i = 0; i < config.NUM_POPS(); ++i) {
     worlds[i] = emp::NewPtr<world_t>(
       config,
+      #ifdef DIRDEVO_THREADING
+      world_rngs[i],
+      #else
       random,
+      #endif // DIRDEVO_THREADING
       "world_"+emp::to_string(i),
       i
     );
     worlds[i]->SetAvgOrgStepsPerUpdate(config.AVG_STEPS_PER_ORG());
     // configure world's mutation function
-    worlds[i]->SetMutFun([this](org_t & org, emp::Random& rnd) {
+    worlds[i]->SetMutFun([this, i](org_t & org, emp::Random& rnd) {
       // TODO - add support for mutation tracking!
-      return mutator.Mutate(org.GetGenome(), rnd);
+      return mutators[i].Mutate(org.GetGenome(), rnd);
     });
     max_world_size = emp::Max(worlds[i]->GetSize(), max_world_size);
   }
@@ -641,6 +674,14 @@ bool DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::ValidateConf
   if (!emp::Has(valid_selection_methods,config.SELECTION_METHOD())) return false;
   if (config.POPULATION_SAMPLING_SIZE() < 1) return false;
   // TODO - flesh this out!
+
+  #ifdef DIRDEVO_THREADING
+  if (config.TRACK_SYSTEMATICS()) {
+    std::cout << "Cannot track systematics if compiled with threading enabled." << std::endl;
+    return false;
+  }
+  #endif
+
   return true;
 }
 
@@ -649,8 +690,19 @@ template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typenam
 void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
   // Create vector to hold the distribution of population ids selected each epoch
 
+  #ifdef DIRDEVO_THREADING
+  std::function<void(size_t)> run_world = [this](size_t world_id) {
+    worlds[world_id]->SetEpoch(cur_epoch);
+    for (size_t u = 0; u <= config.UPDATES_PER_EPOCH(); u++) {
+      worlds[world_id]->RunStep();
+      // const bool record_update = config.OUTPUT_COLLECT_WORLD_UPDATE_SUMMARY() && (!(u % config.OUTPUT_SUMMARY_UPDATE_RESOLUTION()) || (u == config.UPDATES_PER_EPOCH()));
+      worlds[world_id]->Update();
+    }
+  };
+  #endif // DIRDEVO_THREADING
+
   for (cur_epoch = 0; cur_epoch <= config.EPOCHS(); ++cur_epoch) {
-    std::cout << "==== EPOCH " << cur_epoch << "====" << std::endl;
+    std::cout << "==== EPOCH " << cur_epoch << " ====" << std::endl;
 
     // Refresh epoch-level bookkeeping
     extinct_worlds.clear();
@@ -662,8 +714,28 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
     const bool snapshot_phylogeny = config.TRACK_SYSTEMATICS() && (!(cur_epoch % config.OUTPUT_PHYLOGENY_SNAPSHOT_EPOCH_RESOLUTION()) || (cur_epoch == config.EPOCHS()));
     const bool record_systematics = config.TRACK_SYSTEMATICS() && (!(cur_epoch % config.OUTPUT_SYSTEMATICS_EPOCH_RESOLUTION()) || (cur_epoch == config.EPOCHS()));
 
-    // NOTE, should use onupdate to trigger update signals?
-
+    #ifdef DIRDEVO_THREADING
+    ///////////////////////////////////////////////
+    // THREADING ENABLED
+    emp::vector<std::thread> threads;
+    for (size_t world_id = 0; world_id < worlds.size(); ++world_id) {
+      threads.emplace_back(
+        run_world,
+        world_id
+      );
+    }
+    // Join threads
+    for (auto& thread : threads) {
+      thread.join();
+    }
+    // Update world summary file
+    for (auto world_ptr : worlds) {
+      world_summary_file->Update(world_ptr);
+    }
+    ///////////////////////////////////////////////
+    #else
+    ///////////////////////////////////////////////
+    // THREADING DISABLED
     // Run worlds forward X updates.
     for (auto world_ptr : worlds) {
       std::cout << "Running world " << world_ptr->GetName() << std::endl;
@@ -677,6 +749,9 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
         world_ptr->Update();
       }
     }
+    ///////////////////////////////////////////////
+    #endif //DIRDEVO_THREADING
+
 
     // Do evaluation (could move this into previous loop if I don't add anything else here that requires all worlds to have been run)
     for (size_t world_id = 0; world_id < worlds.size(); ++world_id) {
