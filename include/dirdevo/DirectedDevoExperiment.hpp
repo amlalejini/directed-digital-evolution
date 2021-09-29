@@ -718,12 +718,13 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
     ///////////////////////////////////////////////
     // THREADING ENABLED
     emp::vector<std::thread> threads;
-    for (size_t world_id = 0; world_id < worlds.size(); ++world_id) {
+    for (size_t world_id = 1; world_id < worlds.size(); ++world_id) {
       threads.emplace_back(
         run_world,
         world_id
       );
     }
+    run_world(0); // use the main thread to run world 0
     // Join threads
     for (auto& thread : threads) {
       thread.join();
