@@ -7,8 +7,8 @@ from pyvarco import CombinationCollector
 
 seed_offset = 2000
 default_num_replicates = 30
-job_time_request = "48:00:00"
-job_memory_request = "8G"
+job_time_request = "4:00:00"
+job_memory_request = "4G"
 job_account = "devolab"
 job_name = "09-29"
 cpus_per_node="24"

@@ -11,7 +11,7 @@
 ###############################################################
 
 # Modules to load
-module load gcc/9.2.0
+module load GCCcore/9.1.0
 
 # Variables
 JOB_SEED_OFFSET=<<JOB_SEED_OFFSET>>
