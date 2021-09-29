@@ -55,7 +55,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run submission script.")
     parser.add_argument("--data_dir", type=str, help="Where is the base output directory for each run?")
     parser.add_argument("--dump", type=str, help="Where to dump this?", default=".")
-    parser.add_argument("--epoch", type=int, help="Epoch to pull data for?")
+    # parser.add_argument("--epoch", type=int, help="Epoch to pull data for?")
     parser.add_argument("--epoch_range", type=int, help="The range (in epochs) to collect time series data?", nargs=2)
     parser.add_argument("--trait_cov_thresh", type=float, help="Threshold for trait score to count toward trait coverage", default=default_trait_cov_thresh)
 
@@ -63,7 +63,7 @@ def main():
     args = parser.parse_args()
     data_dir = args.data_dir
     dump_dir = args.dump
-    epoch = args.epoch
+    # epoch = args.epoch
     epoch_range = args.epoch_range
     trait_cov_thresh = args.trait_cov_thresh
 
@@ -121,6 +121,7 @@ def main():
         max_pop_size = int(experiment_summary_info["world_size"])
         max_update = int(experiment_summary_info["UPDATES_PER_EPOCH"])
         track_systematics = bool(int(experiment_summary_info["TRACK_SYSTEMATICS"]))
+        epoch = int(experiment_summary_info["EPOCHS"])
 
         #######################################################################
         # Extract run systematics
