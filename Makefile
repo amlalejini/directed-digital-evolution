@@ -4,8 +4,8 @@ EMP_DIR := third-party/Empirical/include
 SGP_DIR := third-party/signalgp-lite/include
 
 # Flags to use regardless of compiler
-CFLAGS_all := -Wall -Wno-unused-function -std=c++17 -I$(EMP_DIR)/ -I$(SGP_DIR)/ -Iinclude/ -Ithird-party/
-
+CFLAGS_all := -DDIRDEVO_THREADING -pthread -Wall -Wno-unused-function -std=c++17 -I$(EMP_DIR)/ -I$(SGP_DIR)/ -Iinclude/ -Ithird-party/
+# -DDIRDEVO_THREADING -pthread
 # Native compiler information
 CXX ?= g++
 CFLAGS_nat := -O3 -DNDEBUG -msse4.2 $(CFLAGS_all)
