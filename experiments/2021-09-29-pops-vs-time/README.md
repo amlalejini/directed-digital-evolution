@@ -27,4 +27,8 @@ Using threaded version of the software to run this. As such, these experiments w
     - 500e: 4hours
     - 150e: 4hours
   - 96
--
+
+
+## Noticing from results
+
+- Average generations: no selection generally higher, because evolution focused entirely on optimizing individual replication rates? No group selection.

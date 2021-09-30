@@ -244,7 +244,8 @@ ggplot(
     labeller = label_both
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
   )
 
 ggsave(
@@ -302,7 +303,8 @@ ggplot(
     labeller = label_both
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
   )
 
 ggsave(
