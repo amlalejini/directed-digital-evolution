@@ -163,7 +163,9 @@ ggplot(
   )
 
 ggsave(
-  paste0(plot_directory, "avg_gens.pdf", width=10,height=15)
+  paste0(plot_directory, "avg_gens.pdf"),
+  width=10,
+  height=15
 )
 ```
 
