@@ -17,6 +17,14 @@ Using threaded version of the software to run this. As such, these experiments w
 
 - mem=8gb
 - cores=24 cores
-- time=
-  - 24: ?, 48: ?, 96: ?
+- time request
+  - 24:
+    - 1500e,100u: 4hours
+    - 500e,300u: 4hours
+    - 150,1000u: 4hours
+  - 48:
+    - 1500e: 4hours
+    - 500e: 4hours
+    - 150e: 4hours
+  - 96
 -
