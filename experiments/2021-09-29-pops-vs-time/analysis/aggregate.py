@@ -13,7 +13,7 @@ SUMMARY FILES
 import argparse, os, sys, errno, csv, json
 from scipy.stats import entropy
 
-run_identifier = "RUN_" # String that identifies a run directory
+run_identifiers = ["RUN_"] # String that identifies a run directory
 default_trait_cov_thresh = 100
 
 trait_order = ["echo","nand","not","or_not","and","or","and_not","nor","xor","equ"]
@@ -76,7 +76,7 @@ def main():
     os.makedirs(name=dump_dir, exist_ok=True)
 
     # Aggregate run directories
-    run_dirs = [run_dir for run_dir in os.listdir(data_dir) if run_identifier in run_dir]
+    run_dirs = [run_dir for run_dir in os.listdir(data_dir) if any([rid in run_dir for rid in run_identifiers])]
     print(f"Found {len(run_dirs)} run directories.")
 
     # TODO - create time series file(s)
