@@ -35,6 +35,7 @@ EMP_BUILD_CONFIG(DirectedDevoConfig,
   VALUE(SELECTION_METHOD, std::string, "elite", "Which algorithm should be used to select populations to propagate? Options: elite, tournament"),
   VALUE(ELITE_SEL_NUM_ELITES, size_t, 1, "(elite selection) The top ELITE_SEL_NUM_ELITES populations are propagated"),
   VALUE(TOURNAMENT_SEL_TOURN_SIZE, size_t, 4, "(tournament selection) How large are tournaments?"),
+  VALUE(POPULATION_SAMPLING_METHOD, std::string, "random", "What method to use when sampling genomes to form propagules? Options: random, full"),
   VALUE(POPULATION_SAMPLING_SIZE, size_t, 1, "How many genomes to sample from each population when forming propagules (after population selection)?"),
 
   GROUP(BITSET_GENOME_SETTINGS, "Settings specific to bitset genomes"),

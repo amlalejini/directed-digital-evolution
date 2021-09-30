@@ -76,6 +76,11 @@ public:
     "none"
   };
 
+  const std::unordered_set<std::string> valid_population_sampling_methods={
+    "random",
+    "full"
+  };
+
   /// Propagules are vectors of TransferGenomes. A TransferGenome wraps information about the genomes sampled to form propagules.
   /// Necessary for stitching together phylogeny tracking across transfers.
   struct TransferOrg {
@@ -104,6 +109,7 @@ protected:
   emp::vector<std::function<double(void)>> aggregate_score_funs;          ///< One function for each world.
   emp::vector< emp::vector<std::function<double(void)>> > score_fun_sets; ///< One set of functions for each world. Where each function corresponds to a single objective.
 
+  std::function<void(world_t&,propagule_t&)> propagule_sample_fun;
   emp::vector<propagule_t> propagules;
   std::unordered_set<size_t> extinct_worlds;        ///< Set of worlds that are extinct.
   std::unordered_set<size_t> live_worlds;           ///< Set of worlds that are not extinct.
@@ -136,6 +142,8 @@ protected:
   void SetupRandomSelection();
   void SetupNoSelection();
 
+  void SetupPropaguleSampleMethod();
+
   /// Configure data collection
   void SetupDataCollection();
 
@@ -143,6 +151,7 @@ protected:
   // - e.g., each propagules comes from a single world? each propagule is a mixture of all worlds?
   //        'propagule' crossover?
   void Sample(world_t& world, propagule_t& sample_into); // NOTE - should this live in the experiment or the world class?
+
   void SeedWithPropagule(world_t& world, propagule_t& propagule);
 
   /// Output the experiment's configuration as a .csv file.
@@ -300,6 +309,9 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Setup() {
   // Setup selection
   SetupSelection();
 
+  // Setup propagule sampling method
+  SetupPropaguleSampleMethod();
+
   // Setup data collection
   SetupDataCollection();
 
@@ -355,6 +367,42 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupSelecti
   } else {
     // code should never reach this else (unless I forget to add a selection scheme here that is in the valid selection method set)
     emp_assert(false, "Unimplemented selection scheme.", config.SELECTION_METHOD());
+  }
+}
+
+template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
+void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupPropaguleSampleMethod() {
+  if (config.POPULATION_SAMPLING_METHOD() == "random") {
+    // Sample randomly
+    propagule_sample_fun = [this](world_t& world, propagule_t& sample_into) {
+      sample_into.clear();
+      // extinct worlds shouldn't get selected (unless everything went extinct or we're doing random selection...)
+      for (size_t i = 0; i < config.POPULATION_SAMPLING_SIZE(); ++i) {
+        const size_t sampled_pos = world.GetRandomOrgID();
+        const size_t world_pos_offset = world.GetSharedSystematics().offset; // 0 if not tracking systematics
+        emp_assert(world.IsOccupied({sampled_pos}));
+        sample_into.emplace_back();
+        sample_into.back().org = emp::NewPtr<org_t>(world.GetOrg(sampled_pos).GetGenome());
+        sample_into.back().original_pos = world_pos_offset + sampled_pos;
+      }
+    };
+
+  } else if (config.POPULATION_SAMPLING_METHOD() == "full") {
+    // Sample everything
+    propagule_sample_fun = [this](world_t& world, propagule_t& sample_into) {
+      sample_into.clear();
+      for (size_t org_id = 0; org_id < world.GetSize(); ++org_id) {
+        if (!world.IsOccupied({org_id})) continue;
+        const size_t sampled_pos = org_id;
+        const size_t world_pos_offset = world.GetSharedSystematics().offset; // 0 if not tracking systematics
+        sample_into.emplace_back();
+        sample_into.back().org = emp::NewPtr<org_t>(world.GetOrg(sampled_pos).GetGenome());
+        sample_into.back().original_pos = world_pos_offset + sampled_pos;
+      }
+    };
+  } else {
+    // code should never reach this else (unless I forget to add a selection scheme here that is in the valid selection method set)
+    emp_assert(false, "Unimplemented propagule sampling method.", config.POPULATION_SAMPLING_METHOD());
   }
 }
 
@@ -584,19 +632,7 @@ template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typenam
 // emp::vector<typename DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::TransferOrg>
 void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Sample(world_t& world, propagule_t& sample_into) {
   emp_assert(!world.IsExtinct(), "Attempting to sample from an extinct population.");
-  // sample randomly (for now)
-  // propagule_t sample;
-  sample_into.clear();
-  // extinct worlds shouldn't get selected (unless everything went extinct or we're doing random selection...)
-  for (size_t i = 0; i < config.POPULATION_SAMPLING_SIZE(); ++i) {
-    const size_t sampled_pos = world.GetRandomOrgID();
-    const size_t world_pos_offset = world.GetSharedSystematics().offset; // 0 if not tracking systematics
-    emp_assert(world.IsOccupied({sampled_pos}));
-    sample_into.emplace_back();
-    sample_into.back().org = emp::NewPtr<org_t>(world.GetOrg(sampled_pos).GetGenome());
-    sample_into.back().original_pos = world_pos_offset + sampled_pos;
-  }
-  // return sample;
+  propagule_sample_fun(world, sample_into);
 }
 
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
@@ -818,7 +854,6 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::Run() {
         selected_pop_id = (selected_pop_id + 1) % worlds.size();
       }
       // Sample from the selected world to form the propagule.
-      // TODO - will need to tweak this code if we complicate propagule formation
       Sample(*worlds[selected_pop_id], propagules[i]);
     }
 
