@@ -192,7 +192,6 @@ public:
 
   /// OnWorldSetup called at end of constructor/world setup
   void OnWorldSetup() override {
-    // TODO - configure task based on world's configuration
     // Configure individual and world logic tasks.
     SetupTasks();
     // Configure merit calculation
@@ -203,7 +202,6 @@ public:
     fresh_eval=false;
     // Configure the instruction library
     SetupInstLib();
-    exit(1);
   }
 
   /// OnBeforeWorldUpdate is called at the beginning of running the world update
@@ -216,42 +214,49 @@ public:
   void OnWorldUpdate(size_t update) override { /*todo*/ }
 
   void OnWorldReset() override {
-    // Reset world task performance counts
-    // TODO - Fix
-    // std::fill(
-    //   l9_world_task_performance.begin(),
-    //   l9_world_task_performance.end(),
-    //   0
-    // );
 
+    // Reset task performance counts
+    std::fill(
+      task_performance.begin(),
+      task_performance.end(),
+      0
+    );
+    // Reset world scores
     std::fill(
       world_scores.begin(),
       world_scores.end(),
       0.0
     );
-
+    // Reset world aggregate score
     world_agg_score=0;
   }
 
   /// Evaluate the world on this task.
   void Evaluate() override {
-    // TODO - fix
 
     #ifndef EMP_NDEBUG
+    // Verbose print statements in debug mode.
     std::cout << world.GetName() << " tasks:";
-    // for (size_t i =0; i < org_task_set.GetSize(); ++i) {
-    //   std::cout << " " << org_task_set.GetName(i) << ":" << l9_world_task_performance[i];
-    // }
-    std::cout << std::endl;
+    for (size_t pathway_id = 0; pathway_id < task_pathways.size(); ++pathway_id) {
+      auto& pathway = task_pathways[pathway_id];
+      std::cout << "Pathway " << pathway_id << ":";
+      for (size_t i = 0; i < pathway.task_set.GetSize(); ++i) {
+        const size_t global_id = pathway.global_task_id_lookup[i];
+        std::cout << " " << pathway.task_set.GetName(i) << ":" << task_performance[global_id];
+      }
+      std::cout << std::endl;
+    }
     #endif
 
-    // emp_assert(world_scores.size() == l9_world_task_ids.size());
-    // emp_assert(l9_world_task_performance.size() == l9_world_task_values.size());
-    // for (size_t i = 0; i < l9_world_task_ids.size(); ++i) {
-    //   const size_t task_id = l9_world_task_ids[i];
-    //   world_scores[i] = l9_world_task_performance[task_id] * l9_world_task_values[task_id];
-    // }
-    // world_agg_score = emp::Sum(world_scores);
+    emp_assert(world_scores.size() == world_task_ids.size());
+    emp_assert(world_scores.size() <= task_info.size());
+
+    for (size_t i = 0; i < world_task_ids.size(); ++i) {
+      const size_t global_task_id = world_task_ids[i];
+      const auto& info = task_info[global_task_id];
+      world_scores[i] = task_performance[global_task_id] * info.world_value;
+    }
+    world_agg_score = emp::Sum(world_scores);
 
     fresh_eval=true; // mark task evaluation
   }
@@ -259,9 +264,9 @@ public:
   // --- ORGANISM-LEVEL EVENT HOOKS ---
   // These are always called AFTER the organism's equivalent functions.
   void OnOrgInjectReady(org_t& org) override {
-    // TODO - fix
-    // anything that happens OnOffspringReady might also need to happen here (injected organisms are never offspring)
-    // org.GetPhenotype().Reset(org_task_set.GetSize());
+    // Anything that happens OnOffspringReady might also need to happen here (injected organisms are never offspring)
+    emp_assert(total_tasks == task_info.size());
+    org.GetPhenotype().Reset(total_tasks);
     org.SetMerit(1.0); // Injected organisms have merit set to 1
   }
 
@@ -270,36 +275,42 @@ public:
 
   /// Called when the offspring has been constructed but has not been placed yet.
   void OnOffspringReady(org_t& offspring, org_t& parent) override {
-    // TODO - fix
-    // // Calculate merit based on parent's phenotype.
-    // const double merit = calc_merit_fun(parent);
-    // emp_assert(merit > 0, merit, parent.GetMerit());
+    // Calculate merit based on parent's phenotype.
+    const double merit = calc_merit_fun(parent);
+    emp_assert(merit > 0, merit, parent.GetMerit());
 
-    // // Reset parent and offspring phenotypes
-    // offspring.GetPhenotype().Reset(org_task_set.GetSize());
-    // parent.GetPhenotype().Reset(org_task_set.GetSize());
+    // Reset parent and offspring phenotypes
+    offspring.GetPhenotype().Reset(total_tasks);
+    parent.GetPhenotype().Reset(total_tasks);
 
-    // // Set offspring and parent's merit to be a function of the parent's phenotype
-    // offspring.SetMerit(merit);
-    // parent.SetMerit(merit);
+    // Set offspring and parent's merit to be a function of the parent's phenotype
+    offspring.SetMerit(merit);
+    parent.SetMerit(merit);
 
-    // // Parent gets reset, but doesn't get re-placed. Need to give it a new environment and reset its input buffer.
-    // // TODO - move this into a function
-    // const size_t parent_env_id = world.GetRandom().GetUInt(env_bank.GetSize());
-    // parent.GetHardware().SetEnvID(parent_env_id);
-    // parent.GetHardware().GetInputBuffer() = env_bank.GetEnvironment(parent_env_id).input_buffer;
+    // Parent gets reset, but doesn't get placed again (no OnPlacement sig). Need to give it a new environment and reset its input buffer.
+    for (size_t pathway_id = 0; pathway_id < task_pathways.size(); ++pathway_id) {
+      auto& pathway = task_pathways[pathway_id];
+      const size_t parent_env_id = world.GetRandom().GetUInt(pathway.env_bank->GetSize());
+      parent.GetHardware().SetEnvID(pathway_id, parent_env_id);
+      parent.GetHardware().GetInputBuffer(pathway_id) = pathway.env_bank->GetEnvironment(parent_env_id).input_buffer;
+    }
 
   }
 
   /// Called when org is being placed (@ position) in the world
   void OnOrgPlacement(org_t& org, size_t position) override {
-    // TODO - fix
-    // // Assign organism an environment ID
-    // const size_t env_id = world.GetRandom().GetUInt(env_bank.GetSize());
-    // org.GetHardware().SetEnvID(env_id);
-    // // Configure organism's intput buffer
-    // org.GetHardware().GetInputBuffer() = env_bank.GetEnvironment(env_id).input_buffer;
-    // emp_assert(org.GetHardware().GetInputBuffer() == env_bank.GetEnvironment(env_id).input_buffer);
+    const size_t num_pathways = task_pathways.size();
+    org.SetNumPathways(num_pathways); // Configure organism's number of metabolic pathways
+    // Assign organism an environment ID for each pathway
+    for (size_t pathway_id = 0; pathway_id < num_pathways; ++pathway_id) {
+      auto& pathway = task_pathways[pathway_id];
+      auto& env_bank = *(pathway.env_bank);
+      const size_t env_id = world.GetRandom().GetUInt(env_bank.GetSize());
+      org.GetHardware().SetEnvID(pathway_id, env_id);
+      // Configure organism's input buffer
+      org.GetHardware().GetInputBuffer(pathway_id) = env_bank.GetEnvironment(env_id).input_buffer;
+      emp_assert(org.GetHardware().GetInputBuffer(pathway_id) == env_bank.GetEnvironment(env_id).input_buffer);
+    }
   }
 
   /// Called just before the organism's process step function is called.
@@ -307,26 +318,29 @@ public:
 
   /// Called just after the organism's process step function is called.
   void AfterOrgProcessStep(org_t& org) override {
-    // Analyze organism output buffer
-    // TODO - fix
-    // auto& output_buffer = org.GetHardware().GetOutputBuffer();
-    // for (auto value : output_buffer) {
-    //   // Is this value the correct output to any of the tasks?
-    //   const auto& env = env_bank.GetEnvironment(org.GetHardware().GetEnvID());
-    //   if (emp::Has(env.valid_outputs, value)) {
-    //     emp_assert(env.task_lookup.find(value)->second.size() == 1, "Environment should guarantee unique output for each logic operation");
-    //     const size_t task_id = env.task_lookup.find(value)->second[0];
-    //     org.GetPhenotype().org_task_performances[task_id] += 1; // hypothesis => injected organism's phenotype hasn't been reset to right size
-    //     // TODO - allow configuration of when tasks count toward world performance
-    //     // for now, just let each time the task is performed count for the world
-    //     l9_world_task_performance[task_id] += 1;
-    //   }
-    // }
-    // output_buffer.clear(); // Clear the output buffer after processing
-
-    // // Is organism still alive?
-    // const size_t age_limit = org.GetGenome().GetSize()*world.config.AVIDAGP_ORG_AGE_LIMIT();
-    // org.SetDead(org.GetAge() >= age_limit);
+    // Analyze organism output buffer for each metabolic pathway
+    const size_t num_pathways = task_pathways.size();
+    for (size_t pathway_id = 0; pathway_id < num_pathways; ++pathway_id) {
+      auto& output_buffer = org.GetHardware().GetOutputBuffer(pathway_id);
+      auto& pathway = task_pathways[pathway_id];
+      for (auto value : output_buffer) {
+        // Is this value the correct output to any of the tasks?
+        const auto& env = pathway.env_bank->GetEnvironment(org.GetHardware().GetEnvID(pathway_id));
+        if (emp::Has(env.valid_outputs, value)) {
+          emp_assert(env.task_lookup.find(value)->second.size() == 1, "Environment should guarantee unique output for each operation");
+          const size_t local_task_id = env.task_lookup.find(value)->second[0];
+          const size_t global_task_id = pathway.global_task_id_lookup[local_task_id];
+          // TODO - this is where we would implement/check for task requirements
+          org.GetPhenotype().org_task_performances[global_task_id] += 1;
+          // for now, just let each time the task is performed count for the world
+          task_performance[global_task_id] += 1;
+        }
+      }
+      output_buffer.clear();  // Clear the output buffer after processing
+    }
+    // Is organism still alive?
+    const size_t age_limit = org.GetGenome().GetSize()*world.config.AVIDAGP_ORG_AGE_LIMIT();
+    org.SetDead(org.GetAge() >= age_limit);
   }
 
   /// Called before organism is removed from the world.
@@ -475,7 +489,6 @@ void AvidaGPMultiPathwayTask::SetupTasks() {
 
   // How many pathways are there?
   const size_t num_pathways = env_json["pathways"];
-  std::cout << num_pathways << std::endl;
 
   // Create metabolic pathways
   task_pathways.resize(num_pathways);
@@ -581,11 +594,13 @@ void AvidaGPMultiPathwayTask::SetupTasks() {
       }
       pathway.global_task_id_lookup[local_task_id] = global_task_id;
     }
+    pathway.env_bank->GenerateBank(this_t::ENV_BANK_SIZE);
     total_tasks += num_tasks;
   }
 
   task_performance.resize(total_tasks, 0);
   emp_assert(task_info.size() == task_performance.size());
+
 
   #ifndef EMP_NDEBUG
   // tasks per pathway

@@ -80,6 +80,7 @@ protected:
 
   size_t age = 0;
   size_t generation = 0;
+  size_t num_pathways = 1;
 
   using base_t::dead;
   using base_t::repro_ready;
@@ -104,6 +105,11 @@ public:
   size_t GetAge() const { return age; }
   void IncGeneration(size_t inc=1) { generation += inc; }
   size_t GetGeneration() const { return generation; }
+
+  void SetNumPathways(size_t n_pathways) {
+    num_pathways=n_pathways;
+    hardware.SetNumPathways(n_pathways);
+  }
 
   void OnInjectReady() override {
     hardware.ResetReplicatorHardware();
