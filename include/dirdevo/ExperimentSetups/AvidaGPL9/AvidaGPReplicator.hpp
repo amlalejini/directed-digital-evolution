@@ -24,6 +24,8 @@ public:
 
   using input_t = uint32_t;
   using output_t = uint32_t;
+  using input_buffer_t = emp::vector<input_t>;
+  using output_buffer_t = emp::vector<output_t>;
 
 protected:
 
@@ -33,15 +35,37 @@ protected:
   bool dividing=false;           /// Did virtual hardware trigger division (self-replication)?
   size_t failed_self_divisions=0;     /// Number of failed division attempts
 
-  emp::vector<input_t> input_buffer;
-  emp::vector<output_t> output_buffer;
-  size_t input_pointer=0;
+  emp::vector<size_t> input_pointers;
+  emp::vector< input_buffer_t > input_buffers;
+  emp::vector< output_buffer_t > output_buffers;
+
+  // emp::vector<input_t> input_buffer;
+  // emp::vector<output_t> output_buffer;
+  // size_t input_pointer=0;
+
 
 public:
 
-  AvidaGPReplicator(const genome_t & in_genome) : AvidaCPU_Base(in_genome) { ; }
-  AvidaGPReplicator(emp::Ptr<const inst_lib_t> inst_lib) : AvidaCPU_Base(genome_t(inst_lib)) { ; }
-  AvidaGPReplicator(const inst_lib_t & inst_lib) : AvidaCPU_Base(genome_t(&inst_lib)) { ; }
+  AvidaGPReplicator(const genome_t & in_genome) :
+    AvidaCPU_Base(in_genome),
+    input_pointers(1,0),
+    input_buffers(1),
+    output_buffers(1)
+  { ; }
+
+  AvidaGPReplicator(emp::Ptr<const inst_lib_t> inst_lib) :
+    AvidaCPU_Base(genome_t(inst_lib)),
+    input_pointers(1,0),
+    input_buffers(1),
+    output_buffers(1)
+  { ; }
+
+  AvidaGPReplicator(const inst_lib_t & inst_lib) :
+    AvidaCPU_Base(genome_t(&inst_lib)),
+    input_pointers(1,0),
+    input_buffers(1),
+    output_buffers(1)
+  { ; }
 
   AvidaGPReplicator() = default;
   AvidaGPReplicator(const AvidaGPReplicator &) = default;
@@ -49,14 +73,34 @@ public:
 
   virtual ~AvidaGPReplicator() { ; }
 
+  void ResetReplicatorHardware(size_t num_buffers) {
+    SetNumBuffers(num_buffers);
+    ResetReplicatorHardware();
+  }
+
   void ResetReplicatorHardware() {
     sites_copied=0;
     dividing=false;
     failed_self_divisions=0;
-    input_buffer.clear();
-    output_buffer.clear();
-    input_pointer=0;
+    for (auto& buffer : input_buffers) {
+      buffer.clear();
+    }
+    for (auto& buffer : output_buffers) {
+      buffer.clear();
+    }
+    std::fill(
+      input_pointers.begin(),
+      input_pointers.end(),
+      0
+    );
     ResetHardware();
+  }
+
+  void SetNumBuffers(size_t num_buffers) {
+    emp_assert(num_buffers > 0, "Cannot set buffer count to 0.", num_buffers);
+    input_buffers.resize(num_buffers);
+    input_pointers.resize(num_buffers, 0);
+    output_buffers.resize(num_buffers);
   }
 
   size_t GetEnvID() const { return env_id; }
@@ -65,14 +109,24 @@ public:
   size_t GetWorldID() const { return world_id; }
   void SetWorldID(size_t id) { world_id = id; }
 
-  emp::vector<input_t>& GetInputBuffer() { return input_buffer; }
-  emp::vector<output_t>& GetOutputBuffer() { return output_buffer; }
-  size_t GetInputPointer() const { return input_pointer; }
+  emp::vector<input_t>& GetInputBuffer(size_t buffer_id=0) {
+    emp_assert(buffer_id < input_buffers.size());
+    return input_buffers[buffer_id];
+  }
+  emp::vector<output_t>& GetOutputBuffer(size_t buffer_id=0) {
+    emp_assert(buffer_id < output_buffers.size());
+    return output_buffers[buffer_id];
+  }
+  size_t GetInputPointer(size_t buffer_id=0) const {
+    emp_assert(buffer_id < input_pointers.size());
+    return input_pointers[buffer_id];
+  }
 
-  size_t AdvanceInputPointer() {
-    emp_assert(input_buffer.size());
-    const size_t ret_val=input_pointer;
-    input_pointer = (input_pointer+1) % input_buffer.size();
+  size_t AdvanceInputPointer(size_t buffer_id=0) {
+    emp_assert(buffer_id < input_buffers.size());
+    emp_assert(buffer_id < input_pointers.size());
+    const size_t ret_val=input_pointers[buffer_id];
+    input_pointers[buffer_id] = (ret_val+1) % input_buffers[buffer_id].size();
     return ret_val;
   }
 

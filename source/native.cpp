@@ -23,6 +23,9 @@
 #include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPL9Task.hpp"
 #include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPMutator.hpp"
 
+// AvidaGP Multipathway
+#include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPMultiPathwayTask.hpp"
+
 // This is the main function for the NATIVE version of directed-digital-evolution.
 
 dirdevo::DirectedDevoConfig cfg;
@@ -49,13 +52,22 @@ int main(int argc, char* argv[])
   ///////////////////////////////////////////////////////
   // AvidaGP-L9
   ///////////////////////////////////////////////////////
+  // using org_t = dirdevo::AvidaGPOrganism;
+  // using task_t = dirdevo::AvidaGPL9Task;
+  // using mutator_t = dirdevo::AvidaGPMutator;
+  // using world_t = dirdevo::DirectedDevoWorld<org_t,task_t>;
+  // using experiment_t = dirdevo::DirectedDevoExperiment<world_t, org_t, mutator_t, task_t>;
+  ///////////////////////////////////////////////////////
+
+  ///////////////////////////////////////////////////////
+  // AvidaGP Multipathway
+  ///////////////////////////////////////////////////////
   using org_t = dirdevo::AvidaGPOrganism;
-  using task_t = dirdevo::AvidaGPL9Task;
+  using task_t = dirdevo::AvidaGPMultiPathwayTask;
   using mutator_t = dirdevo::AvidaGPMutator;
   using world_t = dirdevo::DirectedDevoWorld<org_t,task_t>;
   using experiment_t = dirdevo::DirectedDevoExperiment<world_t, org_t, mutator_t, task_t>;
   ///////////////////////////////////////////////////////
-
 
   // Set up a configuration panel for native application
   setup_config_native(cfg, argc, argv);
@@ -63,17 +75,6 @@ int main(int argc, char* argv[])
 
   experiment_t experiment(cfg);
   experiment.Run();
-  // for (size_t i = 0; i < 100; ++i) {
-  //   std::cout << "======= experiment step " << i << "=======" << std::endl;
-  //   experiment.RunStep();
-  // }
-
-
-  // dirdevo::ProbabilisticScheduler scheduler(rnd, 10, 30);
-  // scheduler.AdjustWeight(2, 10);
-  // scheduler.AdjustWeight(3, 5);
-  // std::cout << scheduler.UpdateSchedule() << std::endl;
-  // std::cout << scheduler.UpdateSchedule() << std::endl;
 
   return 0;
 }
