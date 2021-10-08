@@ -17,8 +17,8 @@
 
 #include "AvidaGPOrganism.hpp"
 #include "AvidaGPReplicator.hpp"
-#include "L9TaskSet.hpp"
-#include "L9EnvironmentBank.hpp"
+#include "BooleanLogicTaskSet.hpp"
+#include "BooleanLogicEnvironmentBank.hpp"
 
 namespace dirdevo {
 
@@ -35,7 +35,7 @@ public:
 
   using hardware_t = AvidaGPReplicator;
   using inst_lib_t = typename hardware_t::inst_lib_t;
-  using org_task_set_t = L9TaskSet;
+  using org_task_set_t = BooleanLogicTaskSet;
 
   static constexpr size_t ENV_BANK_SIZE = 10000;
 
@@ -105,7 +105,7 @@ protected:
 
   // Environment/logic task information
   org_task_set_t org_task_set;
-  L9EnvironmentBank env_bank;
+  BooleanLogicEnvironmentBank env_bank;
 
   emp::vector<double> l9_indiv_task_values;    ///< Configured value of each logic function (for individuals).
   emp::vector<double> l9_world_task_values;    ///< Configured value of each logic function (for a world)
@@ -486,7 +486,7 @@ void AvidaGPL9Task::SetupTaskValues() {
   org_task_set.AddTasksByName(loaded_env_task_order);
   emp_assert(org_task_set.GetSize() == loaded_env_task_set.size());
   // Generate the environment bank
-  env_bank.GenerateBank(this_t::ENV_BANK_SIZE);
+  env_bank.GenerateBank(this_t::ENV_BANK_SIZE, world.GetConfig().AVIDAGP_UNIQUE_ENV_OUTPUT());
   // Setup task performance tracking vector
   l9_world_task_performance.resize(org_task_set.GetSize());
   std::fill(

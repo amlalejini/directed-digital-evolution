@@ -12,17 +12,15 @@
 
 namespace dirdevo {
 
-class L9TaskSet : public TaskSet<uint32_t, uint32_t> {
+class BooleanLogicTaskSet : public TaskSet<uint32_t, uint32_t> {
 public:
-  using this_t = L9TaskSet;
+  using this_t = BooleanLogicTaskSet;
   using input_t = uint32_t;
   using output_t = uint32_t;
 
 protected:
 
   struct AGP_TaskSpec {
-    using input_t = uint32_t;
-    using output_t = uint32_t;
     using calc_fun_t = std::function<output_t(const emp::vector<input_t>&)>;
     std::string name;
     calc_fun_t calc;
@@ -59,13 +57,13 @@ public:
 };
 
 /// Valid tasks for the avidagp task set
-const std::map<std::string,L9TaskSet::AGP_TaskSpec> L9TaskSet::valid_tasks={
+const std::map<std::string,BooleanLogicTaskSet::AGP_TaskSpec> BooleanLogicTaskSet::valid_tasks={
   //============================== BOOLEAN LOGIC TASKS ==============================
   {
     "ECHO",
     {
       "ECHO",
-       [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() == 1); return logic::ECHO(inputs[0]); },
+       [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() >= 1); return logic::ECHO(inputs[0]); },
        1,
        "ECHO function"
     }
@@ -75,7 +73,7 @@ const std::map<std::string,L9TaskSet::AGP_TaskSpec> L9TaskSet::valid_tasks={
     "NAND",
     {
       "NAND",
-      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() == 2); return logic::NAND(inputs[0], inputs[1]); },
+      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() >= 2); return logic::NAND(inputs[0], inputs[1]); },
       2,
       "NAND boolean logic function"
     }
@@ -85,7 +83,7 @@ const std::map<std::string,L9TaskSet::AGP_TaskSpec> L9TaskSet::valid_tasks={
     "NOT",
     {
       "NOT",
-      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() == 1); return logic::NOT(inputs[0]); },
+      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() >= 1); return logic::NOT(inputs[0]); },
       1,
       "NOT boolean logic function"
     }
@@ -95,7 +93,7 @@ const std::map<std::string,L9TaskSet::AGP_TaskSpec> L9TaskSet::valid_tasks={
     "OR_NOT",
     {
       "OR_NOT",
-      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() == 2); return logic::OR_NOT(inputs[0], inputs[1]); },
+      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() >= 2); return logic::OR_NOT(inputs[0], inputs[1]); },
       2,
       "OR_NOT boolean logic function"
     }
@@ -105,7 +103,7 @@ const std::map<std::string,L9TaskSet::AGP_TaskSpec> L9TaskSet::valid_tasks={
     "AND",
     {
       "AND",
-      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() == 2); return logic::AND(inputs[0], inputs[1]); },
+      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() >= 2); return logic::AND(inputs[0], inputs[1]); },
       2,
       "AND boolean logic function"
     }
@@ -115,7 +113,7 @@ const std::map<std::string,L9TaskSet::AGP_TaskSpec> L9TaskSet::valid_tasks={
     "OR",
     {
       "OR",
-      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() == 2); return logic::OR(inputs[0], inputs[1]); },
+      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() >= 2); return logic::OR(inputs[0], inputs[1]); },
       2,
       "OR boolean logic function"
     }
@@ -125,7 +123,7 @@ const std::map<std::string,L9TaskSet::AGP_TaskSpec> L9TaskSet::valid_tasks={
     "AND_NOT",
     {
       "AND_NOT",
-      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() == 2); return logic::AND_NOT(inputs[0], inputs[1]); },
+      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() >= 2); return logic::AND_NOT(inputs[0], inputs[1]); },
       2,
       "AND_NOT boolean logic function"
     }
@@ -135,7 +133,7 @@ const std::map<std::string,L9TaskSet::AGP_TaskSpec> L9TaskSet::valid_tasks={
     "NOR",
     {
       "NOR",
-      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() == 2); return logic::NOR(inputs[0], inputs[1]); },
+      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() >= 2); return logic::NOR(inputs[0], inputs[1]); },
       2,
       "NOR boolean logic function"
     }
@@ -145,7 +143,7 @@ const std::map<std::string,L9TaskSet::AGP_TaskSpec> L9TaskSet::valid_tasks={
     "XOR",
     {
       "XOR",
-      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() == 2); return logic::XOR(inputs[0], inputs[1]); },
+      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() >= 2); return logic::XOR(inputs[0], inputs[1]); },
       2,
       "XOR boolean logic function"
     }
@@ -155,13 +153,24 @@ const std::map<std::string,L9TaskSet::AGP_TaskSpec> L9TaskSet::valid_tasks={
     "EQU",
     {
       "EQU",
-      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() == 2); return logic::EQU(inputs[0], inputs[1]); },
+      [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() >= 2); return logic::EQU(inputs[0], inputs[1]); },
       2,
       "EQU boolean logic function"
     }
   }
 
-  //============================== ARITHMETIC TASKS ==============================
+  //============================== MATH TASKS ==============================
+
+  // {
+  //   "A+B",
+  //   {
+  //     "A+B",
+  //     [](const emp::vector<uint32_t>& inputs) { emp_assert(inputs.size() >= 2); return inputs[0] + inputs[1]; },
+  //     2,
+  //     "A+B"
+  //   }
+  // },
+
 
 };
 

@@ -17,8 +17,8 @@
 
 #include "AvidaGPOrganism.hpp"
 #include "AvidaGPReplicator.hpp"
-#include "L9TaskSet.hpp"
-#include "L9EnvironmentBank.hpp"
+#include "BooleanLogicTaskSet.hpp"
+#include "BooleanLogicEnvironmentBank.hpp"
 
 namespace dirdevo {
 
@@ -34,9 +34,9 @@ public:
 
   using hardware_t = AvidaGPReplicator;
   using inst_lib_t = typename hardware_t::inst_lib_t;
-  using org_task_set_t = L9TaskSet;
+  using org_task_set_t = BooleanLogicTaskSet;
 
-  using env_bank_t = L9EnvironmentBank;
+  using env_bank_t = BooleanLogicEnvironmentBank;
 
   static constexpr size_t ENV_BANK_SIZE = 10000;
 
@@ -648,7 +648,7 @@ void AvidaGPMultiPathwayTask::SetupTasks() {
       }
       pathway.global_task_id_lookup[local_task_id] = global_task_id;
     }
-    pathway.env_bank->GenerateBank(this_t::ENV_BANK_SIZE);
+    pathway.env_bank->GenerateBank(this_t::ENV_BANK_SIZE, world.GetConfig().AVIDAGP_UNIQUE_ENV_OUTPUT());
     total_tasks += num_tasks;
   }
 

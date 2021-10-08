@@ -4,29 +4,31 @@
 #include <unordered_map>
 #include <utility>
 
+#include "emp/base/assert_warning.hpp"
 #include "emp/base/vector.hpp"
 #include "emp/math/Random.hpp"
 #include "emp/datastructs/map_utils.hpp"
 #include "emp/datastructs/set_utils.hpp"
 #include "emp/base/Ptr.hpp"
 
-#include "L9TaskSet.hpp"
+#include "BooleanLogicTaskSet.hpp"
 
 /// Precompute l9 environments to be used during an experiment
 namespace dirdevo {
 
 /// Bank of L9 instances
 /// TODO - save and load functionality
-class L9EnvironmentBank {
+class BooleanLogicEnvironmentBank {
 public:
 
-  using this_t = L9EnvironmentBank;
-  using input_t = uint32_t;
-  using output_t = uint32_t;
-  using task_set_t = L9TaskSet;
+  using this_t = BooleanLogicEnvironmentBank;
+  using task_set_t = BooleanLogicTaskSet;
+  using input_t = typename task_set_t::input_t;
+  using output_t = typename task_set_t::output_t;
 
   static constexpr input_t MIN_LOGIC_TASK_INPUT=0;
-  static constexpr output_t MAX_LOGIC_TASK_INPUT=1000000000;
+  static constexpr input_t MAX_LOGIC_TASK_INPUT=100000000; // max uint32: 4294967295
+  static constexpr size_t MAX_ENV_BUILD_TRIES=10000;
 
   /// Numeric environment (specifies input buffer for an organism + all correct outputs)
   struct Environment {
@@ -77,11 +79,11 @@ protected:
     }
   }
 
-  Environment BuildEnvironment() {
+  Environment BuildEnvironment(bool unique_outputs) {
     Environment env;
     env.is_collision=true;
-    // size_t build_tries = 0;
-    while (env.is_collision) {
+    size_t build_tries = 0;
+    do {
       env.Clear();
       env.correct_outputs.resize(task_set.GetSize(), (uint32_t)-1);
       env.input_buffer = {
@@ -95,13 +97,15 @@ protected:
         );
         SetEnvOutput(env, task_id, task_output);
       }
-    }
+      ++build_tries;
+    } while (env.is_collision && unique_outputs && (build_tries < this_t::MAX_ENV_BUILD_TRIES));
+    emp_assert_warning(build_tries <= this_t::MAX_ENV_BUILD_TRIES, "Failed to build environment with unique outputs for each task.");
     return env;
   }
 
 public:
 
-  L9EnvironmentBank(
+  BooleanLogicEnvironmentBank(
     emp::Random& rnd,
     task_set_t& a_task_set
   ) :
@@ -109,19 +113,18 @@ public:
     task_set(a_task_set)
   { ; }
 
-  ~L9EnvironmentBank() {
+  ~BooleanLogicEnvironmentBank() {
     Clear();
   }
 
   /// Generate count number of task environment instances, adding each to the environment bank.
   /// Each environment is guaranteed to have unique outputs for teach possible task.
   /// WARNING - calling this function will delete any existing environments in this bank, invalidating references to them.
-  void GenerateBank(size_t count) {
+  void GenerateBank(size_t count, bool unique_outputs=true) {
     Clear();
-    // TODO - guarantee that every environment is unique?
     environment_bank.resize(count, nullptr);
     for (size_t n = 0; n < count; n++) {
-      environment_bank[n] = emp::NewPtr<Environment>(BuildEnvironment());
+      environment_bank[n] = emp::NewPtr<Environment>(BuildEnvironment(unique_outputs));
     }
   }
 
