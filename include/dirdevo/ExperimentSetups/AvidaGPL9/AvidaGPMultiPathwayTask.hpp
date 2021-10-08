@@ -185,7 +185,7 @@ public:
       if (i) stream << ",";
       stream << task_pathways[i].task_set.GetSize();
     }
-    stream << "\"]";
+    stream << "]\"";
     entries.emplace_back(
       "task_set_sizes",
       stream.str(),
@@ -198,7 +198,7 @@ public:
       if (i) stream << ",";
       stream << task_pathways[i].env_bank->GetSize();
     }
-    stream << "\"]";
+    stream << "]\"";
     entries.emplace_back(
       "env_bank_sizes",
       stream.str(),
