@@ -81,6 +81,8 @@ protected:
   size_t age = 0;
   size_t generation = 0;
   size_t num_pathways = 1;
+  size_t cpu_cycles_since_division=0;
+  size_t cpu_cycles_per_replication=0;
 
   using base_t::dead;
   using base_t::repro_ready;
@@ -106,6 +108,8 @@ public:
   void IncGeneration(size_t inc=1) { generation += inc; }
   size_t GetGeneration() const { return generation; }
 
+  size_t GetCPUCyclesPerReplication() const { return cpu_cycles_per_replication; }
+
   void SetNumPathways(size_t n_pathways) {
     num_pathways=n_pathways;
     hardware.SetNumPathways(n_pathways);
@@ -118,6 +122,7 @@ public:
     new_born=true;
     age=0;
     generation=0;
+    is_parent=false;
   }
 
   void OnBeforeRepro() override { }
@@ -126,6 +131,8 @@ public:
     // Reset this (the parent) organism's hardware + reproduction status
     hardware.ResetReplicatorHardware();
     repro_ready=false;
+    cpu_cycles_per_replication=cpu_cycles_since_division;
+    cpu_cycles_since_division=0;
   }
 
   void OnPlacement(size_t position) override {
@@ -139,7 +146,11 @@ public:
     dead=false;
     repro_ready=false;
     new_born=true;     // TODO - do something with new_born or cut it?
+    is_parent=false;
     age=0;
+    // when something is born, it is not a parent, so no cpu cycles since division
+    cpu_cycles_since_division=0;
+    cpu_cycles_per_replication=0;
     // when an organism divides, it and its offspring have an incremented generation
     parent.IncGeneration();
     generation=parent.GetGeneration();
@@ -156,6 +167,7 @@ public:
     repro_ready = hardware.IsDividing();
     // Age up
     age+=1;
+    cpu_cycles_since_division+=1;
   }
 
 };

@@ -251,6 +251,7 @@ public:
           shared_systematics_wrapper.SetNextParent(parent_pos);
         }
         auto& parent = this->GetOrg(parent_pos);
+        parent.SetIsParent(true);
         offspring.OnBirth(parent);                // Tell offspring about it's birthday!
         parent.OnOffspringReady(offspring);       // Tell parent that it's offspring is ready
         task.OnOffspringReady(offspring, parent); // Tell task that this offspring was born from this parent.

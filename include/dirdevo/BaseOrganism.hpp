@@ -19,6 +19,7 @@ protected:
   bool new_born=false;
   bool dead=false;
   bool repro_ready=false;
+  bool is_parent=false;
   size_t world_id=0;
 
 public:
@@ -30,12 +31,14 @@ public:
   bool GetDead() const { return dead; }
   size_t GetWorldID() const { return world_id; }
   bool GetReproReady() const { return repro_ready; }
+  bool IsParent() const { return is_parent; }
 
   void SetMerit(double m) { merit = m; }
   void SetNewBorn(bool n) { new_born = n; }
   void SetDead(bool d) { dead = d; }
   void SetWorldID(size_t id) { world_id = id; }
   void SetReproReady(bool r) { repro_ready = r; }
+  void SetIsParent(bool p) { is_parent = p; }
 
   /**
    * Derived organisms need to implement a ProcessStep function:

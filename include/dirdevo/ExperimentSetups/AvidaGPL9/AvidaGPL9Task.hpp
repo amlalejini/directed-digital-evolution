@@ -73,7 +73,24 @@ public:
       },
       "avg_generation"
     );
-
+    // Average replication time
+    summary_file.AddFun<double>(
+      [&summary_file]() {
+        double total_cpu_cycles=0;
+        size_t num_parents=0;
+        world_t& world = summary_file.GetCurWorld();
+        for (size_t pop_id = 0; pop_id < world.GetSize(); ++pop_id) {
+          if (!world.IsOccupied({pop_id,0})) continue;
+          auto& org = world.GetOrg(pop_id);
+          if (!org.IsParent()) continue;
+          num_parents += 1;
+          emp_assert(org.GetCPUCyclesPerReplication() > 0);
+          total_cpu_cycles += org.GetCPUCyclesPerReplication();
+        }
+        return (num_parents > 0) ? total_cpu_cycles / (double)num_parents : -1;
+      },
+      "avg_cpu_cycles_per_replication"
+    );
   }
 
 protected:

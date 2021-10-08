@@ -46,35 +46,60 @@ public:
   ) {
     // TODO - OVERHAUL
     // Output task performance profile
-    // summary_file.AddFun<std::string>(
-    //   [&summary_file]() {
-    //     const this_t& task = summary_file.GetCurWorld().GetTask();
-    //     std::ostringstream stream;
-    //     stream << "\"{";
-    //     for (size_t i = 0; i < task.org_task_set.GetSize(); ++i) {
-    //       if (i) stream << ",";
-    //       stream << task.org_task_set.GetName(i) << ":" << task.l9_world_task_performance[i];
-    //     }
-    //     stream << "}\"";
-    //     return stream.str();
-    //   },
-    //   "task_performance"
-    // );
-    // // Average generation
-    // summary_file.AddFun<double>(
-    //   [&summary_file]() {
-    //     double total_generation=0;
-    //     size_t num_orgs=0;
-    //     world_t& world = summary_file.GetCurWorld();
-    //     for (size_t pop_id = 0; pop_id < world.GetSize(); ++pop_id) {
-    //       if (!world.IsOccupied({pop_id,0})) continue;
-    //       num_orgs += 1;
-    //       total_generation += world.GetOrg(pop_id).GetGeneration();
-    //     }
-    //     return (num_orgs > 0) ? total_generation / (double)num_orgs : 0;
-    //   },
-    //   "avg_generation"
-    // );
+    summary_file.AddFun<std::string>(
+      [&summary_file]() {
+        const this_t& task = summary_file.GetCurWorld().GetTask();
+        std::ostringstream stream;
+        stream << "\"[";
+        for (size_t pathway_id = 0; pathway_id < task.task_pathways.size(); ++pathway_id) {
+          auto& pathway = task.task_pathways[pathway_id];
+          if (pathway_id) stream << ",";
+          stream << "{";
+          for (size_t i = 0; i < pathway.task_set.GetSize(); ++i) {
+            if (i) stream << ",";
+            const size_t global_task_id = pathway.global_task_id_lookup[i];
+            stream << pathway.task_set.GetName(i) << ":" << task.task_performance[global_task_id];
+          }
+          stream << "}";
+        }
+        stream << "]\"";
+        return stream.str();
+      },
+      "task_performance"
+    );
+    // Average generation
+    summary_file.AddFun<double>(
+      [&summary_file]() {
+        double total_generation=0;
+        size_t num_orgs=0;
+        world_t& world = summary_file.GetCurWorld();
+        for (size_t pop_id = 0; pop_id < world.GetSize(); ++pop_id) {
+          if (!world.IsOccupied({pop_id,0})) continue;
+          num_orgs += 1;
+          total_generation += world.GetOrg(pop_id).GetGeneration();
+        }
+        return (num_orgs > 0) ? total_generation / (double)num_orgs : 0;
+      },
+      "avg_generation"
+    );
+    // Average replication time
+    summary_file.AddFun<double>(
+      [&summary_file]() {
+        double total_cpu_cycles=0;
+        size_t num_parents=0;
+        world_t& world = summary_file.GetCurWorld();
+        for (size_t pop_id = 0; pop_id < world.GetSize(); ++pop_id) {
+          if (!world.IsOccupied({pop_id,0})) continue;
+          auto& org = world.GetOrg(pop_id);
+          if (!org.IsParent()) continue;
+          num_parents += 1;
+          emp_assert(org.GetCPUCyclesPerReplication() > 0);
+          total_cpu_cycles += org.GetCPUCyclesPerReplication();
+        }
+        return (num_parents > 0) ? total_cpu_cycles / (double)num_parents : -1;
+      },
+      "avg_cpu_cycles_per_replication"
+    );
   }
 
 protected:
@@ -89,12 +114,10 @@ protected:
 
   // Environment/logic task information
   struct MetabolicPathway {
-    size_t id=0; ///< Pathway id
-
-    emp::vector<size_t> global_task_id_lookup; ///< Lookup global-level task id given pathway-level task id
-
-    org_task_set_t task_set;                ///< Which tasks are part of this pathway?
-    emp::Ptr<env_bank_t> env_bank=nullptr;                 ///< lookup table of IO examples
+    size_t id=0;                                ///< Pathway id
+    emp::vector<size_t> global_task_id_lookup;  ///< Lookup global-level task id given pathway-level task id
+    org_task_set_t task_set;                    ///< Which tasks are part of this pathway?
+    emp::Ptr<env_bank_t> env_bank=nullptr;      ///< lookup table of IO examples
 
     ~MetabolicPathway() {
       if (env_bank) env_bank.Delete();
@@ -103,26 +126,26 @@ protected:
 
   /// Used to track information about tasks
   struct TaskInfo {
-    size_t pathway=0;     ///< Which pathway is this task a part of?
-    size_t local_id=0;    ///< What is that local within-pathway id of this task?
+    size_t pathway=0;      ///< Which pathway is this task a part of?
+    size_t local_id=0;     ///< What is that local within-pathway id of this task?
 
-    double org_value=0;   ///< What is the organism-level value of this task?
-    double world_value=0; ///< What is the world-level value of this task?
+    double org_value=0;    ///< What is the organism-level value of this task?
+    double world_value=0;  ///< What is the world-level value of this task?
 
     // TODO - here's where I can mark task by-products, dependencies, etc
   };
 
-  size_t total_tasks=0; ///< Number of tasks across all pathways
-  emp::vector<size_t> org_task_ids;
-  emp::vector<size_t> world_task_ids;
-  emp::vector<TaskInfo> task_info;
-  emp::vector<MetabolicPathway> task_pathways;
+  size_t total_tasks=0;                         ///< Number of tasks across all pathways
+  emp::vector<size_t> org_task_ids;             ///< Which tasks (by global task id) are used to calculate organism merit?
+  emp::vector<size_t> world_task_ids;           ///< Which tasks (by global task id) are used to evaluate world performance?
+  emp::vector<TaskInfo> task_info;              ///< Flattened all tasks across all pathways
+  emp::vector<MetabolicPathway> task_pathways;  ///<
   emp::vector<size_t> task_performance;
 
-  emp::vector<double> world_scores; ///< Set during evaluation. Score for each world objective (corresponds to l9_world_task_ids)
+  emp::vector<double> world_scores; ///< Set during evaluation. Score for each world-level objective
   double world_agg_score=0;         ///< Set during evaluation. World's aggregate score (sum of objective scores).
 
-  std::function<double(const org_t&)> calc_merit_fun;
+  std::function<double(const org_t&)> calc_merit_fun;  ///< Function that calculates an organism's merit.
 
   void SetupInstLib();
   void SetupTasks();
@@ -140,53 +163,85 @@ public:
   // --- WORLD-LEVEL EVENT HOOKS ---
 
   emp::vector<ConfigSnapshotEntry> GetConfigSnapshotEntries() override {
-     emp::vector<ConfigSnapshotEntry> entries;
-     const std::string source("world__" + world.GetName() + "__task");
-     // TODO - FIX!
-     //  entries.emplace_back(
-     //    "org_task_set_size",
-     //    emp::to_string(org_task_set.GetSize()),
-     //    source
-     //  );
-     // TODO - FIX
-     //  entries.emplace_back(
-     //    "env_bank_size",
-     //    emp::to_string(env_bank.GetSize()),
-     //    source
-     //  );
-     entries.emplace_back(
-       "inst_set_size",
-       emp::to_string(inst_lib.GetSize()),
-       source
-     );
-    // Individual tasks
-    // TODO - FIX
-    // std::ostringstream stream;
-    // stream << "\"[";
-    // for (size_t i = 0; i < l9_indiv_task_ids.size(); ++i) {
-    //   if (i) stream << ",";
-    //   stream << org_task_set.GetName(l9_indiv_task_ids[i]);
-    // }
-    // stream << "]\"";
-    // entries.emplace_back(
-    //   "indiv_tasks",
-    //   stream.str(),
-    //   source
-    // );
-
-    // // World-level tasks
-    // stream.str("");
-    // stream << "\"[";
-    // for (size_t i = 0; i < l9_world_task_ids.size(); ++i) {
-    //   if (i) stream << ",";
-    //   stream << org_task_set.GetName(l9_world_task_ids[i]);
-    // }
-    // stream << "]\"";
-    // entries.emplace_back(
-    //   "world_tasks",
-    //   stream.str(),
-    //   source
-    // );
+    emp::vector<ConfigSnapshotEntry> entries;
+    const std::string source("world__" + world.GetName() + "__task");
+    std::ostringstream stream;
+    // -- Num pathways --
+    entries.emplace_back(
+      "num_pathways",
+      emp::to_string(task_pathways.size()),
+      source
+    );
+    // -- Total tasks --
+    entries.emplace_back(
+      "total_tasks",
+      emp::to_string(total_tasks),
+      source
+    );
+    // -- Task set size by pathway --
+    stream.str("");
+    stream << "\"[";
+    for (size_t i = 0; i < task_pathways.size(); ++i) {
+      if (i) stream << ",";
+      stream << task_pathways[i].task_set.GetSize();
+    }
+    stream << "\"]";
+    entries.emplace_back(
+      "task_set_sizes",
+      stream.str(),
+      source
+    );
+    // -- Environment bank size by pathway --
+    stream.str("");
+    stream << "\"[";
+    for (size_t i = 0; i < task_pathways.size(); ++i) {
+      if (i) stream << ",";
+      stream << task_pathways[i].env_bank->GetSize();
+    }
+    stream << "\"]";
+    entries.emplace_back(
+      "env_bank_sizes",
+      stream.str(),
+      source
+    );
+    // -- Instruction set size --
+    entries.emplace_back(
+      "inst_set_size",
+      emp::to_string(inst_lib.GetSize()),
+      source
+    );
+    // -- Individual tasks --
+    stream.str("");
+    stream << "\"[";
+    for (size_t i = 0; i < org_task_ids.size(); ++i) {
+      if (i) stream << ",";
+      const size_t global_task_id = org_task_ids[i];
+      const auto& info = task_info[global_task_id];
+      const auto& pathway = task_pathways[info.pathway];
+      stream << "(" << pathway.task_set.GetName(info.local_id) << "," << info.pathway << ")";
+    }
+    stream << "]\"";
+    entries.emplace_back(
+      "indiv_tasks",
+      stream.str(),
+      source
+    );
+    // World-level tasks
+    stream.str("");
+    stream << "\"[";
+    for (size_t i = 0; i < world_task_ids.size(); ++i) {
+      if (i) stream << ",";
+      const size_t global_task_id = world_task_ids[i];
+      const auto& info = task_info[global_task_id];
+      const auto& pathway = task_pathways[info.pathway];
+      stream << "(" << pathway.task_set.GetName(info.local_id) << "," << info.pathway << ")";
+    }
+    stream << "]\"";
+    entries.emplace_back(
+      "world_tasks",
+      stream.str(),
+      source
+    );
     return entries;
   }
 
@@ -214,7 +269,6 @@ public:
   void OnWorldUpdate(size_t update) override { /*todo*/ }
 
   void OnWorldReset() override {
-
     // Reset task performance counts
     std::fill(
       task_performance.begin(),
