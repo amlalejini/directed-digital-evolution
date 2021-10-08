@@ -6,7 +6,8 @@ namespace dirdevo {
 
 namespace logic {
 
-
+//////////////////////////////////////////////
+// One and two-input
 uint32_t ECHO(uint32_t a) {
   return a;
 }
@@ -46,6 +47,9 @@ uint32_t XOR(uint32_t a, uint32_t b) {
 uint32_t EQU(uint32_t a, uint32_t b) {
   return ~(a^b);
 }
+
+//////////////////////////////////////////////
+// 3-input
 
 } // end logic namespace
 

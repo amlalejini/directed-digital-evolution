@@ -18,12 +18,9 @@
 // SGP-LITE
 // #include "directed-digital-evolution/Organism/SGPLiteOrganism.hpp"
 
-// AVIDAGP-L9
+// AVIDAGP
 #include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPOrganism.hpp"
-#include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPL9Task.hpp"
 #include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPMutator.hpp"
-
-// AvidaGP Multipathway
 #include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPMultiPathwayTask.hpp"
 
 // This is the main function for the NATIVE version of directed-digital-evolution.
@@ -45,16 +42,6 @@ int main(int argc, char* argv[])
   // using org_t = dirdevo::OneMaxOrganism<256>;
   // using task_t = dirdevo::OneMaxTask<org_t>;
   // using mutator_t = dirdevo::BitSetMutator;
-  // using world_t = dirdevo::DirectedDevoWorld<org_t,task_t>;
-  // using experiment_t = dirdevo::DirectedDevoExperiment<world_t, org_t, mutator_t, task_t>;
-  ///////////////////////////////////////////////////////
-
-  ///////////////////////////////////////////////////////
-  // AvidaGP-L9
-  ///////////////////////////////////////////////////////
-  // using org_t = dirdevo::AvidaGPOrganism;
-  // using task_t = dirdevo::AvidaGPL9Task;
-  // using mutator_t = dirdevo::AvidaGPMutator;
   // using world_t = dirdevo::DirectedDevoWorld<org_t,task_t>;
   // using experiment_t = dirdevo::DirectedDevoExperiment<world_t, org_t, mutator_t, task_t>;
   ///////////////////////////////////////////////////////

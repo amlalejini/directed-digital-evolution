@@ -22,8 +22,8 @@ public:
   using typename base_t::genome_t;
   using typename base_t::inst_lib_t;
 
-  using input_t = uint32_t;
-  using output_t = uint32_t;
+  using input_t = double;
+  using output_t = double;
   using input_buffer_t = emp::vector<input_t>;
   using output_buffer_t = emp::vector<output_t>;
 
@@ -39,12 +39,6 @@ protected:
   emp::vector<size_t> input_pointers;
   emp::vector< input_buffer_t > input_buffers;
   emp::vector< output_buffer_t > output_buffers;
-
-  // size_t env_id=0;               /// ID of the environment (from the environment bank) for this hardware
-  // emp::vector<input_t> input_buffer;
-  // emp::vector<output_t> output_buffer;
-  // size_t input_pointer=0;
-
 
 public:
 

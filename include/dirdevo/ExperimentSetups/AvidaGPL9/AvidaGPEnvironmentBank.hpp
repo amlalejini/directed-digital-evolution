@@ -11,18 +11,18 @@
 #include "emp/datastructs/set_utils.hpp"
 #include "emp/base/Ptr.hpp"
 
-#include "BooleanLogicTaskSet.hpp"
+#include "AvidaGPTaskSet.hpp"
 
 /// Precompute l9 environments to be used during an experiment
 namespace dirdevo {
 
 /// Bank of L9 instances
 /// TODO - save and load functionality
-class BooleanLogicEnvironmentBank {
+class AvidaGPEnvironmentBank {
 public:
 
-  using this_t = BooleanLogicEnvironmentBank;
-  using task_set_t = BooleanLogicTaskSet;
+  using this_t = AvidaGPEnvironmentBank;
+  using task_set_t = AvidaGPTaskSet;
   using input_t = typename task_set_t::input_t;
   using output_t = typename task_set_t::output_t;
 
@@ -87,8 +87,8 @@ protected:
       env.Clear();
       env.correct_outputs.resize(task_set.GetSize(), (uint32_t)-1);
       env.input_buffer = {
-        random.GetUInt(this_t::MIN_LOGIC_TASK_INPUT, this_t::MAX_LOGIC_TASK_INPUT),
-        random.GetUInt(this_t::MIN_LOGIC_TASK_INPUT, this_t::MAX_LOGIC_TASK_INPUT)
+        (input_t)random.GetUInt(this_t::MIN_LOGIC_TASK_INPUT, this_t::MAX_LOGIC_TASK_INPUT),
+        (input_t)random.GetUInt(this_t::MIN_LOGIC_TASK_INPUT, this_t::MAX_LOGIC_TASK_INPUT)
       };
       for (size_t task_id = 0; (task_id < task_set.GetSize()) && !env.is_collision; ++task_id) {
         const auto& task = task_set.GetTask(task_id);
@@ -105,7 +105,7 @@ protected:
 
 public:
 
-  BooleanLogicEnvironmentBank(
+  AvidaGPEnvironmentBank(
     emp::Random& rnd,
     task_set_t& a_task_set
   ) :
@@ -113,7 +113,7 @@ public:
     task_set(a_task_set)
   { ; }
 
-  ~BooleanLogicEnvironmentBank() {
+  ~AvidaGPEnvironmentBank() {
     Clear();
   }
 

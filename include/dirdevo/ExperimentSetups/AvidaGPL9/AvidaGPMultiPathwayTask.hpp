@@ -17,8 +17,8 @@
 
 #include "AvidaGPOrganism.hpp"
 #include "AvidaGPReplicator.hpp"
-#include "BooleanLogicTaskSet.hpp"
-#include "BooleanLogicEnvironmentBank.hpp"
+#include "AvidaGPTaskSet.hpp"
+#include "AvidaGPEnvironmentBank.hpp"
 
 namespace dirdevo {
 
@@ -34,9 +34,9 @@ public:
 
   using hardware_t = AvidaGPReplicator;
   using inst_lib_t = typename hardware_t::inst_lib_t;
-  using org_task_set_t = BooleanLogicTaskSet;
+  using org_task_set_t = AvidaGPTaskSet;
 
-  using env_bank_t = BooleanLogicEnvironmentBank;
+  using env_bank_t = AvidaGPEnvironmentBank;
 
   static constexpr size_t ENV_BANK_SIZE = 10000;
 
@@ -118,6 +118,8 @@ protected:
     emp::vector<size_t> global_task_id_lookup;  ///< Lookup global-level task id given pathway-level task id
     org_task_set_t task_set;                    ///< Which tasks are part of this pathway?
     emp::Ptr<env_bank_t> env_bank=nullptr;      ///< lookup table of IO examples
+
+    // todo - add a 'process' output buffer functor?
 
     ~MetabolicPathway() {
       if (env_bank) env_bank.Delete();
@@ -290,10 +292,10 @@ public:
 
     #ifndef EMP_NDEBUG
     // Verbose print statements in debug mode.
-    std::cout << world.GetName() << " tasks:";
+    std::cout << world.GetName() << " tasks:" << std::endl;
     for (size_t pathway_id = 0; pathway_id < task_pathways.size(); ++pathway_id) {
       auto& pathway = task_pathways[pathway_id];
-      std::cout << "Pathway " << pathway_id << ":";
+      std::cout << "  Pathway " << pathway_id << ":";
       for (size_t i = 0; i < pathway.task_set.GetSize(); ++i) {
         const size_t global_id = pathway.global_task_id_lookup[i];
         std::cout << " " << pathway.task_set.GetName(i) << ":" << task_performance[global_id];
@@ -346,7 +348,14 @@ public:
       auto& pathway = task_pathways[pathway_id];
       const size_t parent_env_id = world.GetRandom().GetUInt(pathway.env_bank->GetSize());
       parent.GetHardware().SetEnvID(pathway_id, parent_env_id);
+
+      // auto& parent_in_buffer = parent.GetHardware().GetInputBuffer(pathway_id);
+      // auto& env_in_buffer = pathway.env_bank->GetEnvironment(parent_env_id).input_buffer;
+      // parent_in_buffer.resize(env_in_buffer.size());
+      // for (size_t i = 0; i < parent_in_buffer.size(); ++i) parent_in_buffer[i] = env_in_buffer[i];
+
       parent.GetHardware().GetInputBuffer(pathway_id) = pathway.env_bank->GetEnvironment(parent_env_id).input_buffer;
+
     }
 
   }
@@ -362,8 +371,13 @@ public:
       const size_t env_id = world.GetRandom().GetUInt(env_bank.GetSize());
       org.GetHardware().SetEnvID(pathway_id, env_id);
       // Configure organism's input buffer
+      // auto& org_in_buffer = org.GetHardware().GetInputBuffer(pathway_id);
+      // auto& env_in_buffer = env_bank.GetEnvironment(env_id).input_buffer;
+      // org_in_buffer.resize(env_in_buffer.size());
+      // for (size_t i = 0; i < org_in_buffer.size(); ++i) org_in_buffer[i] = env_in_buffer[i];
+
       org.GetHardware().GetInputBuffer(pathway_id) = env_bank.GetEnvironment(env_id).input_buffer;
-      emp_assert(org.GetHardware().GetInputBuffer(pathway_id) == env_bank.GetEnvironment(env_id).input_buffer);
+      // emp_assert(org.GetHardware().GetInputBuffer(pathway_id) == env_bank.GetEnvironment(env_id).input_buffer);
     }
   }
 
