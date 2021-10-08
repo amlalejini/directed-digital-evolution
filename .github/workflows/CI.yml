@@ -37,10 +37,10 @@ jobs:
           submodules: 'recursive'
       # Adapted from https://askubuntu.com/a/524368
       - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
-      - uses: docker-practice/actions-setup-docker@v1
-      - run: docker build -t amlalejini/directed-digital-evolution .
-      - run: docker ps -a
-      - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN -e "CXX=${CXX}" -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make"
+      # - uses: docker-practice/actions-setup-docker@v1
+      # - run: docker build -t amlalejini/directed-digital-evolution .
+      # - run: docker ps -a
+      # - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN -e "CXX=${CXX}" -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make"
 
 
 #   clang-fulldebug:
