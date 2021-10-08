@@ -19,9 +19,9 @@
 // #include "directed-digital-evolution/Organism/SGPLiteOrganism.hpp"
 
 // AVIDAGP
-#include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPOrganism.hpp"
-#include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPMutator.hpp"
-#include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPMultiPathwayTask.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGP/AvidaGPOrganism.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGP/AvidaGPMutator.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGP/AvidaGPMultiPathwayTask.hpp"
 
 // This is the main function for the NATIVE version of directed-digital-evolution.
 
