@@ -10,6 +10,9 @@ source pyenv/bin/activate
 pip3 install -r requirements.txt
 ```
 
+R dependencies for analyses
+
+
 ## 2021-09-22 - Initial Parameter Exploration
 
 Fix total number of per-organism steps across conditions
