@@ -117,6 +117,7 @@ def main():
     for condition_dict in combo_list:
         cur_seed = seed_offset + (cur_job_id * num_replicates)
         filename_prefix = f'RUN_C{cond_i}_N{condition_dict["NUM_POPS"]}'
+        job_name = f"C{cond_i}"
         file_str = base_sub_script
         file_str = file_str.replace("<<JOB_NAME>>", job_name)
         file_str = file_str.replace("<<MEMORY_REQUEST>>", job_memory_request)
