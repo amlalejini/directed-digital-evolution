@@ -217,6 +217,10 @@ def main():
         gens = [float(line["avg_generation"]) for line in targ_epoch_run_world_summary_data]
         avg_gens = sum(gens) / len(gens)
         experiment_summary_info["avg_gens"] = avg_gens
+        # average cpu cycles / replication
+        cycles = [float(line["avg_cpu_cycles_per_replication"]) for line in targ_epoch_run_world_summary_data]
+        avg_cycles = sum(cycles) / len(cycles)
+        experiment_summary_info["avg_cpu_cycles_per_replication"] = avg_cycles
 
         # Clear out data list
         run_world_summary_data = None

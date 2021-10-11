@@ -66,10 +66,10 @@ combos.add_val(
 )
 
 combos.add_exception(
-    {"EPOCHS": ["1500"], "UPDATES_PER_EPOCH": ["300"]}
+    {"EPOCHS": ["3000"], "UPDATES_PER_EPOCH": ["300"]}
 )
 combos.add_exception(
-    {"EPOCHS": ["500"], "UPDATES_PER_EPOCH": ["100"]}
+    {"EPOCHS": ["1000"], "UPDATES_PER_EPOCH": ["100"]}
 )
 
 # Load in the base slurm file
