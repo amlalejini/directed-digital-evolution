@@ -1,0 +1,31 @@
+{
+  "pathways": 1,
+  "world": {
+    "tasks": [
+      {"name": "ECHO", "value": 1, "pathway":0},
+      {"name": "NAND", "value": 1, "pathway":0},
+      {"name": "NOT", "value": 1, "pathway":0},
+      {"name": "OR_NOT", "value": 1, "pathway":0},
+      {"name": "AND", "value": 1, "pathway":0},
+      {"name": "OR", "value": 1, "pathway":0},
+      {"name": "AND_NOT", "value": 1, "pathway":0},
+      {"name": "NOR", "value": 1, "pathway":0},
+      {"name": "XOR", "value": 1, "pathway":0},
+      {"name": "EQU", "value": 1, "pathway":0}
+    ]
+  },
+  "organism": {
+    "tasks": [
+      {"name": "ECHO", "value": 1, "pathway":0},
+      {"name": "NAND", "value": 1, "pathway":0},
+      {"name": "NOT", "value": 1, "pathway":0},
+      {"name": "OR_NOT", "value": 1, "pathway":0},
+      {"name": "AND", "value": 1, "pathway":0},
+      {"name": "OR", "value": 1, "pathway":0},
+      {"name": "AND_NOT", "value": 1, "pathway":0},
+      {"name": "NOR", "value": 1, "pathway":0},
+      {"name": "XOR", "value": 1, "pathway":0},
+      {"name": "EQU", "value": 1, "pathway":0}
+    ]
+  }
+}
