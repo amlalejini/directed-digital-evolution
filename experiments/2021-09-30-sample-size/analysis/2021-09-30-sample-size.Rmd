@@ -1,0 +1,422 @@
+# 2021-09-30 - Propagule Sample Size
+
+Comparing selection schemes at initial baseline directed evolution settings.
+
+## Overview
+
+```{r}
+experiment_slug <- "2021-09-30-sample-size"
+
+working_directory <- paste0("experiments/",experiment_slug,"/analysis/")
+```
+
+## Analysis dependencies
+
+Load all required R libraries
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(cowplot)
+library(RColorBrewer)
+library(scales)
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+```
+
+These analyses were knit with the following environment:
+
+```{r}
+print(version)
+```
+
+## Setup
+
+Experiment summary data
+
+```{r}
+exp_summary_data_loc <- paste0(working_directory,"data/experiment_summary.csv")
+exp_summary_data <- read.csv(exp_summary_data_loc, na.strings="NONE")
+
+# Mark factors
+exp_summary_data$SELECTION_METHOD <- factor(
+  exp_summary_data$SELECTION_METHOD,
+  levels=c(
+    "elite",
+    "tournament",
+    "lexicase",
+    "non-dominated-elite",
+    "non-dominated-tournament",
+    "random",
+    "none"
+  ),
+  labels=c(
+    "elite",
+    "tournament",
+    "lex",
+    "nde",
+    "ndt",
+    "random",
+    "none"
+  )
+)
+
+exp_summary_data$NUM_POPS <- factor(
+  exp_summary_data$NUM_POPS,
+  levels=c(
+    "24",
+    "48",
+    "96"
+  )
+)
+
+exp_summary_data$UPDATES_PER_EPOCH <- as.factor(
+  exp_summary_data$UPDATES_PER_EPOCH
+)
+
+exp_summary_data$POPULATION_SAMPLING_SIZE <- as.factor(
+  exp_summary_data$POPULATION_SAMPLING_SIZE
+)
+
+exp_summary_data$SAMPLE_SIZE <- exp_summary_data$POPULATION_SAMPLING_SIZE
+```
+
+Miscellaneous setup
+
+```{r}
+# Configure our default graphing theme
+theme_set(theme_cowplot())
+# Palette
+cb_palette <- "Paired"
+# Create a directory to store plots
+plot_directory <- paste0(working_directory, "plots/")
+dir.create(plot_directory, showWarnings=FALSE)
+```
+
+## Average number of organisms
+
+Average number of organisms per world at the end of a run.
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=avg_num_orgs,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_grid(
+    UPDATES_PER_EPOCH~POPULATION_SAMPLING_SIZE
+    # labeller = label_both
+  ) +
+  theme(
+    legend.position="none",
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_num_orgs.pdf")
+)
+```
+
+## Average generations
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=avg_gens,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_grid(
+    UPDATES_PER_EPOCH~POPULATION_SAMPLING_SIZE,
+    scales="free"
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_gens.pdf"),
+  width=10,
+  height=15
+)
+```
+
+## Performance
+
+### Max aggregate performance
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=max_aggregate_score,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_y_continuous(
+    name="max_aggregate_score (log scale)",
+    trans=pseudo_log_trans(sigma = 1, base = 10),
+    breaks=c(0, 10, 100, 1000, 10000, 100000)
+  ) +
+  facet_grid(
+    UPDATES_PER_EPOCH~SAMPLE_SIZE,
+    labeller=label_both
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "max_aggregate_score.pdf")
+)
+```
+
+### Max trait coverage
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=max_trait_coverage,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_grid(
+    UPDATES_PER_EPOCH~SAMPLE_SIZE,
+    labeller=label_both  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "max_trait_coverage.pdf")
+)
+```
+
+```{r}
+
+comp_data <- filter(
+  exp_summary_data,
+  NUM_POPS=="24" & UPDATES_PER_EPOCH=="100"
+)
+kruskal.test(
+  formula=max_trait_coverage~SELECTION_METHOD,
+  data=comp_data
+)
+
+pairwise.wilcox.test(
+  x=comp_data$max_trait_coverage,
+  g=comp_data$SELECTION_METHOD,
+  p.adjust.method="bonferroni",
+  exact=FALSE
+)
+```
+
+### Total trait coverage
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=total_trait_coverage,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_grid(
+    UPDATES_PER_EPOCH~POPULATION_SAMPLING_SIZE
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "total_trait_coverage.pdf")
+)
+```
+
+```{r}
+comp_data <- filter(
+  exp_summary_data,
+  NUM_POPS=="24" & UPDATES_PER_EPOCH=="100"
+)
+kruskal.test(
+  formula=total_trait_coverage~SELECTION_METHOD,
+  data=comp_data
+)
+
+pairwise.wilcox.test(
+  x=comp_data$total_trait_coverage,
+  g=comp_data$SELECTION_METHOD,
+  p.adjust.method="bonferroni",
+  exact=FALSE
+)
+```
+
+## Selection
+
+### Average number of unique populations selected
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=avg_unique_selected,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_grid(
+    UPDATES_PER_EPOCH~POPULATION_SAMPLING_SIZE
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_unique_selected.pdf")
+)
+```
+
+### Average entropy of selection ids
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=avg_entropy_selected,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_grid(
+    UPDATES_PER_EPOCH~POPULATION_SAMPLING_SIZE
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_entropy_selected.pdf")
+)
+```
+
+
+
+
+
+
+
+
