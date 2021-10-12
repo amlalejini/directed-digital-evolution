@@ -10,7 +10,7 @@ SUMMARY FILES
 
 '''
 
-import argparse, os, sys, errno, csv, json
+import argparse, os, sys, errno, csv, json, copy
 from scipy.stats import entropy
 
 run_identifiers = ["RUN_"] # String that identifies a run directory
@@ -38,6 +38,19 @@ world_eval_fields = {
     "num_unique_selected"
 }
 
+time_series_config_fields = {
+    "SELECTION_METHOD",
+    "NUM_POPS",
+    "UPDATES_PER_EPOCH",
+    "POPULATION_SAMPLING_SIZE",
+    "SEED"
+}
+time_series_world_eval_fields = {
+    "epoch",
+    "num_unique_selected",
+    "updates_elapsed"
+}
+
 def read_csv(file_path):
     content = None
     with open(file_path, "r") as fp:
@@ -47,25 +60,59 @@ def read_csv(file_path):
     lines = [{header[i]: l[i] for i in range(len(header))} for l in csv.reader(content, quotechar='"', delimiter=',', quoting=csv.QUOTE_ALL, skipinitialspace=True)]
     return lines
 
+# NOTE - this function assumes that data will be ordered!
+def filter_ordered_data(data, units, resolution):
+    if (units == "interval"):
+        return filter_ordered_data_interval(data, resolution)
+    elif (units == "total"):
+        return filter_ordered_data_total(data, resolution)
+    elif (units == "epoch"):
+        return filter_ordered_data_keyval(data, "epoch", resolution)
+    elif (units == "update"):
+        return filter_ordered_data_keyval(data, "updates_elapsed", resolution)
+    else:
+        return data
+
+def filter_ordered_data_keyval(data, key, interval):
+    prev_epoch = 0
+    ret_data = []
+    for i in range(len(data)):
+        cur_epoch = int(data[i][key])
+        if (i==0) or cur_epoch >= (prev_epoch+interval) or (i==(len(data)-1)):
+            ret_data.append(copy.deepcopy(data[i]))
+            prev_epoch = cur_epoch
+    return ret_data
+
+def filter_ordered_data_interval(data, interval):
+    return [data[i] for i in range(len(data)) if (i==0) or (not (i % interval)) or (i==len(data)-1)]
+
+def filter_ordered_data_total(data, total):
+    sample = [int(x*(len(data)-1)/(total-1)) for x in range(total)]
+    return [data[i] for i in sample]
+
 def main():
     parser = argparse.ArgumentParser(description="Run submission script.")
     parser.add_argument("--data_dir", type=str, help="Where is the base output directory for each run?")
     parser.add_argument("--dump", type=str, help="Where to dump this?", default=".")
-    # parser.add_argument("--epoch", type=int, help="Epoch to pull data for?")
-    parser.add_argument("--epoch_range", type=int, help="The range (in epochs) to collect time series data?", nargs=2)
     parser.add_argument("--trait_cov_thresh", type=float, help="Threshold for trait score to count toward trait coverage", default=default_trait_cov_thresh)
+    parser.add_argument("--units", type=str, default="epoch", choices=["epoch", "update", "interval", "total"], help="Unit for resolution of time series")
+    parser.add_argument("--resolution", type=int, default=1, help="What resolution should we collect time series data at?")
 
     # Parse user arguments
     args = parser.parse_args()
     data_dir = args.data_dir
     dump_dir = args.dump
-    # epoch = args.epoch
-    epoch_range = args.epoch_range
+    time_series_units = args.units
+    time_series_resolution = args.resolution
     trait_cov_thresh = args.trait_cov_thresh
 
     # Does data directory exist, if not exit.
     if not os.path.exists(data_dir):
         print("Unable to find data directory.")
+        exit(-1)
+
+    if time_series_resolution < 1:
+        print("Time series resolution must be >= 1")
         exit(-1)
 
     # Create directory to dump output
@@ -76,10 +123,21 @@ def main():
     print(f"Found {len(run_dirs)} run directories.")
 
     # TODO - create time series file(s)
+    evaluation_time_series_header = None
+    evaluation_time_series_content_lines = []
+    world_summary_time_series_header = None
+    world_summary_time_series_content_lines = []
 
     # The summary file contains one line per run
     experiment_summary_header = None
     experiment_summary_content_lines = []
+
+    evaluation_time_series_fpath = os.path.join(dump_dir, "evaluation_time_series.csv")
+    with open(evaluation_time_series_fpath, "w") as fp:
+        fp.write("")
+
+    # world_time_series_fpath = os.path.join(dump_dir, "world_summary_time_series.csv")
+    # with open(world_time_series_fpath)
 
     # For each run directory,
     # - get configuration, TODO
@@ -88,6 +146,7 @@ def main():
         run_path = os.path.join(data_dir, run_dir)
 
         experiment_summary_info = {} # Hold summary information about this run.
+        eval_time_series_info = []
         print(f"Processing: {run_path}")
         # Add generic info
         experiment_summary_info["trait_cov_thresh"] = trait_cov_thresh
@@ -118,6 +177,10 @@ def main():
         max_update = int(experiment_summary_info["UPDATES_PER_EPOCH"])
         track_systematics = bool(int(experiment_summary_info["TRACK_SYSTEMATICS"]))
         epoch = int(experiment_summary_info["EPOCHS"])
+        total_updates = epoch*max_update
+
+        # Add some secondarily-computed configuration details
+        experiment_summary_info["total_updates"] = str(total_updates)
 
         #######################################################################
         # Extract run systematics
@@ -170,7 +233,6 @@ def main():
         by_world_trait_coverage = [len([j for j in range(len(world_scores)) if world_scores[j] >= trait_cov_thresh]) for world_scores in scores]
         max_trait_coverage = max(by_world_trait_coverage)
         experiment_summary_info["max_trait_coverage"] = max_trait_coverage
-
         # Based on whole run (<= epoch)
         unique_selected = []
         entropy_selected = []
@@ -188,8 +250,44 @@ def main():
         experiment_summary_info["avg_unique_selected"] = avg_unique_selected
         experiment_summary_info["avg_entropy_selected"] = avg_entropy_selected # NOTE - not sure if this is a good way of getting at this
 
+        # TIME SERIES AGGREGATE
+        # Add updates elapsed to each data entry
+        for line in run_world_eval_data:
+            line["updates_elapsed"] = (int(line["epoch"])*max_update)+max_update
+        # Filter data entries baseds on requested units/interval
+        time_series_eval_data = filter_ordered_data(run_world_eval_data, time_series_units, time_series_resolution)
+        eval_filtered_epochs = []
+        # Add line to file for each entry
+        for i in range(len(time_series_eval_data)):
+            info = {}
+            data_i = time_series_eval_data[i]
+            eval_filtered_epochs.append(data_i["epoch"])
+            # Config fields are shared for all lines
+            for field in time_series_config_fields: info[field] = experiment_summary_info[field]
+            # Eval fields carry over from current line
+            for field in time_series_world_eval_fields: info[field] = data_i[field]
+            # Calculated fields
+            info["entropy_selected"] = entropy_selected[i]
+            aggregate_scores = json.loads(data_i["aggregate_scores"])
+            scores = json.loads(data_i["scores"])
+            max_aggregate_score = max(aggregate_scores)
+            trait_coverage = {j for world_scores in scores for j in range(len(world_scores)) if world_scores[j] >= trait_cov_thresh}
+            total_trait_coverage = len(trait_coverage)
+            by_world_trait_coverage = [len([j for j in range(len(world_scores)) if world_scores[j] >= trait_cov_thresh]) for world_scores in scores]
+            max_trait_coverage = max(by_world_trait_coverage)
+
+            info["max_aggregate_score"] = max_aggregate_score
+            info["total_trait_coverage"] = total_trait_coverage
+            info["max_trait_coverage"] = max_trait_coverage
+
+            # fields = info.keys()
+            # fields.sort()
+            # evaluation_time_series_content_lines.append(",".join([str(info[field]) for field in fields]))
+            eval_time_series_info.append(info)
+
         # Clear out data list
         run_world_eval_data = None
+
         #######################################################################
         # Extract run world summary data
         #######################################################################
@@ -198,6 +296,13 @@ def main():
 
         # Extract target epoch summary data
         # NOTE - if we're not tracking systematics, max update is one off because we don't update the file before the world's update function is called the final time
+        run_world_summary_data_by_epoch = {}
+        for line in run_world_summary_data:
+            if line["epoch"] in run_world_summary_data_by_epoch:
+                run_world_summary_data_by_epoch[line["epoch"]].append(line)
+            else:
+                run_world_summary_data_by_epoch[line["epoch"]] = [line]
+
         targ_epoch_run_world_summary_data = [line for line in run_world_summary_data if line["epoch"]==str(epoch) and line["world_update"]==str(max_update+int(not track_systematics))]
 
         if len(targ_epoch_run_world_summary_data) != num_pops:
@@ -218,8 +323,43 @@ def main():
         avg_cycles = sum(cycles) / len(cycles)
         experiment_summary_info["avg_cpu_cycles_per_replication"] = avg_cycles
 
+        # AGGREGATE TIME SERIES (EVALUATION SERIES FILE)
+        for i in range(len(eval_filtered_epochs)):
+            cur_epoch = str(eval_filtered_epochs[i])
+            summary_data = [line for line in run_world_summary_data_by_epoch[cur_epoch] if line["world_update"]==str(max_update+int(not track_systematics))]
+            # average num orgs
+            num_orgs = [int(line["num_orgs"]) for line in summary_data]
+            avg_num_orgs = sum(num_orgs) / len(num_orgs)
+            eval_time_series_info[i]["avg_num_orgs"] = avg_num_orgs
+            # average gen
+            gens = [float(line["avg_generation"]) for line in summary_data]
+            avg_gens = sum(gens) / len(gens)
+            eval_time_series_info[i]["avg_gens"] = avg_gens
+            # average cpu cycles / replication
+            cycles = [float(line["avg_cpu_cycles_per_replication"]) for line in summary_data]
+            avg_cycles = sum(cycles) / len(cycles)
+            eval_time_series_info[i]["avg_cpu_cycles_per_replication"] = avg_cycles
+
         # Clear out data list
         run_world_summary_data = None
+
+        #######################################################################
+        # Dump time series content
+        #######################################################################
+        time_series_fields = eval_time_series_info[0].keys()
+        for i in range(len(eval_time_series_info)):
+            evaluation_time_series_content_lines.append(",".join([str(eval_time_series_info[i][field]) for field in time_series_fields]))
+        write_header = evaluation_time_series_header == None
+        if write_header:
+            evaluation_time_series_header = ",".join(time_series_fields)
+        elif evaluation_time_series_header != ",".join(time_series_fields):
+            print("  Time series header mismatch!")
+            exit(-1)
+        with open(evaluation_time_series_fpath, "a") as fp:
+            if write_header: fp.write(evaluation_time_series_header)
+            fp.write("\n")
+            fp.write("\n".join(evaluation_time_series_content_lines))
+        evaluation_time_series_content_lines = []
 
         #######################################################################
         # Add experiment summary info to experiment summary file content
@@ -239,6 +379,8 @@ def main():
         experiment_summary_content_lines.append(",".join(experiment_summary_line))
 
     # --> END RUNS FOR LOOP <--
+    # write out time series data
+
     # write out aggregate data
     with open(os.path.join(dump_dir, "experiment_summary.csv"), "w") as fp:
         out_content = ",".join(experiment_summary_header) + "\n" + "\n".join(experiment_summary_content_lines)
