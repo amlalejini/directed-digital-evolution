@@ -1,9 +1,9 @@
-# 2021-10-11 - Aligned tasks
+# 2021-10-29 - Paramterizing non-dominated tournament selection
 
 ## Overview
 
 ```{r}
-experiment_slug <- "2021-10-11-aligned-tasks"
+experiment_slug <- "2021-10-29-ndt"
 
 working_directory <- paste0("experiments/",experiment_slug,"/analysis/")
 ```
@@ -35,10 +35,35 @@ Experiment summary data
 exp_summary_data_loc <- paste0(working_directory,"data/experiment_summary.csv")
 exp_summary_data <- read.csv(exp_summary_data_loc, na.strings="NONE")
 
-times_series_data_loc <- paste0(working_directory,"data/evaluation_time_series.csv")
-times_series_data <- read.csv(exp_summary_data_loc, na.strings="NONE")
+# times_series_data_loc <- paste0(working_directory,"data/evaluation_time_series.csv")
+# times_series_data <- read.csv(exp_summary_data_loc, na.strings="NONE")
 
 # Mark factors
+get_mod_sel <- function(name, tourn_size) {
+  if (name == "non-dominated-tournament") {
+    return(paste0("ndt", "-", tourn_size))
+  } else {
+    return(name)
+  }
+}
+
+# Specify experimental condition for each datum.
+exp_summary_data$MOD_SELECTION_METHOD <- mapply(
+  get_mod_sel,
+  exp_summary_data$SELECTION_METHOD,
+  exp_summary_data$TOURNAMENT_SEL_TOURN_SIZE
+)
+exp_summary_data$MOD_SELECTION_METHOD <- factor(
+  exp_summary_data$MOD_SELECTION_METHOD,
+    levels=c(
+    "ndt-6",
+    "ndt-12",
+    "ndt-24",
+    "ndt-48",
+    "none"
+  )
+)
+
 exp_summary_data$SELECTION_METHOD <- factor(
   exp_summary_data$SELECTION_METHOD,
   levels=c(
@@ -74,6 +99,10 @@ exp_summary_data$UPDATES_PER_EPOCH <- as.factor(
   exp_summary_data$UPDATES_PER_EPOCH
 )
 
+exp_summary_data$TOURNAMENT_SEL_TOURN_SIZE <- as.factor(
+  exp_summary_data$TOURNAMENT_SEL_TOURN_SIZE
+)
+
 exp_summary_data$POPULATION_SAMPLING_SIZE <- as.factor(
   exp_summary_data$POPULATION_SAMPLING_SIZE
 )
@@ -81,6 +110,9 @@ exp_summary_data$POPULATION_SAMPLING_SIZE <- as.factor(
 exp_summary_data$SAMPLE_SIZE <- exp_summary_data$POPULATION_SAMPLING_SIZE
 exp_summary_data$ENV <- exp_summary_data$AVIDAGP_ENV_FILE
 exp_summary_data$U_PER_E <- exp_summary_data$UPDATES_PER_EPOCH
+
+
+
 ```
 
 Miscellaneous setup
@@ -103,9 +135,9 @@ Average number of organisms per world at the end of a run.
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=MOD_SELECTION_METHOD,
       y=avg_num_orgs,
-      fill=SELECTION_METHOD
+      fill=MOD_SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -113,7 +145,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=SELECTION_METHOD),
+    mapping=aes(color=MOD_SELECTION_METHOD),
     position = position_jitter(width = .15),
     size = .5,
     alpha = 0.8
@@ -122,11 +154,6 @@ ggplot(
     width = .1,
     outlier.shape = NA,
     alpha = 0.5
-  ) +
-  facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
   ) +
   theme(
     legend.position="none",
@@ -144,9 +171,9 @@ ggsave(
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=MOD_SELECTION_METHOD,
       y=avg_gens,
-      fill=SELECTION_METHOD
+      fill=MOD_SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -154,7 +181,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=SELECTION_METHOD),
+    mapping=aes(color=MOD_SELECTION_METHOD),
     position = position_jitter(width = .15),
     size = .5,
     alpha = 0.8
@@ -163,11 +190,6 @@ ggplot(
     width = .1,
     outlier.shape = NA,
     alpha = 0.5
-  ) +
-  facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
   ) +
   theme(
     legend.position="none",
@@ -189,9 +211,9 @@ ggsave(
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=MOD_SELECTION_METHOD,
       y=avg_cpu_cycles_per_replication,
-      fill=SELECTION_METHOD
+      fill=MOD_SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -199,7 +221,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=SELECTION_METHOD),
+    mapping=aes(color=MOD_SELECTION_METHOD),
     position = position_jitter(height=0, width = .15),
     size = .5,
     alpha = 0.8
@@ -208,11 +230,6 @@ ggplot(
     width = .1,
     outlier.shape = NA,
     alpha = 0.5
-  ) +
-  facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
   ) +
   theme(
     legend.position="none",
@@ -230,9 +247,9 @@ ggsave(
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=MOD_SELECTION_METHOD,
       y=max_aggregate_score,
-      fill=SELECTION_METHOD
+      fill=MOD_SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -240,7 +257,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=SELECTION_METHOD),
+    mapping=aes(color=MOD_SELECTION_METHOD),
     position = position_jitter(width = .15),
     size = .5,
     alpha = 0.8
@@ -253,11 +270,6 @@ ggplot(
   scale_y_continuous(
     name="max_aggregate_score (log scale)",
     trans=pseudo_log_trans(sigma = 1, base = 10)
-  ) +
-  facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
   ) +
   theme(
     legend.position="none",
@@ -275,9 +287,9 @@ ggsave(
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=MOD_SELECTION_METHOD,
       y=max_trait_coverage,
-      fill=SELECTION_METHOD
+      fill=MOD_SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -285,7 +297,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=SELECTION_METHOD),
+    mapping=aes(color=MOD_SELECTION_METHOD),
     position = position_jitter(height=0, width = .15),
     size = .5,
     alpha = 0.8
@@ -297,11 +309,6 @@ ggplot(
   ) +
   scale_y_continuous(
     breaks=seq(0,18,2)
-  ) +
-  facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
   ) +
   theme(
     legend.position="none",
@@ -319,9 +326,9 @@ ggsave(
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=MOD_SELECTION_METHOD,
       y=total_trait_coverage,
-      fill=SELECTION_METHOD
+      fill=MOD_SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -329,7 +336,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=SELECTION_METHOD),
+    mapping=aes(color=MOD_SELECTION_METHOD),
     position = position_jitter(height=0, width = .15),
     size = .5,
     alpha = 0.8
@@ -341,11 +348,6 @@ ggplot(
   ) +
   scale_y_continuous(
     breaks=seq(0,18,2)
-  ) +
-  facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
   ) +
   theme(
     legend.position="none",
@@ -365,9 +367,9 @@ ggsave(
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=MOD_SELECTION_METHOD,
       y=avg_unique_selected,
-      fill=SELECTION_METHOD
+      fill=MOD_SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -375,7 +377,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=SELECTION_METHOD),
+    mapping=aes(color=MOD_SELECTION_METHOD),
     position = position_jitter(height=0, width = .15),
     size = .5,
     alpha = 0.8
@@ -406,9 +408,9 @@ ggsave(
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=MOD_SELECTION_METHOD,
       y=avg_entropy_selected,
-      fill=SELECTION_METHOD
+      fill=MOD_SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -416,7 +418,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=SELECTION_METHOD),
+    mapping=aes(color=MOD_SELECTION_METHOD),
     position = position_jitter(height=0, width = .15),
     size = .5,
     alpha = 0.8
@@ -425,11 +427,6 @@ ggplot(
     width = .1,
     outlier.shape = NA,
     alpha = 0.5
-  ) +
-  facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
   ) +
   theme(
     legend.position="none",
@@ -440,134 +437,3 @@ ggsave(
   paste0(plot_directory, "avg_entropy_selected.pdf")
 )
 ```
-
-
-## Time series
-
-Load data
-
-```{r}
-times_series_data_loc <- paste0(working_directory,"data/evaluation_time_series.csv")
-times_series_data <- read.csv(times_series_data_loc, na.strings="NONE")
-
-# Mark factors
-times_series_data$SELECTION_METHOD <- factor(
-  times_series_data$SELECTION_METHOD,
-  levels=c(
-    "elite",
-    "tournament",
-    "lexicase",
-    "non-dominated-elite",
-    "non-dominated-tournament",
-    "random",
-    "none"
-  ),
-  labels=c(
-    "elite",
-    "tournament",
-    "lex",
-    "nde",
-    "ndt",
-    "random",
-    "none"
-  )
-)
-
-times_series_data$NUM_POPS <- factor(
-  times_series_data$NUM_POPS,
-  levels=c(
-    "24",
-    "48",
-    "96"
-  )
-)
-
-times_series_data$UPDATES_PER_EPOCH <- as.factor(
-  times_series_data$UPDATES_PER_EPOCH
-)
-
-# exp_summary_data$SAMPLE_SIZE <- exp_summary_data$POPULATION_SAMPLING_SIZE
-# exp_summary_data$ENV <- exp_summary_data$AVIDAGP_ENV_FILE
-times_series_data$U_PER_E <- times_series_data$UPDATES_PER_EPOCH
-```
-
-### Max trait coverage
-
-```{r}
-
-filtered_data <- filter(times_series_data, U_PER_E==500)
-
-ggplot(
-    times_series_data,
-    aes(
-      x=updates_elapsed,
-      y=max_trait_coverage,
-      fill=SELECTION_METHOD,
-      color=SELECTION_METHOD
-    )
-  ) +
-  stat_summary(geom="line", fun=mean) +
-  stat_summary(
-    geom="ribbon",
-    fun.data="mean_cl_boot",
-    fun.args=list(conf.int=0.95),
-    alpha=0.2,
-    linetype=0
-  ) +
-  scale_y_continuous(
-    breaks=seq(0,18,2)
-  ) +
-  facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
-  ) +
-  theme(
-    legend.position="bottom",
-    panel.border=element_rect(colour="grey",size=1)
-  )
-
-ggsave(
-  paste0(plot_directory, "max_trait_coverage_ot.pdf")
-)
-```
-
-### Number of CPU cycles per replication
-
-```{r}
-ggplot(
-    times_series_data,
-    aes(
-      x=updates_elapsed,
-      y=avg_cpu_cycles_per_replication,
-      fill=SELECTION_METHOD,
-      color=SELECTION_METHOD
-    )
-  ) +
-  stat_summary(geom="line", fun=mean) +
-  stat_summary(
-    geom="ribbon",
-    fun.data="mean_cl_boot",
-    fun.args=list(conf.int=0.95),
-    alpha=0.2,
-    linetype=0
-  ) +
-  facet_wrap(
-    ~U_PER_E,
-    labeller=label_both
-  ) +
-  theme(
-    legend.position="bottom",
-    panel.border=element_rect(colour="grey",size=1)
-  )
-
-ggsave(
-  paste0(plot_directory, "avg_cpu_cycles_per_replication_ot.pdf")
-)
-```
-
-
-
-
-
-
