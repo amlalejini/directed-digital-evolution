@@ -43,8 +43,10 @@ time_series_config_fields = {
     "NUM_POPS",
     "UPDATES_PER_EPOCH",
     "POPULATION_SAMPLING_SIZE",
-    "SEED"
+    "SEED",
+    "TOURNAMENT_SEL_TOURN_SIZE"
 }
+
 time_series_world_eval_fields = {
     "epoch",
     "num_unique_selected",
