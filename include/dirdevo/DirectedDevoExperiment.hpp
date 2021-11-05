@@ -113,6 +113,7 @@ protected:
   emp::vector<propagule_t> propagules;
   std::unordered_set<size_t> extinct_worlds;        ///< Set of worlds that are extinct.
   std::unordered_set<size_t> live_worlds;           ///< Set of worlds that are not extinct.
+  emp::vector<size_t> population_sample_order;
 
   size_t max_world_size=0;
   bool setup=false;
@@ -372,15 +373,26 @@ void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupSelecti
 
 template <typename WORLD, typename ORG, typename MUTATOR, typename TASK, typename PERIPHERAL>
 void DirectedDevoExperiment<WORLD, ORG, MUTATOR, TASK, PERIPHERAL>::SetupPropaguleSampleMethod() {
+
+  population_sample_order.resize(max_world_size);
+  std::iota(
+    population_sample_order.begin(),
+    population_sample_order.end(),
+    0
+  );
+
   if (config.POPULATION_SAMPLING_METHOD() == "random") {
     // Sample randomly
     propagule_sample_fun = [this](world_t& world, propagule_t& sample_into) {
       sample_into.clear();
+      emp::Shuffle(world.GetRandom(), population_sample_order);
       // extinct worlds shouldn't get selected (unless everything went extinct or we're doing random selection...)
-      for (size_t i = 0; i < config.POPULATION_SAMPLING_SIZE(); ++i) {
-        const size_t sampled_pos = world.GetRandomOrgID();
-        const size_t world_pos_offset = world.GetSharedSystematics().offset; // 0 if not tracking systematics
+      for (size_t i = 0; (i < population_sample_order.size()) && (sample_into.size() < config.POPULATION_SAMPLING_SIZE()); ++i) {
+        const size_t sampled_pos = population_sample_order[i];
+        if (!world.IsOccupied({sampled_pos})) continue;
         emp_assert(world.IsOccupied({sampled_pos}));
+        // const size_t sampled_pos = world.GetRandomOrgID();
+        const size_t world_pos_offset = world.GetSharedSystematics().offset; // 0 if not tracking systematics
         sample_into.emplace_back();
         sample_into.back().org = emp::NewPtr<org_t>(world.GetOrg(sampled_pos).GetGenome());
         sample_into.back().original_pos = world_pos_offset + sampled_pos;
