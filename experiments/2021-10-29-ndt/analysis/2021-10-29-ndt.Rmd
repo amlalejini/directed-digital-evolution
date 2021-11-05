@@ -437,3 +437,105 @@ ggsave(
   paste0(plot_directory, "avg_entropy_selected.pdf")
 )
 ```
+
+## Time series
+
+Load data
+
+```{r}
+times_series_data_loc <- paste0(working_directory,"data/evaluation_time_series.csv")
+times_series_data <- read.csv(times_series_data_loc, na.strings="NONE")
+
+# Specify experimental condition for each datum.
+times_series_data$MOD_SELECTION_METHOD <- mapply(
+  get_mod_sel,
+  times_series_data$SELECTION_METHOD,
+  times_series_data$TOURNAMENT_SEL_TOURN_SIZE
+)
+times_series_data$MOD_SELECTION_METHOD <- factor(
+  times_series_data$MOD_SELECTION_METHOD,
+    levels=c(
+    "ndt-6",
+    "ndt-12",
+    "ndt-24",
+    "ndt-48",
+    "none"
+  )
+)
+
+# Mark factors
+times_series_data$SELECTION_METHOD <- factor(
+  times_series_data$SELECTION_METHOD,
+  levels=c(
+    "elite",
+    "tournament",
+    "lexicase",
+    "non-dominated-elite",
+    "non-dominated-tournament",
+    "random",
+    "none"
+  ),
+  labels=c(
+    "elite",
+    "tournament",
+    "lex",
+    "nde",
+    "ndt",
+    "random",
+    "none"
+  )
+)
+
+times_series_data$NUM_POPS <- factor(
+  times_series_data$NUM_POPS,
+  levels=c(
+    "24",
+    "48",
+    "96"
+  )
+)
+
+times_series_data$UPDATES_PER_EPOCH <- as.factor(
+  times_series_data$UPDATES_PER_EPOCH
+)
+
+# exp_summary_data$SAMPLE_SIZE <- exp_summary_data$POPULATION_SAMPLING_SIZE
+# exp_summary_data$ENV <- exp_summary_data$AVIDAGP_ENV_FILE
+times_series_data$U_PER_E <- times_series_data$UPDATES_PER_EPOCH
+```
+
+### Max trait coverage
+
+```{r}
+
+# filtered_data <- filter(times_series_data, U_PER_E==500)
+
+ggplot(
+    times_series_data,
+    aes(
+      x=updates_elapsed,
+      y=max_trait_coverage,
+      fill=MOD_SELECTION_METHOD,
+      color=MOD_SELECTION_METHOD
+    )
+  ) +
+  stat_summary(geom="line", fun=mean) +
+  stat_summary(
+    geom="ribbon",
+    fun.data="mean_cl_boot",
+    fun.args=list(conf.int=0.95),
+    alpha=0.2,
+    linetype=0
+  ) +
+  scale_y_continuous(
+    breaks=seq(0,18,2)
+  ) +
+  theme(
+    legend.position="bottom",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "max_trait_coverage_ot.pdf")
+)
+```

@@ -413,6 +413,48 @@ ggsave(
 )
 ```
 
+## 2021-11-03 - Lab meeting
+
+```{r}
+ggplot(
+    filter(
+      exp_summary_data,
+      UPDATES_PER_EPOCH=="300"
+    ),
+    aes(
+      x=SELECTION_METHOD,
+      y=max_trait_coverage,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_grid(
+    UPDATES_PER_EPOCH~SAMPLE_SIZE,
+    labeller=label_both  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "max_trait_coverage.png"),
+  width=10, height=5
+)
+```
 
 
 

@@ -451,9 +451,93 @@ ggsave(
 )
 ```
 
+## 2021-11-03 Lab meeting
 
+```{r}
+ggplot(
+    filter(
+      exp_summary_data,
+      EPOCHS=="1000" & U_PER_E=="300" & ENV=="ENV-SMALL"
+    ),
+    aes(
+      x=SELECTION_METHOD,
+      y=max_trait_coverage,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_y_continuous(
+    breaks=seq(0,18,2)
+  ) +
+  facet_grid(
+    ENV~EPOCHS+U_PER_E,
+    scales="free_y",
+    labeller=label_both
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
 
+ggsave(
+  paste0(plot_directory, "2021-11-03-max_trait_coverage.png")
+)
+```
 
+```{r}
+ggplot(
+    filter(
+      exp_summary_data,
+      EPOCHS=="1000" & U_PER_E=="300" & ENV=="ENV-SMALL"
+    ),    aes(
+      x=SELECTION_METHOD,
+      y=avg_cpu_cycles_per_replication,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_grid(
+    ENV~EPOCHS+U_PER_E,
+    scales="free_y",
+    labeller=label_both
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "2021-11-03-avg_cpu_cycles_per_replication.png")
+)
+```
 
 
 

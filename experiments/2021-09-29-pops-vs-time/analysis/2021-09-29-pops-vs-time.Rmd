@@ -242,7 +242,8 @@ ggplot(
     alpha = 0.5
   ) +
   facet_grid(
-    UPDATES_PER_EPOCH~NUM_POPS,
+    NUM_POPS~UPDATES_PER_EPOCH,
+    # UPDATES_PER_EPOCH~NUM_POPS,
     labeller = label_both
   ) +
   theme(
@@ -251,7 +252,7 @@ ggplot(
   )
 
 ggsave(
-  paste0(plot_directory, "max_trait_coverage.pdf")
+  paste0(plot_directory, "max_trait_coverage.png")
 )
 ```
 
@@ -413,7 +414,48 @@ ggsave(
 ```
 
 
+## 2021-11-03 Lab meeting
 
+```{r}
+
+ggplot(
+    filter(
+      exp_summary_data,
+      NUM_POPS==96
+    ),
+    aes(
+      x=SELECTION_METHOD,
+      y=max_trait_coverage,
+      fill=UPDATES_PER_EPOCH
+    )
+  ) +
+  # geom_flat_violin(
+  #   position = position_nudge(x = .2, y = 0),
+  #   alpha = .8
+  # ) +
+  # geom_point(
+  #   mapping=aes(color=UPDATES_PER_EPOCH),
+  #   position = position_jitter(width = .15),
+  #   size = .5,
+  #   alpha = 0.8
+  # ) +
+  geom_boxplot(
+    # width = .1,
+    # outlier.shape = NA,
+    # alpha = 0.5
+  )
+  # facet_grid(
+  #   UPDATES_PER_EPOCH~NUM_POPS,
+  #   labeller = label_both
+  # ) +
+  # theme(
+  #   legend.position="none"
+  # )
+
+ggsave(
+  paste0(plot_directory, "2021-11-03-max_trait_coverage.png")
+)
+```
 
 
 

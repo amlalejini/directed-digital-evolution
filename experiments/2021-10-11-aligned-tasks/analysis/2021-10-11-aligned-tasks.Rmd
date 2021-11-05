@@ -495,7 +495,7 @@ times_series_data$U_PER_E <- times_series_data$UPDATES_PER_EPOCH
 
 ```{r}
 
-filtered_data <- filter(times_series_data, U_PER_E==500)
+# filtered_data <- filter(times_series_data, U_PER_E==500)
 
 ggplot(
     times_series_data,
@@ -563,6 +563,48 @@ ggplot(
 
 ggsave(
   paste0(plot_directory, "avg_cpu_cycles_per_replication_ot.pdf")
+)
+```
+
+## 2021-11-03 - Lab meeting
+
+```{r}
+
+ggplot(
+    times_series_data,
+    aes(
+      x=updates_elapsed,
+      y=max_trait_coverage,
+      fill=SELECTION_METHOD,
+      color=SELECTION_METHOD
+    )
+  ) +
+  stat_summary(geom="line", fun=mean) +
+  stat_summary(
+    geom="ribbon",
+    fun.data="mean_cl_boot",
+    fun.args=list(conf.int=0.95),
+    alpha=0.2,
+    linetype=0
+  ) +
+  scale_y_continuous(
+    breaks=seq(0,18,2)
+  ) +
+  facet_wrap(
+    ~U_PER_E,
+    scales="free_y",
+    labeller=label_both,
+    nrow=1
+  ) +
+  theme(
+    legend.position="bottom",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "2021-11-03-max_trait_coverage_ot.png"),
+  height=10,
+  width=15
 )
 ```
 
