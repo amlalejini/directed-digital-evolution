@@ -399,9 +399,16 @@ public:
           const size_t local_task_id = env.task_lookup.find(value)->second[0];
           const size_t global_task_id = pathway.global_task_id_lookup[local_task_id];
           // TODO - this is where we would implement/check for task requirements
+
+          // If this is the first time an organism is performing this task, increase population-level task performance counter.
+          // I.e., limit each organism to one contribution per task.
+          if (!org.GetPhenotype().org_task_performances[global_task_id]) {
+            task_performance[global_task_id] += 1;
+          }
+
           org.GetPhenotype().org_task_performances[global_task_id] += 1;
           // for now, just let each time the task is performed count for the world
-          task_performance[global_task_id] += 1;
+          // task_performance[global_task_id] += 1;
         }
       }
       output_buffer.clear();  // Clear the output buffer after processing
