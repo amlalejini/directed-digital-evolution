@@ -44,7 +44,7 @@ time_series_config_fields = {
     "UPDATES_PER_EPOCH",
     "POPULATION_SAMPLING_SIZE",
     "SEED",
-    "TOURNAMENT_SEL_TOURN_SIZE"
+    "AVIDAGP_ENV_FILE"
 }
 
 time_series_world_eval_fields = {
