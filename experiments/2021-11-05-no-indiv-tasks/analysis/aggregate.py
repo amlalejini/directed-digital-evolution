@@ -260,10 +260,9 @@ def main():
             num_unique_selected = int(line["num_unique_selected"])
             unique_selected.append(num_unique_selected)
             selected = json.loads(line["selected"])
-            selected_dist = [0 for _ in range(num_pops)]
-            for id in selected:
-                selected_dist[int(id)] += 1
-            entropy_selected.append(entropy(selected_dist, base=2))
+            selected_series = pandas.Series(selected)
+            entropy_selected.append(entropy(selected_series.value_counts(), base=2))
+
         avg_unique_selected = sum(unique_selected) / len(unique_selected)
         avg_entropy_selected = sum(entropy_selected) / len(entropy_selected)
         experiment_summary_info["avg_unique_selected"] = avg_unique_selected
@@ -295,13 +294,22 @@ def main():
             by_world_trait_coverage = [len([j for j in range(len(world_scores)) if world_scores[j] >= trait_cov_thresh]) for world_scores in scores]
             max_trait_coverage = max(by_world_trait_coverage)
 
+            # How many different population-level trait profiles?
+            pop_trait_profiles = ["".join([str(int(world_scores[j] >= trait_cov_thresh)) for j in range(len(world_scores))]) for world_scores in scores]
+            pop_trait_profile_set = set(pop_trait_profiles)
+            # "Richness" of population trait profiles
+            num_pop_trait_profiles = len(pop_trait_profile_set)
+            # Entropy of population trait profiles
+            pop_trait_profile_series = pandas.Series(pop_trait_profiles)
+            pop_trait_profile_counts = pop_trait_profile_series.value_counts()
+            pop_trait_profile_entropy = entropy(pop_trait_profile_counts, base=2)
+
+            info["pop_trait_profile_entropy"] = pop_trait_profile_entropy
+            info["num_pop_trait_profiles"] = num_pop_trait_profiles
             info["max_aggregate_score"] = max_aggregate_score
             info["total_trait_coverage"] = total_trait_coverage
             info["max_trait_coverage"] = max_trait_coverage
 
-            # fields = info.keys()
-            # fields.sort()
-            # evaluation_time_series_content_lines.append(",".join([str(info[field]) for field in fields]))
             eval_time_series_info.append(info)
 
         # Clear out data list
