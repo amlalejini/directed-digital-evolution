@@ -10,7 +10,7 @@ SUMMARY FILES
 
 '''
 
-import argparse, os, sys, errno, csv, json, copy
+import argparse, os, sys, errno, csv, json, copy, pandas
 from scipy.stats import entropy
 
 run_identifiers = ["RUN_"] # String that identifies a run directory
@@ -223,6 +223,23 @@ def main():
         # Compute secondary experiment summary fields
         aggregate_scores = json.loads(targ_epoch_run_world_eval_data["aggregate_scores"])
         scores = json.loads(targ_epoch_run_world_eval_data["scores"])
+
+        # How many different population-level trait profiles?
+        pop_trait_profiles = ["".join([str(int(world_scores[j] >= trait_cov_thresh)) for j in range(len(world_scores))]) for world_scores in scores]
+        pop_trait_profile_set = set(pop_trait_profiles)
+        # pop_trait_profile_set_order = sorted(list(pop_trait_profile_set))
+        # pop_trait_profile_labels = [pop_trait_profile_set_order.index(profile) for profile in pop_trait_profiles]
+
+        # "Richness" of population trait profiles
+        num_pop_trait_profiles = len(pop_trait_profile_set)
+        experiment_summary_info["num_pop_trait_profiles"] = num_pop_trait_profiles
+
+        # Entropy of population trait profiles
+        pop_trait_profile_series = pandas.Series(pop_trait_profiles)
+        pop_trait_profile_counts = pop_trait_profile_series.value_counts()
+        pop_trait_profile_entropy = entropy(pop_trait_profile_counts, base=2)
+        experiment_summary_info["pop_trait_profile_entropy"] = pop_trait_profile_entropy
+
         # Based on target epoch
         # max_aggregate_score
         max_aggregate_score = max(aggregate_scores)
