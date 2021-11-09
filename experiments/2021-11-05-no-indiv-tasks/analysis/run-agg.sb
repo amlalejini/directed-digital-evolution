@@ -1,0 +1,20 @@
+#!/bin/bash
+###############################################################
+#SBATCH --job-name=agg-data
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=8G
+#SBATCH --time=2:00:00
+#SBATCH --account=devolab
+###############################################################
+
+ANALYSIS_DIR=/mnt/home/lalejini/devo_ws/directed-digital-evolution/experiments/2021-11-05-no-indiv-tasks/analysis
+DATA_DIR=/mnt/scratch/lalejini/data/dirdevo/2021-11-05-no-indiv-tasks
+
+cd ${ANALYSIS_DIR}
+
+source ../../pyenv/bin/activate
+
+python3 aggregate.py --data_dir ${DATA_DIR} --dump ./dump/ --trait_cov_thresh 50 --units epoch --resolution 1
+
