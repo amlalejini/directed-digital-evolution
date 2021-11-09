@@ -361,6 +361,86 @@ ggsave(
 )
 ```
 
+## Population-level Task Profile Diversity
+
+### Task profile richness
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=num_pop_trait_profiles,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_wrap(
+    ~AVIDAGP_ENV_FILE
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "num_pop_trait_profiles.pdf")
+)
+```
+
+### Task profile entropy
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=pop_trait_profile_entropy,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_wrap(
+    ~AVIDAGP_ENV_FILE
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "pop_trait_profile_entropy.pdf")
+)
+```
+
 ## Selection
 
 ### Average number of unique populations selected
