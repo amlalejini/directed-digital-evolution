@@ -53,6 +53,15 @@ time_series_world_eval_fields = {
     "updates_elapsed"
 }
 
+pop_profile_snapshot_config_fields = {
+    "SEED",
+    "SELECTION_METHOD"
+}
+
+pop_profile_snapshot_world_eval_fields = {
+    "epoch"
+}
+
 def read_csv(file_path):
     content = None
     with open(file_path, "r") as fp:
@@ -124,11 +133,15 @@ def main():
     run_dirs = [run_dir for run_dir in os.listdir(data_dir) if any([rid in run_dir for rid in run_identifiers])]
     print(f"Found {len(run_dirs)} run directories.")
 
-    # TODO - create time series file(s)
+    # Time series files
     evaluation_time_series_header = None
     evaluation_time_series_content_lines = []
     world_summary_time_series_header = None
     world_summary_time_series_content_lines = []
+
+    # Used for population profile snapshots
+    pop_profile_snapshot_header = None
+    pop_profile_snapshot_content_lines = []
 
     # The summary file contains one line per run
     experiment_summary_header = None
@@ -138,18 +151,23 @@ def main():
     with open(evaluation_time_series_fpath, "w") as fp:
         fp.write("")
 
-    # world_time_series_fpath = os.path.join(dump_dir, "world_summary_time_series.csv")
-    # with open(world_time_series_fpath)
+    pop_profile_snapshot_fpath = os.path.join(dump_dir, "population_profiles.csv")
+    with open(pop_profile_snapshot_fpath, "w") as fp:
+        fp.write("")
 
     # For each run directory,
-    # - get configuration, TODO
+    total_runs = len(run_dirs)
+    cur_run_i = 0
+
     skipped_runs = []
     for run_dir in run_dirs:
         run_path = os.path.join(data_dir, run_dir)
 
         experiment_summary_info = {} # Hold summary information about this run.
         eval_time_series_info = []
-        print(f"Processing: {run_path}")
+        pop_snapshot_info = []
+
+        print(f"Processing ({cur_run_i+1}/{total_runs}): {run_path}")
         # Add generic info
         experiment_summary_info["trait_cov_thresh"] = trait_cov_thresh
 
@@ -180,6 +198,14 @@ def main():
         track_systematics = bool(int(experiment_summary_info["TRACK_SYSTEMATICS"]))
         epoch = int(experiment_summary_info["EPOCHS"])
         total_updates = epoch*max_update
+
+        world_tasks = list(world_params["world_tasks"])[0]
+        world_tasks = [f"{task.split(',')[0]}_{task.split(',')[1]}" for task in world_tasks.strip("[]()").split("),(")]
+        world_tasks_set = set(world_tasks)
+
+        indiv_tasks = list(world_params["indiv_tasks"])[0]
+        indiv_tasks = [f"{task.split(',')[0]}_{task.split(',')[1]}" for task in indiv_tasks.strip("[]()").split("),(")]
+        indiv_tasks_set = set(indiv_tasks)
 
         # Add some secondarily-computed configuration details
         experiment_summary_info["total_updates"] = str(total_updates)
@@ -227,8 +253,6 @@ def main():
         # How many different population-level trait profiles?
         pop_trait_profiles = ["".join([str(int(world_scores[j] >= trait_cov_thresh)) for j in range(len(world_scores))]) for world_scores in scores]
         pop_trait_profile_set = set(pop_trait_profiles)
-        # pop_trait_profile_set_order = sorted(list(pop_trait_profile_set))
-        # pop_trait_profile_labels = [pop_trait_profile_set_order.index(profile) for profile in pop_trait_profiles]
 
         # "Richness" of population trait profiles
         num_pop_trait_profiles = len(pop_trait_profile_set)
@@ -350,6 +374,52 @@ def main():
         avg_cycles = sum(cycles) / len(cycles)
         experiment_summary_info["avg_cpu_cycles_per_replication"] = avg_cycles
 
+        # AGGREGATE POPULATION PROFILE FILE INFO
+        # - one line per trait_id per population per seed
+        max_agg_score_pop_i = 0
+        max_agg_score = None
+        pop_task_performances = [{} for _ in range(num_pops)]
+        for pop_i in range(len(targ_epoch_run_world_summary_data)):
+            pop_line = targ_epoch_run_world_summary_data[pop_i]
+            pop_task_performance = pop_line["task_performance"].strip("[]{}").split("},{")
+            # pop_task_performance_lookup = {}
+            for i in range(len(pop_task_performance)):
+                pathway = {task.split(":")[0]:float(task.split(":")[1]) for task in pop_task_performance[i].split(",")}
+                for task in pathway:
+                    pop_task_performances[pop_i][f"{task}_{i}"] = pathway[task]
+            # Calc agg score
+            cur_agg_score = sum([pop_task_performances[pop_i][task] for task in world_tasks])
+            if max_agg_score == None:
+                max_agg_score = cur_agg_score
+                max_agg_score_pop_i = pop_i
+            elif cur_agg_score > max_agg_score:
+                max_agg_score = cur_agg_score
+                max_agg_score_pop_i = pop_i
+        # Calculate distances to the max score
+        pop_task_dists = [( sum([abs( pop_task_performances[pop_i][task] - pop_task_performances[max_agg_score_pop_i][task] ) for task in world_tasks]) , pop_i) for pop_i in range(num_pops) ]
+        pop_task_dists.sort()
+        # Add lines to content
+        for i in range(num_pops):
+            pop_i = pop_task_dists[i][1]
+            task_performances = pop_task_performances[pop_i]
+            tasks = list(pop_task_performances[pop_i].keys())
+            tasks.sort()
+            for task_i in range(len(tasks)):
+                info = {}
+                # Config fields are shared for all lines
+                for field in pop_profile_snapshot_config_fields: info[field] = experiment_summary_info[field]
+                info["epoch"] = str(epoch)
+                info["pop_id"] = str(pop_i)
+                info["pop_order"] = str(i)
+                info["task_id"] = str(task_i)
+                info["task_name"] = tasks[task_i]
+                info["pathway"] = tasks[task_i].split("_")[-1]
+                info["task_score"] = str(task_performances[tasks[task_i]])
+                info["task_coverage"] = str(int(float(info["task_score"]) >= trait_cov_thresh))
+                info["indiv_level"] = str(int(tasks[task_i] in indiv_tasks_set))
+                info["pop_level"] = str(int(tasks[task_i] in world_tasks_set))
+                pop_snapshot_info.append(info)
+
         # AGGREGATE TIME SERIES (EVALUATION SERIES FILE)
         for i in range(len(eval_filtered_epochs)):
             cur_epoch = str(eval_filtered_epochs[i])
@@ -373,7 +443,8 @@ def main():
         #######################################################################
         # Dump time series content
         #######################################################################
-        time_series_fields = eval_time_series_info[0].keys()
+        time_series_fields = list(eval_time_series_info[0].keys())
+        time_series_fields.sort()
         for i in range(len(eval_time_series_info)):
             evaluation_time_series_content_lines.append(",".join([str(eval_time_series_info[i][field]) for field in time_series_fields]))
         write_header = evaluation_time_series_header == None
@@ -387,6 +458,27 @@ def main():
             fp.write("\n")
             fp.write("\n".join(evaluation_time_series_content_lines))
         evaluation_time_series_content_lines = []
+
+        #######################################################################
+        # Dump population profile snapshot content
+        #######################################################################
+        pop_profile_snapshot_fields = list(pop_snapshot_info[0].keys())
+        pop_profile_snapshot_fields.sort()
+        for i in range(len(pop_snapshot_info)):
+            pop_profile_snapshot_content_lines.append(
+                ",".join([str(pop_snapshot_info[i][field]) for field in pop_profile_snapshot_fields])
+            )
+        write_header = (pop_profile_snapshot_header==None)
+        if write_header:
+            pop_profile_snapshot_header = ",".join(pop_profile_snapshot_fields)
+        elif pop_profile_snapshot_header != ",".join(pop_profile_snapshot_fields):
+            print("  Pop profile header mismatch!")
+            exit(-1)
+        with open(pop_profile_snapshot_fpath, "a") as fp:
+            if write_header: fp.write(pop_profile_snapshot_header)
+            fp.write("\n")
+            fp.write("\n".join(pop_profile_snapshot_content_lines))
+        pop_profile_snapshot_content_lines=[]
 
         #######################################################################
         # Add experiment summary info to experiment summary file content
