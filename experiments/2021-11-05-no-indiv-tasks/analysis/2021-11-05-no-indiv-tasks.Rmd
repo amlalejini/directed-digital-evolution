@@ -15,6 +15,8 @@ Load all required R libraries
 ```{r}
 library(tidyverse)
 library(ggplot2)
+library(GGally)
+library(ggpcp)
 library(cowplot)
 library(RColorBrewer)
 library(scales)
@@ -649,6 +651,57 @@ ggplot(
 ggsave(
   paste0(plot_directory, "total_trait_coverage_ot.png"),
   width=20,
+  height=10
+)
+```
+
+## Population snapshot
+
+```{r}
+population_snapshot_loc <- paste0(working_directory,"test/dump/population_profiles.csv")
+population_snapshot_data <- read.csv(population_snapshot_loc, na.strings="NONE")
+
+
+
+```
+
+Parallel coordinates
+
+```{r}
+cur_data <- filter(population_snapshot_data, SEED==4)
+cur_data_wide <- filter(cur_data, pop_level=="1") %>%
+  select(SEED, SELECTION_METHOD, epoch, pop_order, task_name, task_score) %>%
+  spread(task_name, task_score)
+cur_data_wide$pop_order_factor <- as.factor(cur_data_wide$pop_order)
+ggplot(
+    cur_data_wide,
+    aes(
+      color=pop_order_factor
+    )
+  ) +
+  geom_pcp(
+    aes(
+      vars=vars(pop_order, 5:22)
+    )
+  )
+```
+
+Heatmap
+
+```{r}
+
+ggplot(
+    filter(cur_data, pop_level=="1"),
+    aes(x=task_name, y=pop_order, fill=task_score)
+  ) +
+  geom_tile() +
+  theme(
+    axis.text.x=element_text(angle=45, hjust=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "task_profiles.pdf"),
+  width=15,
   height=10
 )
 ```

@@ -166,8 +166,8 @@ def main():
         experiment_summary_info = {} # Hold summary information about this run.
         eval_time_series_info = []
         pop_snapshot_info = []
-
-        print(f"Processing ({cur_run_i+1}/{total_runs}): {run_path}")
+        cur_run_i+=1
+        print(f"Processing ({cur_run_i}/{total_runs}): {run_path}")
         # Add generic info
         experiment_summary_info["trait_cov_thresh"] = trait_cov_thresh
 
