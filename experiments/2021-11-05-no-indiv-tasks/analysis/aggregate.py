@@ -200,11 +200,17 @@ def main():
         total_updates = epoch*max_update
 
         world_tasks = list(world_params["world_tasks"])[0]
-        world_tasks = [f"{task.split(',')[0]}_{task.split(',')[1]}" for task in world_tasks.strip("[]()").split("),(")]
+        if len(world_tasks):
+            world_tasks = [f"{task.split(',')[0]}_{task.split(',')[1]}" for task in world_tasks.strip("[]()").split("),(")]
+        else:
+            world_tasks = []
         world_tasks_set = set(world_tasks)
 
         indiv_tasks = list(world_params["indiv_tasks"])[0]
-        indiv_tasks = [f"{task.split(',')[0]}_{task.split(',')[1]}" for task in indiv_tasks.strip("[]()").split("),(")]
+        if (len(indiv_tasks)):
+            indiv_tasks = [f"{task.split(',')[0]}_{task.split(',')[1]}" for task in indiv_tasks.strip("[]()").split("),(")]
+        else:
+            indiv_tasks = []
         indiv_tasks_set = set(indiv_tasks)
 
         # Add some secondarily-computed configuration details
