@@ -20,6 +20,7 @@ library(ggpcp)
 library(cowplot)
 library(RColorBrewer)
 library(scales)
+library(viridis)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 ```
 
@@ -658,49 +659,62 @@ ggsave(
 ## Population snapshot
 
 ```{r}
-population_snapshot_loc <- paste0(working_directory,"test/dump/population_profiles.csv")
+population_snapshot_loc <- paste0(working_directory,"data/population_profiles.csv")
 population_snapshot_data <- read.csv(population_snapshot_loc, na.strings="NONE")
-
-
 
 ```
 
 Parallel coordinates
 
 ```{r}
-cur_data <- filter(population_snapshot_data, SEED==4)
-cur_data_wide <- filter(cur_data, pop_level=="1") %>%
-  select(SEED, SELECTION_METHOD, epoch, pop_order, task_name, task_score) %>%
-  spread(task_name, task_score)
-cur_data_wide$pop_order_factor <- as.factor(cur_data_wide$pop_order)
-ggplot(
-    cur_data_wide,
-    aes(
-      color=pop_order_factor
-    )
-  ) +
-  geom_pcp(
-    aes(
-      vars=vars(pop_order, 5:22)
-    )
-  )
+cur_seed <- 50172
+cur_data <- filter(population_snapshot_data, SEED==cur_seed)
+# cur_data_wide <- filter(cur_data, pop_level=="1") %>%
+#   select(SEED, SELECTION_METHOD, epoch, pop_order, task_name, task_score) %>%
+#   spread(task_name, task_score)
+# cur_data_wide$pop_order_factor <- as.factor(cur_data_wide$pop_order)
+# ggplot(
+#     cur_data_wide,
+#     aes(
+#       color=pop_order_factor
+#     )
+#   ) +
+#   geom_pcp(
+#     aes(
+#       vars=vars(pop_order, 5:22)
+#     )
+#   )
 ```
 
 Heatmap
 
 ```{r}
-
 ggplot(
     filter(cur_data, pop_level=="1"),
     aes(x=task_name, y=pop_order, fill=task_score)
   ) +
-  geom_tile() +
+  geom_tile(
+    color="white",
+    size=0.1,
+    width=1,
+    height=1
+  ) +
+  geom_tile(
+    data=filter(cur_data, pop_level=="1" & task_coverage=="0"),
+    fill="#666666",
+    color="white",
+    size=0.1,
+    # size=0.2,
+    width=1,
+    height=1
+  ) +
+  scale_fill_viridis(discrete=FALSE) +
   theme(
     axis.text.x=element_text(angle=45, hjust=1)
   )
 
 ggsave(
-  paste0(plot_directory, "task_profiles.pdf"),
+  paste0(plot_directory, "task_profiles_",cur_seed,".pdf"),
   width=15,
   height=10
 )
