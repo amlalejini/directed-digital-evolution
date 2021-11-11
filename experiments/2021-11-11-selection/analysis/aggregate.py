@@ -361,6 +361,17 @@ def main():
             else:
                 run_world_summary_data_by_epoch[line["epoch"]] = [line]
 
+        # Total generations
+        epochs = [int(e) for e in run_world_summary_data_by_epoch]
+        epochs.sort()
+        total_gens = 0
+        for epoch in epochs:
+            summary_data = [line for line in run_world_summary_data_by_epoch[str(epoch)] if line["world_update"]==str(max_update+int(not track_systematics))]
+            gens = [float(line["avg_generation"]) for line in summary_data]
+            avg_gens = sum(gens) / len(gens)
+            total_gens += avg_gens
+        experiment_summary_info["total_gens_approx"] = total_gens
+
         targ_epoch_run_world_summary_data = [line for line in run_world_summary_data if line["epoch"]==str(epoch) and line["world_update"]==str(max_update+int(not track_systematics))]
 
         if len(targ_epoch_run_world_summary_data) != num_pops:
