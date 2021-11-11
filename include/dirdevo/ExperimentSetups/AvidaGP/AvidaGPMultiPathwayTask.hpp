@@ -100,6 +100,25 @@ public:
       },
       "avg_cpu_cycles_per_replication"
     );
+    // Average individual-level performance, in avida terms (merit / gestation time)
+    summary_file.AddFun<double>(
+      [&summary_file]() {
+        double total_fitness=0;
+        size_t num_parents=0;
+        world_t& world = summary_file.GetCurWorld();
+        for (size_t pop_id = 0; pop_id < world.GetSize(); ++pop_id) {
+          if (!world.IsOccupied({pop_id,0})) continue;
+          auto& org = world.GetOrg(pop_id);
+          if (!org.IsParent()) continue;
+          num_parents += 1;
+          emp_assert(org.GetCPUCyclesPerReplication() > 0);
+          total_fitness += org.GetMerit() / org.GetCPUCyclesPerReplication();
+        }
+        return (num_parents > 0) ? total_fitness / (double)num_parents : -1;
+      },
+      "avg_org_fitness"
+    );
+
   }
 
 protected:
