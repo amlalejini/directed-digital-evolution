@@ -130,6 +130,8 @@ protected:
   struct TaskInfo {
     size_t pathway=0;      ///< Which pathway is this task a part of?
     size_t local_id=0;     ///< What is that local within-pathway id of this task?
+    bool org_repeatable=false; ///< Can organisms get individual-level credit for this task multiple times?
+    bool world_repeatable=false; ///< Can organisms get world-level credit for this task multiple times?
 
     double org_value=0;    ///< What is the organism-level value of this task?
     double world_value=0;  ///< What is the world-level value of this task?
@@ -400,15 +402,15 @@ public:
           const size_t global_task_id = pathway.global_task_id_lookup[local_task_id];
           // TODO - this is where we would implement/check for task requirements
 
-          // If this is the first time an organism is performing this task, increase population-level task performance counter.
-          // I.e., limit each organism to one contribution per task.
-          if (!org.GetPhenotype().org_task_performances[global_task_id]) {
+          // IF REPEATABLE: Increase world level task performance no matter what.
+          // IF NOT REPEATABLE: If this is the first time an organism is performing this task, increase population-level task performance counter.
+          //                    I.e., limit each organism to one contribution per task.
+          if (task_info[global_task_id].world_repeatable) {
+            task_performance[global_task_id] += 1;
+          } else if (!org.GetPhenotype().org_task_performances[global_task_id]) {
             task_performance[global_task_id] += 1;
           }
-
           org.GetPhenotype().org_task_performances[global_task_id] += 1;
-          // for now, just let each time the task is performed count for the world
-          // task_performance[global_task_id] += 1;
         }
       }
       output_buffer.clear();  // Clear the output buffer after processing
@@ -662,10 +664,20 @@ void AvidaGPMultiPathwayTask::SetupTasks() {
       if (emp::Has(org_task_info, task_name)) {
         org_task_ids.emplace_back(global_task_id);
         task_info.back().org_value = org_task_info[task_name]["value"];
+        task_info.back().org_repeatable = false;
+        if (org_task_info[task_name].contains("repeatable")) {
+          const int repeatable = org_task_info[task_name]["repeatable"];
+          task_info.back().org_repeatable = (bool)repeatable;
+        }
       }
       if (emp::Has(world_task_info, task_name)) {
         world_task_ids.emplace_back(global_task_id);
         task_info.back().world_value = world_task_info[task_name]["value"];
+        task_info.back().world_repeatable = false;
+        if (world_task_info[task_name].contains("repeatable")) {
+          const int repeatable = world_task_info[task_name]["repeatable"];
+          task_info.back().world_repeatable = (bool)repeatable;
+        }
       }
       pathway.global_task_id_lookup[local_task_id] = global_task_id;
     }
@@ -689,6 +701,7 @@ void AvidaGPMultiPathwayTask::SetupTasks() {
       const size_t id = pathway.task_set.GetID(pair.first);
       std::cout << "  " << pair.first << ": " << pair.second;
       std::cout << ";  local id: " << id << "; global id: " << pathway.global_task_id_lookup[id];
+      std::cout << "; org repeatable: " << task_info[pathway.global_task_id_lookup[id]].org_repeatable;
       std::cout << std::endl;
     }
     std::cout << "World Task Info: " << std::endl;
@@ -696,6 +709,7 @@ void AvidaGPMultiPathwayTask::SetupTasks() {
       const size_t id = pathway.task_set.GetID(pair.first);
       std::cout << "  " << pair.first << ": " << pair.second;
       std::cout << ";  local id: " << id << "; global id: " << pathway.global_task_id_lookup[id];
+      std::cout << "; world repeatable: " << task_info[pathway.global_task_id_lookup[id]].world_repeatable;
       std::cout << std::endl;
     }
   }
@@ -715,10 +729,14 @@ void AvidaGPMultiPathwayTask::SetupMeritCalcFun() {
       // Note that task_id is the global id for this task.
       emp_assert(task_id < task_info.size());
       emp_assert(task_id < org.GetPhenotype().org_task_performances.size());
-      // Get credit if the organism performed this at least once (only get credit for each task once).
-      if (org.GetPhenotype().org_task_performances[task_id] >= 1) {
-        const double value = task_info[task_id].org_value;
-        merit *= emp::Pow2(value);
+      // If task is repeatable, multiply bonus by number of times organism performed the task.
+      // Otherwise, organism can only get credit once for each task.
+      if (task_info[task_id].org_repeatable && (org.GetPhenotype().org_task_performances[task_id] >= 1)) {
+          const double value = task_info[task_id].org_value;
+          merit *= (emp::Pow2(value) * org.GetPhenotype().org_task_performances[task_id]);
+      } else if (org.GetPhenotype().org_task_performances[task_id] >= 1) {
+          const double value = task_info[task_id].org_value;
+          merit *= emp::Pow2(value);
       }
     }
     emp_assert(merit > 0, "If all organisms have 0 merit, then the scheduler will crash.");
