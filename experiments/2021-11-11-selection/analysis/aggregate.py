@@ -301,7 +301,6 @@ def main():
         experiment_summary_info["avg_entropy_selected"] = avg_entropy_selected # NOTE - not sure if this is a good way of getting at this
 
         # TIME SERIES AGGREGATE
-        # Add updates elapsed to each data entry
         for line in run_world_eval_data:
             line["updates_elapsed"] = (int(line["epoch"])*max_update)+max_update
         # Filter data entries baseds on requested units/interval
@@ -481,6 +480,8 @@ def main():
                 pairwise_pop_info.append(info)
 
         # AGGREGATE TIME SERIES (EVALUATION SERIES FILE)
+        prev_epoch = None
+        elapsed_gens = 0
         for i in range(len(eval_filtered_epochs)):
             cur_epoch = str(eval_filtered_epochs[i])
             summary_data = [line for line in run_world_summary_data_by_epoch[cur_epoch] if line["world_update"]==str(max_update+int(not track_systematics))]
@@ -496,6 +497,13 @@ def main():
             cycles = [float(line["avg_cpu_cycles_per_replication"]) for line in summary_data]
             avg_cycles = sum(cycles) / len(cycles)
             eval_time_series_info[i]["avg_cpu_cycles_per_replication"] = avg_cycles
+            # cumulative generations (approx)
+            if prev_epoch == None:
+                elapsed_gens = avg_gens * (int(cur_epoch) + 1)
+            else:
+                elapsed_gens += avg_gens * (int(cur_epoch) - prev_epoch)
+            eval_time_series_info[i]["generations_elapsed"] = elapsed_gens
+            prev_epoch = int(cur_epoch)
 
         # Clear out data list
         run_world_summary_data = None
