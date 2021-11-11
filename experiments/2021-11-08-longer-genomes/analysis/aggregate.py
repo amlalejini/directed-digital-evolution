@@ -41,10 +41,9 @@ world_eval_fields = {
 time_series_config_fields = {
     "SELECTION_METHOD",
     "NUM_POPS",
-    "UPDATES_PER_EPOCH",
-    "POPULATION_SAMPLING_SIZE",
     "SEED",
-    "AVIDAGP_ENV_FILE"
+    "AVIDAGP_ENV_FILE",
+    "ANCESTOR_FILE"
 }
 
 time_series_world_eval_fields = {
