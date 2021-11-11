@@ -12,6 +12,7 @@ SUMMARY FILES
 
 import argparse, os, sys, errno, csv, json, copy, pandas
 from scipy.stats import entropy
+from scipy.spatial import distance
 
 run_identifiers = ["RUN_"] # String that identifies a run directory
 default_trait_cov_thresh = 100
@@ -38,11 +39,9 @@ world_eval_fields = {
     "num_unique_selected"
 }
 
-time_series_config_fields = {
-    "SELECTION_METHOD",
-    "NUM_POPS",
+key_config_fields = {
     "SEED",
-    "AVIDAGP_ENV_FILE",
+    "SELECTION_METHOD",
     "ANCESTOR_FILE"
 }
 
@@ -50,11 +49,6 @@ time_series_world_eval_fields = {
     "epoch",
     "num_unique_selected",
     "updates_elapsed"
-}
-
-pop_profile_snapshot_config_fields = {
-    "SEED",
-    "SELECTION_METHOD"
 }
 
 pop_profile_snapshot_world_eval_fields = {
@@ -142,6 +136,10 @@ def main():
     pop_profile_snapshot_header = None
     pop_profile_snapshot_content_lines = []
 
+    # Used for pairwise population information
+    pairwise_pop_header = None
+    pairwise_pop_content_lines = []
+
     # The summary file contains one line per run
     experiment_summary_header = None
     experiment_summary_content_lines = []
@@ -152,6 +150,10 @@ def main():
 
     pop_profile_snapshot_fpath = os.path.join(dump_dir, "population_profiles.csv")
     with open(pop_profile_snapshot_fpath, "w") as fp:
+        fp.write("")
+
+    pairwise_pop_fpath = os.path.join(dump_dir, "pairwise_population_comps.csv")
+    with open(pairwise_pop_fpath, "w") as fp:
         fp.write("")
 
     # For each run directory,
@@ -165,6 +167,8 @@ def main():
         experiment_summary_info = {} # Hold summary information about this run.
         eval_time_series_info = []
         pop_snapshot_info = []
+        pairwise_pop_info = []
+
         cur_run_i+=1
         print(f"Processing ({cur_run_i}/{total_runs}): {run_path}")
         # Add generic info
@@ -298,7 +302,6 @@ def main():
         experiment_summary_info["avg_entropy_selected"] = avg_entropy_selected # NOTE - not sure if this is a good way of getting at this
 
         # TIME SERIES AGGREGATE
-        # Add updates elapsed to each data entry
         for line in run_world_eval_data:
             line["updates_elapsed"] = (int(line["epoch"])*max_update)+max_update
         # Filter data entries baseds on requested units/interval
@@ -310,7 +313,7 @@ def main():
             data_i = time_series_eval_data[i]
             eval_filtered_epochs.append(data_i["epoch"])
             # Config fields are shared for all lines
-            for field in time_series_config_fields: info[field] = experiment_summary_info[field]
+            for field in key_config_fields: info[field] = experiment_summary_info[field]
             # Eval fields carry over from current line
             for field in time_series_world_eval_fields: info[field] = data_i[field]
             # Calculated fields
@@ -359,6 +362,17 @@ def main():
             else:
                 run_world_summary_data_by_epoch[line["epoch"]] = [line]
 
+        # Total generations
+        epochs = [int(e) for e in run_world_summary_data_by_epoch]
+        epochs.sort()
+        total_gens = 0
+        for epoch in epochs:
+            summary_data = [line for line in run_world_summary_data_by_epoch[str(epoch)] if line["world_update"]==str(max_update+int(not track_systematics))]
+            gens = [float(line["avg_generation"]) for line in summary_data]
+            avg_gens = sum(gens) / len(gens)
+            total_gens += avg_gens
+        experiment_summary_info["total_gens_approx"] = total_gens
+
         targ_epoch_run_world_summary_data = [line for line in run_world_summary_data if line["epoch"]==str(epoch) and line["world_update"]==str(max_update+int(not track_systematics))]
 
         if len(targ_epoch_run_world_summary_data) != num_pops:
@@ -400,19 +414,27 @@ def main():
             elif cur_agg_score > max_agg_score:
                 max_agg_score = cur_agg_score
                 max_agg_score_pop_i = pop_i
-        # Calculate distances to the max score
-        pop_task_dists = [( sum([abs( pop_task_performances[pop_i][task] - pop_task_performances[max_agg_score_pop_i][task] ) for task in world_tasks]) , pop_i) for pop_i in range(num_pops) ]
-        pop_task_dists.sort()
+        # Calculate pairwise distances
+        pop_task_pairwise_dists = [ [ (sum([ abs(pop_task_performances[pop_i][task] - pop_task_performances[pop_j][task]) for task in world_tasks]), pop_j) for pop_j in range(num_pops) if pop_j != pop_i] for pop_i in range(num_pops)]
+        for dists in pop_task_pairwise_dists:
+            dists.sort()
+
+        # for pop_i in range(num_pops):
+        #     print([pop_task_performances[pop_i][task] for task in world_tasks])
+
+        added_pops = set([])
+        next_pop = max_agg_score_pop_i
         # Add lines to content
-        for i in range(num_pops):
-            pop_i = pop_task_dists[i][1]
+        while(len(added_pops) < num_pops):
+            pop_i = next_pop
+            added_pops.add(pop_i)
             task_performances = pop_task_performances[pop_i]
             tasks = list(pop_task_performances[pop_i].keys())
             tasks.sort()
             for task_i in range(len(tasks)):
                 info = {}
                 # Config fields are shared for all lines
-                for field in pop_profile_snapshot_config_fields: info[field] = experiment_summary_info[field]
+                for field in key_config_fields: info[field] = experiment_summary_info[field]
                 info["epoch"] = str(epoch)
                 info["pop_id"] = str(pop_i)
                 info["pop_order"] = str(i)
@@ -424,8 +446,54 @@ def main():
                 info["indiv_level"] = str(int(tasks[task_i] in indiv_tasks_set))
                 info["pop_level"] = str(int(tasks[task_i] in world_tasks_set))
                 pop_snapshot_info.append(info)
+            # If we've added all pops, break out of loop.
+            # Otherwise, compute next pop as most similar pop to this one
+            other_pops = pop_task_pairwise_dists[pop_i]
+            for next in other_pops:
+                if next[1] in added_pops:
+                    continue
+                next_pop = next[1]
+                break
+
+        # Calculate normalized centroid task vector
+        vec_lens = [ sum(pop_task_performances[pop_i][task] for task in world_tasks) for pop_i in range(num_pops)]
+        pop_norm_task_performances = [ [ 0 if vec_lens[pop_i] == 0 else (pop_task_performances[pop_i][task] / vec_lens[pop_i]) for task in world_tasks] for pop_i in range(num_pops)]
+        centroid_norm_task_vector = [ sum([pop_norm_task_performances[pop_i][task_i] for pop_i in range(num_pops)])/num_pops for task_i in range(len(world_tasks)) ]
+        # Normalize the centroid norm task vector
+        vec_len = sum(centroid_norm_task_vector)
+        for i in range(0, len(centroid_norm_task_vector)):
+            if vec_len != 0:
+                centroid_norm_task_vector[i] /= vec_len
+        # Calculate centroid task vector by averaging scores for each trait.
+        centroid_task_vector = [ sum([pop_task_performances[pop_i][task] for pop_i in range(num_pops)])/num_pops for task in world_tasks ] # mean tasks
+
+        # Calculate each population's cosine distance to the centroid (identical whether using normalized versus not normalized)
+        pop_cosine_dist_from_centroid = [None if vec_lens[pop_i] == 0 else distance.cosine(pop_norm_task_performances[pop_i], centroid_norm_task_vector) for pop_i in range(num_pops)]
+        avg_cosine_dist_from_centroid = [val for val in pop_cosine_dist_from_centroid if val != None]
+        avg_cosine_dist_from_centroid = sum(avg_cosine_dist_from_centroid) / len(avg_cosine_dist_from_centroid)
+        experiment_summary_info["avg_cosine_dist_from_centroid"] = avg_cosine_dist_from_centroid
+
+        # AGGREGATE PAIRWISE POPULATION INFORMATION
+        for pop_i in range(num_pops):
+            for pop_j in range(pop_i+1, num_pops):
+                info = {}
+                # add keys
+                for field in key_config_fields: info[field] = experiment_summary_info[field]
+                # cosine dist
+                cosine_dist = None
+                if vec_lens[pop_i] and vec_lens[pop_j]:
+                    cosine_dist = distance.cosine(pop_norm_task_performances[pop_i], pop_norm_task_performances[pop_j])
+                # coverage hamming distance
+                coverage_hamming_dist = sum( [ int((pop_task_performances[pop_i][task] >= trait_cov_thresh) != (pop_task_performances[pop_j][task] >= trait_cov_thresh)) for task in world_tasks] ) / len(world_tasks)
+                info["pop_a"] = str(pop_i)
+                info["pop_b"] = str(pop_j)
+                info["cosine_distance"] = str(cosine_dist)
+                info["coverage_hamming_distance"] = str(coverage_hamming_dist)
+                pairwise_pop_info.append(info)
 
         # AGGREGATE TIME SERIES (EVALUATION SERIES FILE)
+        prev_epoch = None
+        elapsed_gens = 0
         for i in range(len(eval_filtered_epochs)):
             cur_epoch = str(eval_filtered_epochs[i])
             summary_data = [line for line in run_world_summary_data_by_epoch[cur_epoch] if line["world_update"]==str(max_update+int(not track_systematics))]
@@ -441,6 +509,13 @@ def main():
             cycles = [float(line["avg_cpu_cycles_per_replication"]) for line in summary_data]
             avg_cycles = sum(cycles) / len(cycles)
             eval_time_series_info[i]["avg_cpu_cycles_per_replication"] = avg_cycles
+            # cumulative generations (approx)
+            if prev_epoch == None:
+                elapsed_gens = avg_gens * (int(cur_epoch) + 1)
+            else:
+                elapsed_gens += avg_gens * (int(cur_epoch) - prev_epoch)
+            eval_time_series_info[i]["generations_elapsed"] = elapsed_gens
+            prev_epoch = int(cur_epoch)
 
         # Clear out data list
         run_world_summary_data = None
@@ -484,6 +559,27 @@ def main():
             fp.write("\n")
             fp.write("\n".join(pop_profile_snapshot_content_lines))
         pop_profile_snapshot_content_lines=[]
+
+        #######################################################################
+        # Dump pairwise population information
+        #######################################################################
+        pairwise_pop_fields = list(pairwise_pop_info[0].keys())
+        pairwise_pop_fields.sort()
+        for i in range(len(pairwise_pop_info)):
+            pairwise_pop_content_lines.append(
+                ",".join([str(pairwise_pop_info[i][field]) for field in pairwise_pop_fields])
+            )
+        write_header = (pairwise_pop_header==None)
+        if write_header:
+            pairwise_pop_header = ",".join(pairwise_pop_fields)
+        elif pairwise_pop_header != ",".join(pairwise_pop_fields):
+            print("  Pop profile header mismatch!")
+            exit(-1)
+        with open(pairwise_pop_fpath, "a") as fp:
+            if write_header: fp.write(pairwise_pop_header)
+            fp.write("\n")
+            fp.write("\n".join(pairwise_pop_content_lines))
+        pairwise_pop_content_lines=[]
 
         #######################################################################
         # Add experiment summary info to experiment summary file content
