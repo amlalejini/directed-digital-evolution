@@ -1,0 +1,839 @@
+# 2021-11-08 - Longer genomes
+
+## Overview
+
+```{r}
+experiment_slug <- "2021-11-08-longer-genomes"
+
+working_directory <- paste0("experiments/",experiment_slug,"/analysis/")
+```
+
+## Analysis dependencies
+
+Load all required R libraries
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(GGally)
+library(ggpcp)
+library(cowplot)
+library(RColorBrewer)
+library(scales)
+library(viridis)
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+```
+
+These analyses were knit with the following environment:
+
+```{r}
+print(version)
+```
+
+## Setup
+
+Experiment summary data
+
+```{r}
+exp_summary_data_loc <- paste0(working_directory,"data/experiment_summary.csv")
+exp_summary_data <- read.csv(exp_summary_data_loc, na.strings="NONE")
+
+exp_summary_data$SELECTION_METHOD <- factor(
+  exp_summary_data$SELECTION_METHOD,
+  levels=c(
+    "elite",
+    "tournament",
+    "lexicase",
+    "non-dominated-elite",
+    "non-dominated-tournament",
+    "random",
+    "none"
+  ),
+  labels=c(
+    "elite",
+    "tourn",
+    "lex",
+    "nde",
+    "ndt",
+    "random",
+    "none"
+  )
+)
+
+exp_summary_data$AVIDAGP_ENV_FILE <- factor(
+  exp_summary_data$AVIDAGP_ENV_FILE,
+  levels=c(
+    "environment-no-indiv.json",
+    "environment-big.json"
+  ),
+  labels=c(
+    "env-bb-0",
+    "env-bb-1"
+  )
+)
+
+
+exp_summary_data$NUM_POPS <- factor(
+  exp_summary_data$NUM_POPS,
+  levels=c(
+    "24",
+    "48",
+    "96"
+  )
+)
+
+exp_summary_data$UPDATES_PER_EPOCH <- as.factor(
+  exp_summary_data$UPDATES_PER_EPOCH
+)
+
+exp_summary_data$TOURNAMENT_SEL_TOURN_SIZE <- as.factor(
+  exp_summary_data$TOURNAMENT_SEL_TOURN_SIZE
+)
+
+exp_summary_data$POPULATION_SAMPLING_SIZE <- as.factor(
+  exp_summary_data$POPULATION_SAMPLING_SIZE
+)
+
+exp_summary_data$genome_length <- factor(
+  exp_summary_data$ANCESTOR_FILE,
+  levels=c(
+    "ancestor-50.gen",
+    "ancestor-100.gen",
+    "ancestor-150.gen",
+    "ancestor-200.gen"
+  ),
+  labels=c(
+    "50",
+    "100",
+    "150",
+    "200"
+  )
+)
+
+exp_summary_data$SAMPLE_SIZE <- exp_summary_data$POPULATION_SAMPLING_SIZE
+exp_summary_data$ENV <- exp_summary_data$AVIDAGP_ENV_FILE
+exp_summary_data$U_PER_E <- exp_summary_data$UPDATES_PER_EPOCH
+
+
+```
+
+Miscellaneous setup
+
+```{r}
+# Configure our default graphing theme
+theme_set(theme_cowplot())
+# Palette
+cb_palette <- "Paired"
+# Create a directory to store plots
+plot_directory <- paste0(working_directory, "plots/")
+dir.create(plot_directory, showWarnings=FALSE)
+```
+
+## Average number of organisms
+
+Average number of organisms per world at the end of a run.
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=genome_length,
+      y=avg_num_orgs,
+      fill=genome_length
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=genome_length),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_wrap(
+    ~SELECTION_METHOD
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_num_orgs.pdf")
+)
+```
+
+## Average generations
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=genome_length,
+      y=avg_gens,
+      fill=genome_length
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=genome_length),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_wrap(
+    ~SELECTION_METHOD
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_gens.pdf"),
+  width=10,
+  height=15
+)
+```
+
+## Total generations
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=genome_length,
+      y=total_gens_approx,
+      fill=genome_length
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=genome_length),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_wrap(
+    ~SELECTION_METHOD
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "total_gens_approx.pdf"),
+  width=10,
+  height=15
+)
+```
+
+## Performance
+
+### CPU cycles per replication
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=genome_length,
+      y=avg_cpu_cycles_per_replication,
+      fill=genome_length
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=genome_length),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_wrap(
+    ~SELECTION_METHOD
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_cpu_cycles_per_replication.pdf")
+)
+```
+
+### Max aggregate performance
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=genome_length,
+      y=max_aggregate_score,
+      fill=genome_length
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=genome_length),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  # scale_y_continuous(
+  #   name="max_aggregate_score (log scale)",
+  #   trans=pseudo_log_trans(sigma = 1, base = 10)
+  # ) +
+  facet_wrap(
+    ~SELECTION_METHOD
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "max_aggregate_score.pdf")
+)
+```
+
+### Max trait coverage
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=genome_length,
+      y=max_trait_coverage,
+      fill=genome_length
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=genome_length),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_y_continuous(
+    breaks=seq(0,18,2)
+  ) +
+  facet_wrap(
+    ~SELECTION_METHOD
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "max_trait_coverage.pdf")
+)
+```
+
+### Total trait coverage
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=genome_length,
+      y=total_trait_coverage,
+      fill=genome_length
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=genome_length),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_y_continuous(
+    breaks=seq(0,18,2)
+  ) +
+  facet_wrap(
+    ~SELECTION_METHOD
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "total_trait_coverage.pdf")
+)
+```
+
+## Population-level Task Profile Diversity
+
+### Task profile richness
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=genome_length,
+      y=num_pop_trait_profiles,
+      fill=genome_length
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=genome_length),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_wrap(
+    ~SELECTION_METHOD
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "num_pop_trait_profiles.pdf")
+)
+```
+
+### Task profile entropy
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=genome_length,
+      y=pop_trait_profile_entropy,
+      fill=genome_length
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=genome_length),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_wrap(
+    ~SELECTION_METHOD
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "pop_trait_profile_entropy.pdf")
+)
+```
+
+### Spread (avg cosine distance)
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=genome_length,
+      y=avg_cosine_dist_from_centroid,
+      fill=genome_length
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=genome_length),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_wrap(
+    ~SELECTION_METHOD
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_cosine_dist_from_centroid.pdf")
+)
+```
+
+## Selection
+
+### Average number of unique populations selected
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=genome_length,
+      y=avg_unique_selected,
+      fill=genome_length
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=genome_length),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_wrap(
+    ~SELECTION_METHOD
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_unique_selected.pdf")
+)
+```
+
+### Average entropy of selection ids
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=genome_length,
+      y=avg_entropy_selected,
+      fill=genome_length
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=genome_length),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  facet_wrap(
+    ~SELECTION_METHOD
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_entropy_selected.pdf")
+)
+```
+
+## Time series
+
+Load data
+
+```{r}
+times_series_data_loc <- paste0(working_directory,"data/evaluation_time_series.csv")
+times_series_data <- read.csv(times_series_data_loc, na.strings="NONE")
+
+get_genome_length <- function(seed) {
+  return(filter(exp_summary_data, SEED==seed)$genome_length)
+}
+
+# Specify experimental condition for each datum.
+times_series_data$SELECTION_METHOD <- factor(
+  times_series_data$SELECTION_METHOD,
+  levels=c(
+    "elite",
+    "tournament",
+    "lexicase",
+    "non-dominated-elite",
+    "non-dominated-tournament",
+    "random",
+    "none"
+  ),
+  labels=c(
+    "elite",
+    "tourn",
+    "lex",
+    "nde",
+    "ndt",
+    "random",
+    "none"
+  )
+)
+
+times_series_data$AVIDAGP_ENV_FILE <- factor(
+  times_series_data$AVIDAGP_ENV_FILE,
+  levels=c(
+    "environment-no-indiv.json",
+    "environment-big.json"
+  ),
+  labels=c(
+    "env-bb-0",
+    "env-bb-1"
+  )
+)
+
+times_series_data$NUM_POPS <- factor(
+  times_series_data$NUM_POPS,
+  levels=c(
+    "24",
+    "48",
+    "96"
+  )
+)
+
+times_series_data$UPDATES_PER_EPOCH <- as.factor(
+  times_series_data$UPDATES_PER_EPOCH
+)
+
+times_series_data$genome_length <- mapply(
+  get_genome_length,
+  times_series_data$SEED
+)
+
+times_series_data$U_PER_E <- times_series_data$UPDATES_PER_EPOCH
+```
+
+### Max trait coverage
+
+```{r}
+ggplot(
+    times_series_data,
+    aes(
+      x=updates_elapsed,
+      y=max_trait_coverage,
+      fill=genome_length,
+      color=genome_length
+    )
+  ) +
+  stat_summary(geom="line", fun=mean) +
+  stat_summary(
+    geom="ribbon",
+    fun.data="mean_cl_boot",
+    fun.args=list(conf.int=0.95),
+    alpha=0.2,
+    linetype=0
+  ) +
+  scale_y_continuous(
+    breaks=seq(0,18,2)
+  ) +
+  facet_wrap(
+    ~SELECTION_METHOD,
+    nrow=2
+  ) +
+  theme(
+    legend.position="bottom",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "max_trait_coverage_ot.png"),
+  width=20,
+  height=10
+)
+```
+
+```{r}
+ggplot(
+    times_series_data,
+    aes(
+      x=updates_elapsed,
+      y=total_trait_coverage,
+      fill=genome_length,
+      color=genome_length
+    )
+  ) +
+  stat_summary(geom="line", fun=mean) +
+  stat_summary(
+    geom="ribbon",
+    fun.data="mean_cl_boot",
+    fun.args=list(conf.int=0.95),
+    alpha=0.2,
+    linetype=0
+  ) +
+  scale_y_continuous(
+    breaks=seq(0,18,2)
+  ) +
+  facet_wrap(
+    ~SELECTION_METHOD,
+    nrow=2
+  ) +
+  theme(
+    legend.position="bottom",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "total_trait_coverage_ot.png"),
+  width=20,
+  height=10
+)
+```
+
+## Pairwise Population comparisons
+
+```{r}
+pairwise_pop_data_loc <- paste0(working_directory,"data/pairwise_population_comps.csv")
+pairwise_pop_data <- read.csv(pairwise_pop_data_loc, na.strings="NONE")
+
+# Specify experimental condition for each datum.
+pairwise_pop_data$SELECTION_METHOD <- factor(
+  pairwise_pop_data$SELECTION_METHOD,
+  levels=c(
+    "elite",
+    "tournament",
+    "lexicase",
+    "non-dominated-elite",
+    "non-dominated-tournament",
+    "random",
+    "none"
+  ),
+  labels=c(
+    "elite",
+    "tourn",
+    "lex",
+    "nde",
+    "ndt",
+    "random",
+    "none"
+  )
+)
+
+pairwise_pop_data$genome_length <- factor(
+  pairwise_pop_data$ANCESTOR_FILE,
+  levels=c(
+    "ancestor-50.gen",
+    "ancestor-100.gen",
+    "ancestor-150.gen",
+    "ancestor-200.gen"
+  ),
+  labels=c(
+    "50",
+    "100",
+    "150",
+    "200"
+  )
+)
+
+```
+
+```{r}
+# 60224
+ggplot(
+    filter(pairwise_pop_data, SEED=="60224"),
+    aes(x=pop_a, y=pop_b, fill=cosine_distance)
+  ) +
+  geom_tile(
+    color="white",
+    size=0.1,
+    width=1,
+    height=1
+  ) +
+  # geom_tile(
+  #   data=filter(profile_data, pop_level=="1" & task_coverage=="0"),
+  #   fill="#666666",
+  #   color="white",
+  #   size=0.1,
+  #   width=1,
+  #   height=1
+  # ) +
+  scale_fill_viridis(discrete=FALSE) +
+  theme(
+    axis.text.x=element_text(angle=45, hjust=1)
+  )
+
+```
+
