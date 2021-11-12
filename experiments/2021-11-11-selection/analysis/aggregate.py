@@ -512,6 +512,11 @@ def main():
             cycles = [float(line["avg_cpu_cycles_per_replication"]) for line in summary_data]
             avg_cycles = sum(cycles) / len(cycles)
             eval_time_series_info[i]["avg_cpu_cycles_per_replication"] = avg_cycles
+            # average fitness
+            fitnesses = [float(line["avg_org_fitness"]) for line in summary_data]
+            avg_org_fitness = sum(fitnesses) / len(fitnesses)
+            eval_time_series_info[i]["avg_org_fitness"] = avg_org_fitness
+
             # cumulative generations (approx)
             if prev_epoch == None:
                 elapsed_gens = avg_gens * (int(cur_epoch) + 1)
