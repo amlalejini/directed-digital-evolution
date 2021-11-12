@@ -391,6 +391,10 @@ def main():
         cycles = [float(line["avg_cpu_cycles_per_replication"]) for line in targ_epoch_run_world_summary_data]
         avg_cycles = sum(cycles) / len(cycles)
         experiment_summary_info["avg_cpu_cycles_per_replication"] = avg_cycles
+        # average fitness
+        fitnesses = [float(line["avg_org_fitness"]) for line in targ_epoch_run_world_summary_data]
+        avg_org_fitness = sum(fitnesses) / len(fitnesses)
+        experiment_summary_info["avg_org_fitness"] = avg_org_fitness
 
         # AGGREGATE POPULATION PROFILE FILE INFO
         # - one line per trait_id per population per seed
