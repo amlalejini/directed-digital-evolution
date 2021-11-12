@@ -1,0 +1,788 @@
+# 2021-11-11 - Selection
+
+## Overview
+
+```{r}
+experiment_slug <- "2021-11-11-selection"
+
+working_directory <- paste0("experiments/",experiment_slug,"/analysis/")
+```
+
+## Analysis dependencies
+
+Load all required R libraries
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(cowplot)
+library(RColorBrewer)
+library(scales)
+library(viridis)
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+```
+
+These analyses were knit with the following environment:
+
+```{r}
+print(version)
+```
+
+## Setup
+
+Experiment summary data
+
+```{r}
+exp_summary_data_loc <- paste0(working_directory,"data/experiment_summary.csv")
+exp_summary_data <- read.csv(exp_summary_data_loc, na.strings="NONE")
+
+exp_summary_data$SELECTION_METHOD <- factor(
+  exp_summary_data$SELECTION_METHOD,
+  levels=c(
+    "elite",
+    "tournament",
+    "lexicase",
+    "non-dominated-elite",
+    "non-dominated-tournament",
+    "random",
+    "none"
+  ),
+  labels=c(
+    "elite",
+    "tourn",
+    "lex",
+    "nde",
+    "ndt",
+    "random",
+    "none"
+  )
+)
+
+exp_summary_data$NUM_POPS <- factor(
+  exp_summary_data$NUM_POPS,
+  levels=c(
+    "24",
+    "48",
+    "96"
+  )
+)
+
+exp_summary_data$UPDATES_PER_EPOCH <- as.factor(
+  exp_summary_data$UPDATES_PER_EPOCH
+)
+
+exp_summary_data$TOURNAMENT_SEL_TOURN_SIZE <- as.factor(
+  exp_summary_data$TOURNAMENT_SEL_TOURN_SIZE
+)
+
+exp_summary_data$POPULATION_SAMPLING_SIZE <- as.factor(
+  exp_summary_data$POPULATION_SAMPLING_SIZE
+)
+
+exp_summary_data$SAMPLE_SIZE <- exp_summary_data$POPULATION_SAMPLING_SIZE
+exp_summary_data$ENV <- exp_summary_data$AVIDAGP_ENV_FILE
+exp_summary_data$U_PER_E <- exp_summary_data$UPDATES_PER_EPOCH
+```
+
+Miscellaneous setup
+
+```{r}
+# Configure our default graphing theme
+theme_set(theme_cowplot())
+# Palette
+cb_palette <- "Set2"
+# Create a directory to store plots
+plot_directory <- paste0(working_directory, "plots/")
+dir.create(plot_directory, showWarnings=FALSE)
+```
+
+## Average number of organisms
+
+Average number of organisms per world at the end of a run.
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=avg_num_orgs,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="none"
+    # panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_num_orgs.pdf")
+)
+```
+
+## Average generations
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=avg_gens,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_gens.pdf"),
+  width=10,
+  height=15
+)
+```
+
+## Performance
+
+### CPU cycles per replication
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=avg_cpu_cycles_per_replication,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_cpu_cycles_per_replication.pdf")
+)
+```
+
+### Avida-style Fitness Measure
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=avg_org_fitness,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_org_fitness.pdf")
+)
+```
+
+### Max aggregate performance
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=max_aggregate_score,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="none",
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "max_aggregate_score.pdf")
+)
+```
+
+### Max trait coverage
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=max_trait_coverage,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8,
+    adjust=1.5
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0.1, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_y_continuous(
+    breaks=seq(0,18,2)
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "max_trait_coverage.pdf")
+)
+```
+
+### Total trait coverage
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=total_trait_coverage,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8,
+    adjust=1.5
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0.1, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_y_continuous(
+    breaks=seq(0,18,2)
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "total_trait_coverage.pdf")
+)
+```
+
+## Population-level Task Profile Diversity
+
+### Task profile richness
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=num_pop_trait_profiles,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "num_pop_trait_profiles.pdf")
+)
+```
+
+### Task profile entropy
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=pop_trait_profile_entropy,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "pop_trait_profile_entropy.pdf")
+)
+```
+
+### Spread (average cosine distance)
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=avg_cosine_dist_from_centroid,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_cosine_dist_from_centroid.pdf")
+)
+```
+
+## Selection
+
+### Average number of unique populations selected
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=avg_unique_selected,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="none"
+  )
+ggsave(
+  paste0(plot_directory, "avg_unique_selected.pdf")
+)
+```
+
+### Average entropy of selection ids
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=avg_entropy_selected,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_entropy_selected.pdf")
+)
+```
+
+## Pairwise Population comparisons
+
+```{r}
+pairwise_pop_data_loc <- paste0(working_directory,"data/pairwise_population_comps.csv")
+pairwise_pop_data <- read.csv(pairwise_pop_data_loc, na.strings="NONE")
+
+# Specify experimental condition for each datum.
+pairwise_pop_data$SELECTION_METHOD <- factor(
+  pairwise_pop_data$SELECTION_METHOD,
+  levels=c(
+    "elite",
+    "tournament",
+    "lexicase",
+    "non-dominated-elite",
+    "non-dominated-tournament",
+    "random",
+    "none"
+  ),
+  labels=c(
+    "elite",
+    "tourn",
+    "lex",
+    "nde",
+    "ndt",
+    "random",
+    "none"
+  )
+)
+```
+
+## Time series
+
+Load data
+
+```{r}
+times_series_data_loc <- paste0(working_directory,"data/evaluation_time_series.csv")
+times_series_data <- read.csv(times_series_data_loc, na.strings="NONE")
+
+# Specify experimental condition for each datum.
+times_series_data$SELECTION_METHOD <- factor(
+  times_series_data$SELECTION_METHOD,
+  levels=c(
+    "elite",
+    "tournament",
+    "lexicase",
+    "non-dominated-elite",
+    "non-dominated-tournament",
+    "random",
+    "none"
+  ),
+  labels=c(
+    "elite",
+    "tourn",
+    "lex",
+    "nde",
+    "ndt",
+    "random",
+    "none"
+  )
+)
+```
+
+### Max trait coverage
+
+```{r}
+ggplot(
+    times_series_data,
+    aes(
+      x=updates_elapsed,
+      y=max_trait_coverage,
+      fill=SELECTION_METHOD,
+      color=SELECTION_METHOD
+    )
+  ) +
+  stat_summary(geom="line", fun=mean) +
+  stat_summary(
+    geom="ribbon",
+    fun.data="mean_cl_boot",
+    fun.args=list(conf.int=0.95),
+    alpha=0.2,
+    linetype=0
+  ) +
+  scale_y_continuous(
+    breaks=seq(0,18,2)
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="bottom"
+  )
+
+ggsave(
+  paste0(plot_directory, "max_trait_coverage_ot.pdf"),
+  width=20,
+  height=10
+)
+```
+
+### Total trait coverage
+
+```{r}
+ggplot(
+    times_series_data,
+    aes(
+      x=updates_elapsed,
+      y=total_trait_coverage,
+      fill=SELECTION_METHOD,
+      color=SELECTION_METHOD
+    )
+  ) +
+  stat_summary(geom="line", fun=mean) +
+  stat_summary(
+    geom="ribbon",
+    fun.data="mean_cl_boot",
+    fun.args=list(conf.int=0.95),
+    alpha=0.2,
+    linetype=0
+  ) +
+  scale_y_continuous(
+    breaks=seq(0,18,2)
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="bottom"
+  )
+
+ggsave(
+  paste0(plot_directory, "total_trait_coverage_ot.pdf"),
+  width=20,
+  height=10
+)
+```
+
+### Number of different population-level trait profiles
+
+```{r}
+ggplot(
+    times_series_data,
+    aes(
+      x=updates_elapsed,
+      y=num_pop_trait_profiles,
+      fill=SELECTION_METHOD,
+      color=SELECTION_METHOD
+    )
+  ) +
+  stat_summary(geom="line", fun=mean) +
+  stat_summary(
+    geom="ribbon",
+    fun.data="mean_cl_boot",
+    fun.args=list(conf.int=0.95),
+    alpha=0.2,
+    linetype=0
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="bottom"
+  )
+
+ggsave(
+  paste0(plot_directory, "num_pop_trait_profiles_ot.pdf"),
+  width=20,
+  height=10
+)
+```
+

@@ -440,7 +440,7 @@ def main():
                 for field in key_config_fields: info[field] = experiment_summary_info[field]
                 info["epoch"] = str(epoch)
                 info["pop_id"] = str(pop_i)
-                info["pop_order"] = str(i)
+                # info["pop_order"] = str(i)
                 info["task_id"] = str(task_i)
                 info["task_name"] = tasks[task_i]
                 info["pathway"] = tasks[task_i].split("_")[-1]
