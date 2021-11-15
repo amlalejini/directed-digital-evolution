@@ -47,7 +47,7 @@ EMP_BUILD_CONFIG(AvidaGPEvoCompConfig,
   VALUE(OUTPUT_DIR, std::string, "output", "Where should the experiment dump output?"),
 
   GROUP(EVALUATION_SETTINGS, "Settings related to program evaluation"),
-  VALUE(EVAL_STEPS, size_t, 30, "On average, how many steps per organism do we allot on each world update? Must be >= 1."),
+  VALUE(EVAL_STEPS, size_t, 30, "How many CPU cycles do programs get per evaluation?"),
 
   GROUP(SELECTION_SETTINGS, "Settings for selecting individuals as parents"),
   VALUE(SELECTION_METHOD, std::string, "elite", "Which algorithm should be used to select populations to propagate? Options: elite, tournament"),
@@ -160,6 +160,7 @@ protected:
 
   bool found_solution;
   size_t max_fit_org_id=0;
+  size_t solution_id=0;
 
   emp::Signal<void(void)> end_setup_sig;    ///< Triggered at end of world setup.
   emp::Signal<void(void)> do_selection_sig; ///< Triggered when it's time to do selection!
@@ -633,25 +634,56 @@ void AvidaGPEvoCompWorld::DoEvaluation() {
   // TODO - come back and finish!
 
   // TODO - try threading?
-  max_fit_org_id = 0;
   for (size_t org_id = 0; org_id < GetSize(); ++org_id) {
     emp_assert(IsOccupied(org_id));
     RunOrg(org_id);
-    // org_aggregate_scores[org_id] = -1; // todo
+  }
+
+  // Analyze each organism's output buffers! (do this here to make it super easy to thread program evaluation)
+  max_fit_org_id = 0;
+  for (size_t org_id = 0; org_id < GetSize(); ++org_id) {
+    const size_t num_pathways = task_pathways.size();
+    auto& org = GetOrg(org_id);
+    for (size_t pathway_id = 0; pathway_id < num_pathways; ++pathway_id) {
+      auto& output_buffer = org.GetHardware().GetOutputBuffer(pathway_id);
+      auto& pathway = task_pathways[pathway_id];
+      const auto& env = pathway.env_bank->GetEnvironment(org.GetHardware().GetEnvID(pathway_id));
+      for (auto value : output_buffer) {
+        // Is this value the correct output to any tasks?
+        if (emp::Has(env.valid_outputs, value)) {
+          emp_assert(env.task_lookup.find(value)->second.size() == 1, "Environment should guarantee unique output for each operation");
+          const size_t local_task_id = env.task_lookup.find(value)->second[0];
+          const size_t global_task_id = pathway.global_task_id_lookup[local_task_id];
+          // IF REPEATABLE: Increase world level task performance no matter what.
+          // IF NOT REPEATABLE: If this is the first time an organism is performing this task, increase population-level task performance counter.
+          //                    I.e., limit each organism to one contribution per task.
+          if (task_info[global_task_id].repeatable) {
+            org.GetPhenotype().org_task_performances[global_task_id] += 1;
+          } else if (!org.GetPhenotype().org_task_performances[global_task_id]) {
+            org.GetPhenotype().org_task_performances[global_task_id] += 1;
+          }
+        }
+      }
+      output_buffer.clear(); // Clear the output buffer after processing
+    }
+    org_aggregate_scores[org_id] = emp::Sum(GetOrg(org_id).GetPhenotype().org_task_performances);
     if (CalcFitnessID(org_id) > CalcFitnessID(max_fit_org_id)) {
       max_fit_org_id = org_id;
     }
   }
 
-  // TODO - if threading, analyze organisms' output buffers!
-
-  // todo - fill out aggregate scores (in a threading-friendly way?)
-  for (size_t org_id = 0; org_id < GetSize(); ++org_id) {
-    org_aggregate_scores[org_id] = emp::Sum(GetOrg(org_id).GetPhenotype().org_task_performances);
+  for (size_t org_id=0; org_id < GetSize(); ++org_id) {
+    auto& org_task_performances = GetOrg(org_id).GetPhenotype().org_task_performances;
+    size_t coverage = 0;
+    for (size_t task_i=0; task_i < org_task_performances.size(); ++task_i) {
+      coverage += (int)(org_task_performances[task_i] > 0);
+    }
+    if (coverage == total_tasks) {
+      found_solution = true;
+      solution_id = org_id;
+      break;
+    }
   }
-
-  // todo - screen for solution!
-
 }
 
 void AvidaGPEvoCompWorld::DoSelection() {
@@ -668,7 +700,7 @@ void AvidaGPEvoCompWorld::DoUpdate() {
   std::cout << "best score (" << max_fit_org_id << "): " << max_score << "; ";
   std::cout << "solution? " << found_solution << std::endl;
 
-  GetOrg(max_fit_org_id).GetHardware().PrintGenome();
+  // GetOrg(max_fit_org_id).GetHardware().PrintGenome();
 
   // TODO - data collection
 
