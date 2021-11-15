@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 REPLICATES=50
-EXP_SLUG=2021-11-12-time
+EXP_SLUG=2021-11-15-ec
 
 SCRATCH_EXP_DIR=/mnt/scratch/lalejini/data/dirdevo
 HOME_EXP_DIR=/mnt/home/lalejini/devo_ws/directed-digital-evolution/experiments
