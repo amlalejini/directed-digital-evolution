@@ -480,7 +480,10 @@ def main():
         # Calculate each population's cosine distance to the centroid (identical whether using normalized versus not normalized)
         pop_cosine_dist_from_centroid = [None if vec_lens[pop_i] == 0 else distance.cosine(pop_norm_task_performances[pop_i], centroid_norm_task_vector) for pop_i in range(num_pops)]
         avg_cosine_dist_from_centroid = [val for val in pop_cosine_dist_from_centroid if val != None]
-        avg_cosine_dist_from_centroid = sum(avg_cosine_dist_from_centroid) / len(avg_cosine_dist_from_centroid)
+        if not len(avg_cosine_dist_from_centroid):
+            avg_cosine_dist_from_centroid = "NONE"
+        else:
+            avg_cosine_dist_from_centroid = sum(avg_cosine_dist_from_centroid) / len(avg_cosine_dist_from_centroid)
         experiment_summary_info["avg_cosine_dist_from_centroid"] = avg_cosine_dist_from_centroid
 
         # AGGREGATE PAIRWISE POPULATION INFORMATION
