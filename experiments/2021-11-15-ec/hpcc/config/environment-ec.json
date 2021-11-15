@@ -1,0 +1,27 @@
+{
+  "pathways": 2,
+  "tasks": [
+    {"name": "ECHO", "value": 1, "pathway": 0, "repeatable": 0},
+    {"name": "NAND", "value": 1, "pathway": 0, "repeatable": 0},
+    {"name": "NOT", "value": 1, "pathway": 0, "repeatable": 0},
+    {"name": "OR_NOT", "value": 1, "pathway": 0, "repeatable": 0},
+    {"name": "AND", "value": 1, "pathway": 0, "repeatable": 0},
+    {"name": "OR", "value": 1, "pathway": 0, "repeatable": 0},
+    {"name": "AND_NOT", "value": 1, "pathway": 0, "repeatable": 0},
+    {"name": "NOR", "value": 1, "pathway": 0, "repeatable": 0},
+    {"name": "XOR", "value": 1, "pathway": 0, "repeatable": 0},
+    {"name": "EQU", "value": 1, "pathway": 0, "repeatable": 0},
+    {"name": "ECHO", "value": 1, "pathway":1, "repeatable": 0},
+    {"name": "MATH_1AA", "value": 1, "pathway":1, "repeatable": 0},
+    {"name": "MATH_1AB", "value": 1, "pathway":1, "repeatable": 0},
+    {"name": "MATH_1AC", "value": 1, "pathway":1, "repeatable": 0},
+    {"name": "MATH_2AA", "value": 1, "pathway":1, "repeatable": 0},
+    {"name": "MATH_2AB", "value": 1, "pathway":1, "repeatable": 0},
+    {"name": "MATH_2AC", "value": 1, "pathway":1, "repeatable": 0},
+    {"name": "MATH_2AD", "value": 1, "pathway":1, "repeatable": 0},
+    {"name": "MATH_2AE", "value": 1, "pathway":1, "repeatable": 0},
+    {"name": "MATH_2AF", "value": 1, "pathway":1, "repeatable": 0},
+    {"name": "MATH_2AG", "value": 1, "pathway":1, "repeatable": 0},
+    {"name": "MATH_2AH", "value": 1, "pathway":1, "repeatable": 0}
+  ]
+}
