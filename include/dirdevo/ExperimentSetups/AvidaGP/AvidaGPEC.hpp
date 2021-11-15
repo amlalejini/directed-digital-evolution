@@ -52,6 +52,8 @@ EMP_BUILD_CONFIG(AvidaGPEvoCompConfig,
 
   GROUP(OUTPUT_SETTINGS, "Settings specific to experiment output"),
   VALUE(OUTPUT_DIR, std::string, "output", "Where should the experiment dump output?"),
+  VALUE(OUTPUT_RESOLUTION, size_t, 10, "How often should we output non-snapshot files?"),
+  VALUE(SNAPSHOT_RESOLUTION, size_t, 10, "How often should we snapshot the population?"),
 
   GROUP(EVALUATION_SETTINGS, "Settings related to program evaluation"),
   VALUE(EVAL_STEPS, size_t, 30, "How many CPU cycles do programs get per evaluation?"),
@@ -166,8 +168,8 @@ protected:
   mutator_t mutator;
 
   bool found_solution;
-  size_t max_fit_org_id=0;
-  size_t solution_id=0;
+  size_t max_fit_org_id=0; // gets set to solution id when solution found
+  // size_t solution_id=0;
 
   emp::Signal<void(void)> end_setup_sig;    ///< Triggered at end of world setup.
   emp::Signal<void(void)> do_selection_sig; ///< Triggered when it's time to do selection!
@@ -179,12 +181,22 @@ protected:
   emp::vector<TaskInfo> task_info;
   emp::vector<MetabolicPathway> task_pathways;
 
-  // emp::vector< emp::vector<double> > org_task_scores;
   emp::vector<double> org_aggregate_scores;
   emp::vector< std::function<double(const org_t&)> > fit_fun_set;  ///< Manages fitness functions if we're doing multi-obj selection.
+  emp::vector<bool> population_task_coverage;
 
   std::string output_dir;
-  emp::Ptr<emp::DataFile> max_fit_file=nullptr;
+  // emp::Ptr<emp::DataFile> max_fit_file=nullptr;
+  emp::Ptr<emp::DataFile> world_summary_file=nullptr; // TODO - combine these?
+  struct PopSnapshotter {
+    emp::Ptr<emp::DataFile> file=nullptr;
+    size_t cur_org_id=0;
+    ~PopSnapshotter() {
+      if (file) file.Delete();
+    }
+  } population_snapshotter;
+
+  // emp::Ptr<emp::DataFile> population_snapshot_file=nullptr;
 
   void Setup();
   void SetupThreading();
@@ -210,6 +222,7 @@ protected:
   void DoUpdate();
 
   void DoConfigSnapshot();
+  void DoPopSnapshot();
 
   void RunOrg(size_t org_id);
 
@@ -225,7 +238,9 @@ public:
   }
 
   ~AvidaGPEvoCompWorld() {
-    if(max_fit_file) max_fit_file.Delete();
+    // if (max_fit_file) max_fit_file.Delete();
+    // if (population_snapshot_file) population_snapshot_file.Delete();
+    if (world_summary_file) world_summary_file.Delete();
   }
 
   void RunStep();
@@ -456,6 +471,7 @@ void AvidaGPEvoCompWorld::SetupTasks() {
 
   // org_task_scores.resize(config.POP_SIZE(), emp::vector<double>(total_tasks, 0.0));
   org_aggregate_scores.resize(config.POP_SIZE(), 0.0);
+  population_task_coverage.resize(total_tasks, false);
 
   #ifndef EMP_NDEBUG
   // tasks per pathway
@@ -678,18 +694,129 @@ void AvidaGPEvoCompWorld::SetupMutator() {
 }
 
 void AvidaGPEvoCompWorld::SetupDataCollection() {
-  //
+  // create output directory if it doesn't exist yet
   output_dir = config.OUTPUT_DIR();
   mkdir(output_dir.c_str(), ACCESSPERMS);
   if(output_dir.back() != '/') {
     output_dir += '/';
   }
 
+  // Wire config snapshot to end of setup signal.
   end_setup_sig.AddAction(
     [this]() {
       DoConfigSnapshot();
     }
   );
+
+  // Collect population profiles, collect population-level coverage
+  // Setup fitness file
+  SetupFitnessFile(output_dir+"fitness.csv").SetTimingRepeat(config.OUTPUT_RESOLUTION());
+
+  // Setup population snapshot file
+  population_snapshotter.file = emp::NewPtr<emp::DataFile>(output_dir+"population_snapshot.csv");
+  population_snapshotter.file->AddFun<size_t>(
+    [this]() { return GetUpdate(); },
+    "update"
+  );
+  // -- organism id --
+  population_snapshotter.file->AddFun<size_t>(
+    [this]() { return population_snapshotter.cur_org_id; },
+    "org_id"
+  );
+  // -- aggregate fitness --
+  population_snapshotter.file->AddFun<double>(
+    [this]() { return CalcFitnessID(population_snapshotter.cur_org_id); },
+    "aggregate_score"
+  );
+  population_snapshotter.file->AddFun<std::string>(
+    [this]() {
+      std::ostringstream stream;
+      const auto& phen = GetOrg(population_snapshotter.cur_org_id).GetPhenotype();
+      stream << "\"[";
+      for (size_t i = 0; i < phen.org_task_performances.size(); ++i) {
+        if (i) stream << ",";
+        stream << phen.org_task_performances[i];
+      }
+      stream << "]\"";
+      return stream.str();
+    },
+    "scores_by_task"
+  );
+  population_snapshotter.file->PrintHeaderKeys();
+
+  // Setup world summary file
+  world_summary_file = emp::NewPtr<emp::DataFile>(output_dir+"world_summary.csv");
+  // -- update --
+  world_summary_file->AddFun<size_t>(
+    [this]() { return GetUpdate(); },
+    "update"
+  );
+  // -- organism id --
+  world_summary_file->AddFun<size_t>(
+    [this]() { return max_fit_org_id; },
+    "max_fit_org_id"
+  );
+  // -- is solution? --
+  world_summary_file->AddFun<bool>(
+    [this]() { return found_solution; },
+    "max_fit_is_solution"
+  );
+  // -- aggregate fitness --
+  world_summary_file->AddFun<double>(
+    [this]() { return CalcFitnessID(max_fit_org_id); },
+    "max_fit_aggregate_score"
+  );
+  // -- scores by task --
+  world_summary_file->AddFun<std::string>(
+    [this]() {
+      std::ostringstream stream;
+      const auto& phen = GetOrg(max_fit_org_id).GetPhenotype();
+      stream << "\"[";
+      for (size_t i = 0; i < phen.org_task_performances.size(); ++i) {
+        if (i) stream << ",";
+        stream << phen.org_task_performances[i];
+      }
+      stream << "]\"";
+      return stream.str();
+    },
+    "max_fit_scores_by_task"
+  );
+  // -- genome length --
+  world_summary_file->AddFun<size_t>(
+    [this]() {
+      return GetOrg(max_fit_org_id).GetHardware().GetSize();
+    },
+    "max_fit_genome_size"
+  );
+  // -- population-level task coverage --
+  world_summary_file->AddFun<std::string>(
+    [this]() {
+      std::ostringstream stream;
+      stream << "\"[";
+      for (size_t i = 0; i < population_task_coverage.size(); ++i) {
+        if (i) stream << ",";
+        stream << population_task_coverage[i];
+      }
+      stream << "]\"";
+      return stream.str();
+    },
+    "population_task_coverage"
+  );
+  world_summary_file->AddFun<size_t>(
+    [this]() {
+      size_t num_covered=0;
+      for (bool cov : population_task_coverage) num_covered += (size_t)cov;
+      return num_covered;
+    },
+    "population_num_tasks_covered"
+  );
+
+  // -- total tasks evaluated --
+  world_summary_file->AddFun<size_t>(
+    [this]() { return GetOrg(max_fit_org_id).GetPhenotype().org_task_performances.size(); },
+    "num_tasks"
+  );
+  world_summary_file->PrintHeaderKeys();
 
 }
 
@@ -734,6 +861,11 @@ void AvidaGPEvoCompWorld::DoEvaluation() {
 
 
   // Analyze each organism's output buffers! (do this here to make it super easy to thread program evaluation)
+  std::fill(
+    population_task_coverage.begin(),
+    population_task_coverage.end(),
+    false
+  );
   max_fit_org_id = 0;
   for (size_t org_id = 0; org_id < GetSize(); ++org_id) {
     const size_t num_pathways = task_pathways.size();
@@ -770,11 +902,12 @@ void AvidaGPEvoCompWorld::DoEvaluation() {
     auto& org_task_performances = GetOrg(org_id).GetPhenotype().org_task_performances;
     size_t coverage = 0;
     for (size_t task_i=0; task_i < org_task_performances.size(); ++task_i) {
+      population_task_coverage[task_i] = population_task_coverage[task_i] || (org_task_performances[task_i] > 0);
       coverage += (int)(org_task_performances[task_i] > 0);
     }
     if (coverage == total_tasks) {
       found_solution = true;
-      solution_id = org_id;
+      max_fit_org_id = org_id;
       break;
     }
   }
@@ -788,25 +921,29 @@ void AvidaGPEvoCompWorld::DoUpdate() {
   const double max_score = CalcFitnessID(max_fit_org_id);
   const size_t cur_update = GetUpdate();
 
-  // found_solution = ScreenSolution();
-
   std::cout << "update: " << cur_update << "; ";
   std::cout << "best score (" << max_fit_org_id << "): " << max_score << "; ";
   std::cout << "solution? " << found_solution << std::endl;
 
-  // GetOrg(max_fit_org_id).GetHardware().PrintGenome();
+  const bool output = (config.OUTPUT_RESOLUTION() > 0) && ( !(cur_update % config.OUTPUT_RESOLUTION()) || (cur_update == config.GENS()) || (config.STOP_ON_SOLUTION() & found_solution) );
+  if (output) {
+    world_summary_file->Update();
+  }
 
-  // TODO - data collection
+  const bool snapshot = (config.SNAPSHOT_RESOLUTION() > 0) && ( !(cur_update % config.SNAPSHOT_RESOLUTION()) || (cur_update == config.GENS()) || (config.STOP_ON_SOLUTION() & found_solution) );
+  if (snapshot) {
+    DoPopSnapshot();
+  }
 
   Update();
   ClearCache();
-
 }
 
 void AvidaGPEvoCompWorld::DoConfigSnapshot() {
   emp::DataFile snapshot_file(output_dir + "/run_config.csv");
   std::function<std::string(void)> get_param;
   std::function<std::string(void)> get_value;
+  std::ostringstream stream;
   snapshot_file.AddFun<std::string>(
     [&get_param]() { return get_param(); },
     "parameter"
@@ -818,23 +955,87 @@ void AvidaGPEvoCompWorld::DoConfigSnapshot() {
   snapshot_file.PrintHeaderKeys();
 
   // -- Custom configuration information --
-  // threading enabled?
-  get_param = []() { return "threading_enabled"; };
-  get_value = []() {
-    #ifdef DIRDEVO_THREADING
-      return "1";
-    #else
-      return "0";
-    #endif // DIRDEVO_THREADING
-  };
+  std::string param_name;
+  std::string param_value;
+  get_param = [&param_name]() { return param_name; };
+  get_value = [&param_value]() { return param_value; };
+
+  param_name = "threading_enabled";
+  #ifdef DIRDEVO_THREADING
+    param_value = "1";
+  #else
+    param_value = "0";
+  #endif // DIRDEVO_THREADING
   snapshot_file.Update();
 
+  // -- Num pathways --
+  param_name = "num_pathways";
+  param_value = emp::to_string(task_pathways.size());
+  snapshot_file.Update();
+
+  // -- Total tasks --
+  param_name = "total_tasks";
+  param_value = emp::to_string(total_tasks);
+  snapshot_file.Update();
+
+  // -- Task set size by pathway --
+  stream.str("");
+  stream << "\"[";
+  for (size_t i = 0; i < task_pathways.size(); ++i) {
+    if (i) stream << ",";
+    stream << task_pathways[i].task_set.GetSize();
+  }
+  stream << "]\"";
+  param_name = "task_set_sizes";
+  param_value = stream.str();
+  snapshot_file.Update();
+
+  // -- Environment bank size by pathway --
+  stream.str("");
+  stream << "\"[";
+  for (size_t i = 0; i < task_pathways.size(); ++i) {
+    if (i) stream << ",";
+    stream << task_pathways[i].env_bank->GetSize();
+  }
+  stream << "]\"";
+  param_name = "env_bank_sizes";
+  param_value = stream.str();
+  snapshot_file.Update();
+
+  // -- Instruction set size --
+  param_name =  "inst_set_size";
+  param_value = emp::to_string(inst_lib.GetSize());
+  snapshot_file.Update();
+
+  // -- Individual tasks --
+  stream.str("");
+  stream << "\"[";
+  for (size_t i = 0; i < task_info.size(); ++i) {
+    if (i) stream << ",";
+    const auto& info = task_info[i];
+    const auto& pathway = task_pathways[info.pathway];
+    stream << "(" << pathway.task_set.GetName(info.local_id) << "," << info.pathway << ")";
+  }
+  stream << "]\"";
+  param_name = "indiv_tasks";
+  param_value = stream.str();
+  snapshot_file.Update();
+
+  // -- Configuration file information --
   for (const auto & entry : config) {
     get_param = [&entry]() { return entry.first; };
     get_value = [&entry]() { return emp::to_string(entry.second->GetValue()); };
     snapshot_file.Update();
   }
 
+}
+
+void AvidaGPEvoCompWorld::DoPopSnapshot() {
+  for (size_t org_id = 0; org_id < GetSize(); ++org_id) {
+    emp_assert(IsOccupied(org_id));
+    population_snapshotter.cur_org_id = org_id;
+    population_snapshotter.file->Update();
+  }
 }
 
 void AvidaGPEvoCompWorld::RunOrg(size_t org_id) {
@@ -845,10 +1046,6 @@ void AvidaGPEvoCompWorld::RunOrg(size_t org_id) {
   for (size_t step = 0; step < config.EVAL_STEPS(); ++step) {
     org.ProcessStep(*this);
   }
-
-  // // Analyze organism's output buffer(s)
-  // const size_t
-
 }
 
 void AvidaGPEvoCompWorld::RunStep() {
