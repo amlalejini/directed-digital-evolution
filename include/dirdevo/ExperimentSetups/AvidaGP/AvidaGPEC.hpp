@@ -109,6 +109,11 @@ void NonDominatedEliteSelect(
 
   // Find the pareto front
   emp::vector<size_t> front(find_pareto_front(score_table));
+  // std::cout << "----" << std::endl;
+  // std::cout << "Pareto front size: " << front.size() << std::endl;
+  // for (size_t i = 0; i < front.size(); ++i) {
+  //   std::cout << "  " << world.GetOrg(front[i]).GetPhenotype().org_task_performances << std::endl;
+  // }
   emp::Shuffle(world.GetRandom(), front);
   const size_t front_size = front.size();
   for (size_t i = 0; i < repro_count; ++i) {
