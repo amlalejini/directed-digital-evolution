@@ -1,10 +1,17 @@
 # Project-specific settings
-PROJECT := directed-digital-evolution
 EMP_DIR := third-party/Empirical/include
 SGP_DIR := third-party/signalgp-lite/include
 
+PROJECT := directed-digital-evolution
+MAIN_CPP := source/native.cpp
+THREADING := -DDIRDEVO_THREADING -pthread
+
+# PROJECT := avidagp-ec
+# MAIN_CPP := source/native-ec.cpp
+# THREADING := -DDIRDEVO_SINGLE_THREAD
+
 # Flags to use regardless of compiler
-CFLAGS_all := -DDIRDEVO_THREADING -pthread -Wall -Wno-unused-function -std=c++17 -I$(EMP_DIR)/ -I$(SGP_DIR)/ -Iinclude/ -Ithird-party/
+CFLAGS_all := $(THREADING) -Wall -Wno-unused-function -std=c++17 -I$(EMP_DIR)/ -I$(SGP_DIR)/ -Iinclude/ -Ithird-party/
 # -DDIRDEVO_THREADING -pthread
 # Native compiler information
 CXX ?= g++
@@ -34,8 +41,8 @@ debug-web:	$(PROJECT).js
 web-debug:	debug-web
 
 # see https://stackoverflow.com/a/57760267 RE: -lstdc++fs
-$(PROJECT):	source/native.cpp include/
-	$(CXX) $(CFLAGS_nat) source/native.cpp -o $(PROJECT) -lstdc++fs
+$(PROJECT):	${MAIN_CPP} include/
+	$(CXX) $(CFLAGS_nat) ${MAIN_CPP} -o $(PROJECT) -lstdc++fs
 	@echo To build the web version use: make web
 
 $(PROJECT).js: source/web.cpp include/
