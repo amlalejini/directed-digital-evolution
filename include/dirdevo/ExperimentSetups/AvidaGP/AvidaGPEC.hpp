@@ -14,6 +14,12 @@
 #include <algorithm>
 #include <functional>
 #include <filesystem>
+#include <sys/stat.h>
+
+#ifdef DIRDEVO_THREADING
+#include <thread>
+#include <mutex>
+#endif // DIRDEVO_THREADED
 
 // json
 #include "json/json.hpp"
@@ -42,6 +48,7 @@ EMP_BUILD_CONFIG(AvidaGPEvoCompConfig,
   VALUE(LOAD_ANCESTOR_FROM_FILE, bool, false, "Should the ancestral genome be loaded from file? NOTE - the experiment setup must implement this functionality."),
   VALUE(ANCESTOR_FILE, std::string, "ancestor.gen", "Path to file containing ancestor genome to be loaded"),
   VALUE(STOP_ON_SOLUTION, bool, true, "Stop running if a solution is found?"),
+  VALUE(NUM_THREADS, size_t, 4, "How many threads to use when evaluating population? (only used when compiled with threading flag)"),
 
   GROUP(OUTPUT_SETTINGS, "Settings specific to experiment output"),
   VALUE(OUTPUT_DIR, std::string, "output", "Where should the experiment dump output?"),
@@ -88,7 +95,7 @@ void NonDominatedEliteSelect(
   const size_t obj_count = fit_funs.size();
 
   // Build a score table.
-  emp::vector< emp::vector<double> > score_table(num_candidates, emp::vector(fit_funs.size(), -1.0));
+  emp::vector< emp::vector<double> > score_table(num_candidates, emp::vector<double>(fit_funs.size(), -1.0));
   for (size_t cand_i = 0; cand_i < num_candidates; ++cand_i) {
     score_table[cand_i].resize(obj_count);
     if (!world.IsOccupied(cand_i)) continue;
@@ -165,6 +172,9 @@ protected:
   emp::Signal<void(void)> end_setup_sig;    ///< Triggered at end of world setup.
   emp::Signal<void(void)> do_selection_sig; ///< Triggered when it's time to do selection!
 
+  emp::vector< emp::Range<size_t> > thread_org_ranges;
+  std::function<void(size_t)> eval_thread;
+
   size_t total_tasks=0;
   emp::vector<TaskInfo> task_info;
   emp::vector<MetabolicPathway> task_pathways;
@@ -173,7 +183,11 @@ protected:
   emp::vector<double> org_aggregate_scores;
   emp::vector< std::function<double(const org_t&)> > fit_fun_set;  ///< Manages fitness functions if we're doing multi-obj selection.
 
+  std::string output_dir;
+  emp::Ptr<emp::DataFile> max_fit_file=nullptr;
+
   void Setup();
+  void SetupThreading();
   void SetupTasks();
   void SetupSelection();
   void SetupInstLib();
@@ -188,11 +202,14 @@ protected:
   void SetupRandomSelection();
   void SetupNoSelection();
 
+
   void InitPop();
 
   void DoEvaluation();
   void DoSelection();
   void DoUpdate();
+
+  void DoConfigSnapshot();
 
   void RunOrg(size_t org_id);
 
@@ -207,6 +224,10 @@ public:
     Setup();
   }
 
+  ~AvidaGPEvoCompWorld() {
+    if(max_fit_file) max_fit_file.Delete();
+  }
+
   void RunStep();
   void Run();
 
@@ -218,6 +239,11 @@ void AvidaGPEvoCompWorld::Setup() {
 
   Reset(); // Reset the world
   found_solution = false;
+
+  #ifdef DIRDEVO_THREADING
+  SetupThreading();
+  #endif //DIRDEVO_THREADING
+
 
   // Init tasks
   SetupTasks();
@@ -245,7 +271,7 @@ void AvidaGPEvoCompWorld::Setup() {
   SetPopStruct_Mixed(true);
 
   // Setup data collection
-  // TODO
+  SetupDataCollection();
 
   // Setup internal birth signals
   OnInjectReady(
@@ -305,6 +331,39 @@ void AvidaGPEvoCompWorld::Setup() {
 
   // todo - task.onworldsetup
   end_setup_sig.Trigger();
+}
+
+/// Only called when running in threading mode.
+void AvidaGPEvoCompWorld::SetupThreading() {
+
+  #ifdef DIRDEVO_THREADING
+  std::cout << "Compiled with threading enabled." << std::endl;
+  emp_assert(config.NUM_THREADS(), "NUM_THREADS cannot be set to 0 when compiled with DIRDEVO_THREADING flag.");
+  // Determine which organisms should be run on each thread every generation.
+  const size_t orgs_per_thread = config.POP_SIZE() / config.NUM_THREADS();
+  thread_org_ranges.resize(config.NUM_THREADS());
+  for (size_t thread_i = 0; thread_i < config.NUM_THREADS(); ++thread_i) {
+    thread_org_ranges[thread_i].Set((thread_i*orgs_per_thread), (thread_i*orgs_per_thread)+orgs_per_thread);
+  }
+  thread_org_ranges.back().SetUpper(config.POP_SIZE());
+
+  #ifndef EMP_NDEBUG
+  std::cout << "GetSize(): " << GetSize() << std::endl;
+  for (auto& range : thread_org_ranges) {
+    std::cout << "[" << range.GetLower() << "," << range.GetUpper() << ")" << std::endl;
+  }
+  #endif // EMP_NDEBUG
+
+  // Setup eval thread function
+  eval_thread = [this](size_t thread_id) {
+    // std::cout << "Thread id: " << thread_id << "[" << thread_org_ranges[thread_id].GetLower() << "," << thread_org_ranges[thread_id].GetUpper() << ")" << std::endl;
+    for (size_t org_id = thread_org_ranges[thread_id].GetLower(); org_id < thread_org_ranges[thread_id].GetUpper(); ++org_id) {
+      emp_assert(IsOccupied(org_id));
+      RunOrg(org_id);
+    }
+  };
+
+  #endif // DIRDEVO_THREADING
 }
 
 /// Analogous to `SetupTasks` in AvidaGPMultiPathwayTask.hpp
@@ -618,6 +677,22 @@ void AvidaGPEvoCompWorld::SetupMutator() {
   );
 }
 
+void AvidaGPEvoCompWorld::SetupDataCollection() {
+  //
+  output_dir = config.OUTPUT_DIR();
+  mkdir(output_dir.c_str(), ACCESSPERMS);
+  if(output_dir.back() != '/') {
+    output_dir += '/';
+  }
+
+  end_setup_sig.AddAction(
+    [this]() {
+      DoConfigSnapshot();
+    }
+  );
+
+}
+
 void AvidaGPEvoCompWorld::InitPop() {
   if (config.LOAD_ANCESTOR_FROM_FILE()) {
     hardware_t hw(inst_lib); // Use this dummy hardware because of they wonky way AvidaGP is implemented.
@@ -631,13 +706,32 @@ void AvidaGPEvoCompWorld::InitPop() {
 }
 
 void AvidaGPEvoCompWorld::DoEvaluation() {
-  // TODO - come back and finish!
 
-  // TODO - try threading?
+  #ifdef DIRDEVO_THREADING
+  // Thread evaluation!
+  emp::vector<std::thread> threads;
+  for (size_t thread_id = 1; thread_id < config.NUM_THREADS(); ++thread_id) {
+    threads.emplace_back(
+      eval_thread,
+      thread_id
+    );
+  }
+  eval_thread(0); // use the main thread to run world 0
+  // Join threads
+  for (auto& thread : threads) {
+    thread.join();
+  }
+
+  #else
+  // THREADING DISABLED
+
   for (size_t org_id = 0; org_id < GetSize(); ++org_id) {
     emp_assert(IsOccupied(org_id));
     RunOrg(org_id);
   }
+
+  #endif // DIRDEVO_THREADING
+
 
   // Analyze each organism's output buffers! (do this here to make it super easy to thread program evaluation)
   max_fit_org_id = 0;
@@ -706,6 +800,40 @@ void AvidaGPEvoCompWorld::DoUpdate() {
 
   Update();
   ClearCache();
+
+}
+
+void AvidaGPEvoCompWorld::DoConfigSnapshot() {
+  emp::DataFile snapshot_file(output_dir + "/run_config.csv");
+  std::function<std::string(void)> get_param;
+  std::function<std::string(void)> get_value;
+  snapshot_file.AddFun<std::string>(
+    [&get_param]() { return get_param(); },
+    "parameter"
+  );
+  snapshot_file.AddFun<std::string>(
+    [&get_value]() { return get_value(); },
+    "value"
+  );
+  snapshot_file.PrintHeaderKeys();
+
+  // -- Custom configuration information --
+  // threading enabled?
+  get_param = []() { return "threading_enabled"; };
+  get_value = []() {
+    #ifdef DIRDEVO_THREADING
+      return "1";
+    #else
+      return "0";
+    #endif // DIRDEVO_THREADING
+  };
+  snapshot_file.Update();
+
+  for (const auto & entry : config) {
+    get_param = [&entry]() { return entry.first; };
+    get_value = [&entry]() { return emp::to_string(entry.second->GetValue()); };
+    snapshot_file.Update();
+  }
 
 }
 
