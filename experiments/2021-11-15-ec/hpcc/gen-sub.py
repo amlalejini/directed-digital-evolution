@@ -139,6 +139,8 @@ def main():
         # Format commandline arguments for the run
         # first, just copy over condition dictionary values
         run_param_info = {key:condition_dict[key] for key in condition_dict if not "_MULTI_PARAM_" in key}
+        run_param_info["SEED"] = "${SEED}"
+
         fields = list(run_param_info.keys())
         fields.sort()
         run_params = " ".join([f"-{field} {run_param_info[field]}" for field in fields] + [condition_dict[key] for key in condition_dict if "_MULTI_PARAM_" in key])
