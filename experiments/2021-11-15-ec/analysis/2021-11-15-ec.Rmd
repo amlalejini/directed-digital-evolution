@@ -1,0 +1,476 @@
+# 2021-11-15 - Evolutionary computing setup
+
+## Overview
+
+```{r}
+experiment_slug <- "2021-11-15-ec"
+
+working_directory <- paste0("experiments/",experiment_slug,"/analysis/")
+```
+
+## Analysis dependencies
+
+Load all required R libraries
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(cowplot)
+library(RColorBrewer)
+library(scales)
+library(viridis)
+source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
+```
+
+These analyses were knit with the following environment:
+
+```{r}
+print(version)
+```
+
+## Setup
+
+Experiment summary data
+
+```{r}
+exp_summary_data_loc <- paste0(working_directory,"data/experiment_summary.csv")
+exp_summary_data <- read.csv(exp_summary_data_loc, na.strings="NONE")
+
+exp_summary_data$SELECTION_METHOD <- factor(
+  exp_summary_data$SELECTION_METHOD,
+  levels=c(
+    "elite",
+    "tournament",
+    "lexicase",
+    "non-dominated-elite",
+    "non-dominated-tournament",
+    "random",
+    "none"
+  ),
+  labels=c(
+    "elite",
+    "tourn",
+    "lex",
+    "nde",
+    "ndt",
+    "random",
+    "none"
+  )
+)
+```
+
+Miscellaneous setup
+
+```{r}
+# Configure our default graphing theme
+theme_set(theme_cowplot())
+# Palette
+cb_palette <- "Set2"
+# Create a directory to store plots
+plot_directory <- paste0(working_directory, "plots/")
+dir.create(plot_directory, showWarnings=FALSE)
+```
+
+## Performance
+
+### Max aggregate performance
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=max_fit_aggregate_score,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "max_aggregate_score.pdf")
+)
+```
+
+### Population-level task coverage
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=SELECTION_METHOD,
+      y=population_num_tasks_covered,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "population_num_tasks_covered.pdf")
+)
+```
+
+### Number of solutions
+
+```{r}
+ggplot(
+    filter(exp_summary_data, max_fit_is_solution=="1"),
+    aes(x=SELECTION_METHOD, fill=SELECTION_METHOD)
+  ) +
+  geom_bar() +
+  geom_text(
+    stat="count",
+    mapping=aes(label=..count..),
+    position=position_dodge(0.9),
+    vjust=0
+  ) +
+  scale_y_continuous(
+    limits=c(0, 50),
+    breaks=seq(0,50,10)
+  ) +
+  scale_x_discrete(
+    limits=c(
+      "elite",
+      "tourn",
+      "lex",
+      "nde",
+      "random",
+      "none"
+    ),
+    breaks=c(
+      "elite",
+      "tourn",
+      "lex",
+      "nde",
+      "random",
+      "none"
+    )
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  ylab("Successful replicates") +
+  theme(legend.position = "none")
+
+ggsave(
+  paste0(plot_directory, "num_solutions.pdf")
+)
+```
+
+### How many generations elapse before solutions evolve?
+
+```{r}
+unfinished_data <- filter(exp_summary_data, max_fit_is_solution=="0")
+unfinished_data$graph_update <- 60000
+
+ggplot(
+    filter(exp_summary_data, max_fit_is_solution=="1"),
+    aes(
+      x=SELECTION_METHOD,
+      y=update,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_point(
+    data = unfinished_data,
+    mapping=aes(
+      x=SELECTION_METHOD,
+      y=graph_update
+    ),
+    color="gray",
+    position = position_jitter(width = .15, height=1000),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  scale_y_continuous(
+    name="Generation first solution evolved",
+    limits=c(0, 65000),
+    breaks=c(0, 10000, 20000, 30000, 40000, 50000, 60000),
+    labels=c("0", "10000", "20000", "30000", "40000", "50000", "Unsolved")
+  ) +
+  theme(
+    legend.position="none"
+  )
+ggsave(
+  paste0(plot_directory, "updates_until_solution.pdf")
+)
+```
+
+## Time series data
+
+```{r}
+time_series_data_loc <- paste0(working_directory,"data/pop_snapshot_time_series.csv")
+time_series_data <- read.csv(time_series_data_loc, na.strings="NONE")
+
+get_sel <- function(seed) {
+  return(filter(exp_summary_data, SEED==seed)$SELECTION_METHOD)
+}
+
+
+solution_evolved_fun <- function(seed, update) {
+  d <- filter(exp_summary_data, SEED==seed)
+  return(update==d$update && d$max_fit_is_solution=="1");
+}
+
+time_series_data$SELECTION_METHOD <- mapply(
+  get_sel,
+  time_series_data$SEED
+)
+
+time_series_data$solution_evolved <- mapply(
+  solution_evolved_fun,
+  time_series_data$SEED,
+  time_series_data$update
+)
+
+time_series_data$SELECTION_METHOD <- as.factor(
+  time_series_data$SELECTION_METHOD
+)
+
+# Specify experimental condition for each datum.
+# times_series_data$SELECTION_METHOD <- factor(
+#   times_series_data$SELECTION_METHOD,
+#   levels=c(
+#     "elite",
+#     "tournament",
+#     "lexicase",
+#     "non-dominated-elite",
+#     "non-dominated-tournament",
+#     "random",
+#     "none"
+#   ),
+#   labels=c(
+#     "elite",
+#     "tourn",
+#     "lex",
+#     "nde",
+#     "ndt",
+#     "random",
+#     "none"
+#   )
+# )
+```
+
+Note that these time series plots are a little weird in that it only shows data from runs where solutions have not evolved yet.
+Once a solution evolves, we stopped the run, so no data exists.
+
+### Population-level task coverage
+
+```{r}
+ggplot(
+    filter(time_series_data, solution_evolved==FALSE),
+    aes(
+      x=update,
+      y=population_task_coverage,
+      fill=SELECTION_METHOD,
+      color=SELECTION_METHOD
+    )
+  ) +
+  stat_summary(geom="line", fun=mean) +
+  stat_summary(
+    geom="ribbon",
+    fun.data="mean_cl_boot",
+    fun.args=list(conf.int=0.95),
+    alpha=0.2,
+    linetype=0
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="bottom"
+  )
+
+ggsave(
+  paste0(plot_directory, "population_task_coverage_ot.pdf"),
+  width=20,
+  height=10
+)
+```
+
+### Max organism task coverage
+
+max_org_task_coverage
+```{r}
+ggplot(
+    filter(time_series_data, solution_evolved==FALSE),
+    aes(
+      x=update,
+      y=max_org_task_coverage,
+      fill=SELECTION_METHOD,
+      color=SELECTION_METHOD
+    )
+  ) +
+  stat_summary(geom="line", fun=mean) +
+  stat_summary(
+    geom="ribbon",
+    fun.data="mean_cl_boot",
+    fun.args=list(conf.int=0.95),
+    alpha=0.2,
+    linetype=0
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="bottom"
+  )
+
+ggsave(
+  paste0(plot_directory, "max_org_task_coverage_ot.pdf"),
+  width=20,
+  height=10
+)
+```
+
+
+### Number of unique task profiles
+
+```{r}
+ggplot(
+    filter(time_series_data, solution_evolved==FALSE),
+    aes(
+      x=update,
+      y=num_unique_task_profiles,
+      fill=SELECTION_METHOD,
+      color=SELECTION_METHOD
+    )
+  ) +
+  stat_summary(geom="line", fun=mean) +
+  stat_summary(
+    geom="ribbon",
+    fun.data="mean_cl_boot",
+    fun.args=list(conf.int=0.95),
+    alpha=0.2,
+    linetype=0
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="bottom"
+  )
+
+ggsave(
+  paste0(plot_directory, "num_unique_task_profiles_ot.pdf"),
+  width=20,
+  height=10
+)
+```
+
+### Task profile spread
+
+(avg_cosine_dist_from_centroid)
+
+```{r}
+ggplot(
+    filter(time_series_data, solution_evolved==FALSE),
+    aes(
+      x=update,
+      y=avg_cosine_dist_from_centroid,
+      fill=SELECTION_METHOD,
+      color=SELECTION_METHOD
+    )
+  ) +
+  stat_summary(geom="line", fun=mean) +
+  stat_summary(
+    geom="ribbon",
+    fun.data="mean_cl_boot",
+    fun.args=list(conf.int=0.95),
+    alpha=0.2,
+    linetype=0
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  theme(
+    legend.position="bottom"
+  )
+
+ggsave(
+  paste0(plot_directory, "avg_cosine_dist_from_centroid_ot.pdf"),
+  width=20,
+  height=10
+)
+```
