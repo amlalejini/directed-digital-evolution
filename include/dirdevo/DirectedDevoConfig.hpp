@@ -51,7 +51,9 @@ EMP_BUILD_CONFIG(DirectedDevoConfig,
 
   GROUP(AVIDAGP_ENV_SETTINGS, "Settings specific to AvidaGP environment/task"),
   VALUE(AVIDAGP_UNIQUE_ENV_OUTPUT, bool, true, "Should each environment input buffer result in unique output for all environment tasks?"),
-  VALUE(AVIDAGP_ENV_FILE, std::string, "environment.json", "Path to the environment file that specifies which tasks are rewarded at organism and world level")
+  VALUE(AVIDAGP_ENV_FILE, std::string, "environment.json", "Path to the environment file that specifies which tasks are rewarded at organism and world level"),
+  VALUE(AVIDAGP_ENV_BANK_SIZE, size_t, 10000, "How many possible local environments to generate for each world?")
+
 
 );
 

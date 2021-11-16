@@ -38,7 +38,7 @@ public:
 
   using env_bank_t = AvidaGPEnvironmentBank;
 
-  static constexpr size_t ENV_BANK_SIZE = 10000;
+  // static constexpr size_t ENV_BANK_SIZE = 10000;
 
   /// Attaches data file functions to summary file. Updated at configured world update interval.
   static void AttachWorldUpdateDataFileFunctions(
@@ -700,7 +700,7 @@ void AvidaGPMultiPathwayTask::SetupTasks() {
       }
       pathway.global_task_id_lookup[local_task_id] = global_task_id;
     }
-    pathway.env_bank->GenerateBank(this_t::ENV_BANK_SIZE, world.GetConfig().AVIDAGP_UNIQUE_ENV_OUTPUT());
+    pathway.env_bank->GenerateBank(world.GetConfig().AVIDAGP_ENV_BANK_SIZE(), world.GetConfig().AVIDAGP_UNIQUE_ENV_OUTPUT());
     total_tasks += num_tasks;
   }
 
