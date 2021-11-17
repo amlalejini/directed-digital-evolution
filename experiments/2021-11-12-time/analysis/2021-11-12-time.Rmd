@@ -1,9 +1,9 @@
-# 2021-11-11 - Selection
+# 2021-11-12 - Selection
 
 ## Overview
 
 ```{r}
-experiment_slug <- "2021-11-11-selection"
+experiment_slug <- "2021-11-12-time"
 
 working_directory <- paste0("experiments/",experiment_slug,"/analysis/")
 ```
@@ -55,15 +55,6 @@ exp_summary_data$SELECTION_METHOD <- factor(
     "ndt",
     "random",
     "none"
-  )
-)
-
-exp_summary_data$NUM_POPS <- factor(
-  exp_summary_data$NUM_POPS,
-  levels=c(
-    "24",
-    "48",
-    "96"
   )
 )
 
@@ -130,6 +121,10 @@ ggplot(
   scale_color_brewer(
     palette="Set2"
   ) +
+  facet_wrap(
+    ~U_PER_E,
+    scales="free_y"
+  ) +
   theme(
     legend.position="none"
     # panel.border=element_rect(colour="grey",size=1)
@@ -144,6 +139,7 @@ ggsave(
 
 ```{r}
 ggplot(
+    # filter(exp_summary_data, U_PER_E %in% c("50", "100", "200")),
     exp_summary_data,
     aes(
       x=SELECTION_METHOD,
@@ -171,6 +167,11 @@ ggplot(
   ) +
   scale_color_brewer(
     palette="Set2"
+  ) +
+  facet_wrap(
+    ~U_PER_E,
+    scales="free",
+    labeller=label_both
   ) +
   theme(
     legend.position="none"
@@ -212,6 +213,10 @@ ggplot(
   ) +
   scale_color_brewer(
     palette="Set2"
+  ) +
+  facet_wrap(
+    ~U_PER_E,
+    labeller=label_both
   ) +
   theme(
     legend.position="none"
@@ -261,6 +266,11 @@ ggplot(
   scale_color_brewer(
     palette="Set2"
   ) +
+  facet_wrap(
+    ~U_PER_E,
+    scales="free_y",
+    labeller=label_both
+  ) +
   theme(
     legend.position="none"
   )
@@ -270,52 +280,12 @@ ggsave(
 )
 ```
 
-### Avida-style Fitness Measure
-
-```{r}
-ggplot(
-    exp_summary_data,
-    aes(
-      x=SELECTION_METHOD,
-      y=avg_org_fitness,
-      fill=SELECTION_METHOD
-    )
-  ) +
-  geom_flat_violin(
-    position = position_nudge(x = .2, y = 0),
-    alpha = .8
-  ) +
-  geom_point(
-    mapping=aes(color=SELECTION_METHOD),
-    position = position_jitter(height=0, width = .15),
-    size = .5,
-    alpha = 0.8
-  ) +
-  geom_boxplot(
-    width = .1,
-    outlier.shape = NA,
-    alpha = 0.5
-  ) +
-  scale_fill_brewer(
-    palette="Set2"
-  ) +
-  scale_color_brewer(
-    palette="Set2"
-  ) +
-  theme(
-    legend.position="none"
-  )
-
-ggsave(
-  paste0(plot_directory, "avg_org_fitness.pdf")
-)
-```
-
 ### Max aggregate performance
 
 ```{r}
 ggplot(
-    exp_summary_data,
+    # exp_summary_data,
+    filter(exp_summary_data, U_PER_E %in% c("20", "50")),
     aes(
       x=SELECTION_METHOD,
       y=max_aggregate_score,
@@ -342,6 +312,11 @@ ggplot(
   ) +
   scale_color_brewer(
     palette="Set2"
+  ) +
+  facet_wrap(
+    ~U_PER_E,
+    scales="free_y",
+    labeller=label_both
   ) +
   theme(
     legend.position="none",
@@ -389,12 +364,68 @@ ggplot(
   scale_color_brewer(
     palette="Set2"
   ) +
+  facet_wrap(
+    ~U_PER_E,
+    scales="free_y",
+    labeller=label_both
+  ) +
   theme(
     legend.position="none"
   )
 
 ggsave(
   paste0(plot_directory, "max_trait_coverage.pdf")
+)
+```
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=U_PER_E,
+      y=max_trait_coverage,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8,
+    adjust=1.5
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0.1, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_y_continuous(
+    breaks=seq(0,18,2)
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  xlab("Updates per epoch") +
+  facet_wrap(
+    ~SELECTION_METHOD,
+    scales="fixed",
+    labeller=label_both,
+    nrow=1
+  ) +
+  theme(
+    legend.position="none"
+  )
+ggsave(
+  paste0(plot_directory, "max_trait_coverage_facet_sel.pdf"),
+  width=20,
+  height=10
 )
 ```
 
@@ -434,12 +465,68 @@ ggplot(
   scale_color_brewer(
     palette="Set2"
   ) +
+  facet_wrap(
+    ~U_PER_E,
+    scales="free_y",
+    labeller=label_both
+  ) +
   theme(
     legend.position="none"
   )
 
 ggsave(
   paste0(plot_directory, "total_trait_coverage.pdf")
+)
+```
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=U_PER_E,
+      y=total_trait_coverage,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8,
+    adjust=1.5
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0.1, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_y_continuous(
+    breaks=seq(0,18,2)
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  xlab("Updates per epoch") +
+  facet_wrap(
+    ~SELECTION_METHOD,
+    scales="fixed",
+    labeller=label_both,
+    nrow=1
+  ) +
+  theme(
+    legend.position="none"
+  )
+ggsave(
+  paste0(plot_directory, "total_trait_coverage_facet_sel.pdf"),
+  width=20,
+  height=10
 )
 ```
 
@@ -477,12 +564,65 @@ ggplot(
   scale_color_brewer(
     palette="Set2"
   ) +
+  facet_wrap(
+    ~U_PER_E,
+    scales="free_y",
+    labeller=label_both
+  ) +
   theme(
     legend.position="none"
   )
 
 ggsave(
   paste0(plot_directory, "num_pop_trait_profiles.pdf")
+)
+```
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=U_PER_E,
+      y=num_pop_trait_profiles,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8,
+    adjust=1.5
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0.1, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  xlab("Updates per epoch") +
+  facet_wrap(
+    ~SELECTION_METHOD,
+    scales="fixed",
+    labeller=label_both,
+    nrow=1
+  ) +
+  theme(
+    legend.position="none"
+  )
+ggsave(
+  paste0(plot_directory, "num_pop_trait_profiles_facet_sel.pdf"),
+  width=20,
+  height=10
 )
 ```
 
@@ -517,6 +657,11 @@ ggplot(
   ) +
   scale_color_brewer(
     palette="Set2"
+  ) +
+  facet_wrap(
+    ~U_PER_E,
+    scales="free_y",
+    labeller=label_both
   ) +
   theme(
     legend.position="none"
@@ -559,12 +704,65 @@ ggplot(
   scale_color_brewer(
     palette="Set2"
   ) +
+  facet_wrap(
+    ~U_PER_E,
+    scales="free_y",
+    labeller=label_both
+  ) +
   theme(
     legend.position="none"
   )
 
 ggsave(
   paste0(plot_directory, "avg_cosine_dist_from_centroid.pdf")
+)
+```
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=U_PER_E,
+      y=avg_cosine_dist_from_centroid,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8,
+    adjust=1.5
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  xlab("Updates per epoch") +
+  facet_wrap(
+    ~SELECTION_METHOD,
+    scales="fixed",
+    labeller=label_both,
+    nrow=1
+  ) +
+  theme(
+    legend.position="none"
+  )
+ggsave(
+  paste0(plot_directory, "avg_cosine_dist_from_centroid_facet_sel.pdf"),
+  width=20,
+  height=10
 )
 ```
 
@@ -602,11 +800,61 @@ ggplot(
   scale_color_brewer(
     palette="Set2"
   ) +
+  facet_wrap(
+    ~U_PER_E,
+    scales="free_y",
+    labeller=label_both
+  ) +
   theme(
     legend.position="none"
   )
 ggsave(
   paste0(plot_directory, "avg_unique_selected.pdf")
+)
+```
+
+```{r}
+ggplot(
+    exp_summary_data,
+    aes(
+      x=U_PER_E,
+      y=avg_unique_selected,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_fill_brewer(
+    palette="Set2"
+  ) +
+  scale_color_brewer(
+    palette="Set2"
+  ) +
+  facet_wrap(
+    ~SELECTION_METHOD,
+    labeller=label_both,
+    nrow=1
+  ) +
+  theme(
+    legend.position="none"
+  )
+ggsave(
+  paste0(plot_directory, "avg_unique_selected_facet_sel.pdf"),
+  width=20,
+  height=10
 )
 ```
 
@@ -642,191 +890,17 @@ ggplot(
   scale_color_brewer(
     palette="Set2"
   ) +
+  facet_wrap(
+    ~U_PER_E,
+    scales="free_y",
+    labeller=label_both
+  ) +
   theme(
     legend.position="none"
   )
 
 ggsave(
   paste0(plot_directory, "avg_entropy_selected.pdf")
-)
-```
-
-## Pairwise Population comparisons
-
-```{r}
-pairwise_pop_data_loc <- paste0(working_directory,"data/pairwise_population_comps.csv")
-pairwise_pop_data <- read.csv(pairwise_pop_data_loc, na.strings="NONE")
-
-# Specify experimental condition for each datum.
-pairwise_pop_data$SELECTION_METHOD <- factor(
-  pairwise_pop_data$SELECTION_METHOD,
-  levels=c(
-    "elite",
-    "tournament",
-    "lexicase",
-    "non-dominated-elite",
-    "non-dominated-tournament",
-    "random",
-    "none"
-  ),
-  labels=c(
-    "elite",
-    "tourn",
-    "lex",
-    "nde",
-    "ndt",
-    "random",
-    "none"
-  )
-)
-```
-
-## Time series
-
-Load data
-
-```{r}
-times_series_data_loc <- paste0(working_directory,"data/evaluation_time_series.csv")
-times_series_data <- read.csv(times_series_data_loc, na.strings="NONE")
-
-# Specify experimental condition for each datum.
-times_series_data$SELECTION_METHOD <- factor(
-  times_series_data$SELECTION_METHOD,
-  levels=c(
-    "elite",
-    "tournament",
-    "lexicase",
-    "non-dominated-elite",
-    "non-dominated-tournament",
-    "random",
-    "none"
-  ),
-  labels=c(
-    "elite",
-    "tourn",
-    "lex",
-    "nde",
-    "ndt",
-    "random",
-    "none"
-  )
-)
-```
-
-### Max trait coverage
-
-```{r}
-ggplot(
-    times_series_data,
-    aes(
-      x=updates_elapsed,
-      y=max_trait_coverage,
-      fill=SELECTION_METHOD,
-      color=SELECTION_METHOD
-    )
-  ) +
-  stat_summary(geom="line", fun=mean) +
-  stat_summary(
-    geom="ribbon",
-    fun.data="mean_cl_boot",
-    fun.args=list(conf.int=0.95),
-    alpha=0.2,
-    linetype=0
-  ) +
-  scale_y_continuous(
-    breaks=seq(0,18,2)
-  ) +
-  scale_fill_brewer(
-    palette="Set2"
-  ) +
-  scale_color_brewer(
-    palette="Set2"
-  ) +
-  theme(
-    legend.position="bottom"
-  )
-
-ggsave(
-  paste0(plot_directory, "max_trait_coverage_ot.pdf"),
-  width=20,
-  height=10
-)
-```
-
-### Total trait coverage
-
-```{r}
-ggplot(
-    times_series_data,
-    aes(
-      x=updates_elapsed,
-      y=total_trait_coverage,
-      fill=SELECTION_METHOD,
-      color=SELECTION_METHOD
-    )
-  ) +
-  stat_summary(geom="line", fun=mean) +
-  stat_summary(
-    geom="ribbon",
-    fun.data="mean_cl_boot",
-    fun.args=list(conf.int=0.95),
-    alpha=0.2,
-    linetype=0
-  ) +
-  scale_y_continuous(
-    breaks=seq(0,18,2)
-  ) +
-  scale_fill_brewer(
-    palette="Set2"
-  ) +
-  scale_color_brewer(
-    palette="Set2"
-  ) +
-  theme(
-    legend.position="bottom"
-  )
-
-ggsave(
-  paste0(plot_directory, "total_trait_coverage_ot.pdf"),
-  width=20,
-  height=10
-)
-```
-
-### Number of different population-level trait profiles
-
-```{r}
-ggplot(
-    times_series_data,
-    aes(
-      x=updates_elapsed,
-      y=num_pop_trait_profiles,
-      fill=SELECTION_METHOD,
-      color=SELECTION_METHOD
-    )
-  ) +
-  stat_summary(geom="line", fun=mean) +
-  stat_summary(
-    geom="ribbon",
-    fun.data="mean_cl_boot",
-    fun.args=list(conf.int=0.95),
-    alpha=0.2,
-    linetype=0
-  ) +
-  scale_fill_brewer(
-    palette="Set2"
-  ) +
-  scale_color_brewer(
-    palette="Set2"
-  ) +
-  theme(
-    legend.position="bottom"
-  )
-
-ggsave(
-  paste0(plot_directory, "num_pop_trait_profiles_ot.pdf"),
-  width=20,
-  height=10
 )
 ```
 
