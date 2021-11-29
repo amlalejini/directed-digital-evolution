@@ -17,5 +17,4 @@ cd ${ANALYSIS_DIR}
 
 source ../../pyenv/bin/activate
 
-python3 aggregate.py --data_dir ${DATA_DIR} --dump ./dump/ --trait_cov_thresh 50 --units epoch --resolution 1 --collect_pairwise_pop_comps 0 --collect_pop_profiles 0
-
+python3 aggregate.py --data_dir ${DATA_DIR} --dump ./dump/ --trait_cov_thresh 50 --units epoch --resolution 1 --skip_pairwise_pop_comps --skip_pop_profiles
