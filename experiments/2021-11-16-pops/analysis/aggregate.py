@@ -414,26 +414,28 @@ def main():
 
         # AGGREGATE POPULATION PROFILE FILE INFO
         # - one line per trait_id per population per seed
+
+        max_agg_score_pop_i = 0
+        max_agg_score = None
+        pop_task_performances = [{} for _ in range(num_pops)]
+        for pop_i in range(len(targ_epoch_run_world_summary_data)):
+            pop_line = targ_epoch_run_world_summary_data[pop_i]
+            pop_task_performance = pop_line["task_performance"].strip("[]{}").split("},{")
+            # pop_task_performance_lookup = {}
+            for i in range(len(pop_task_performance)):
+                pathway = {task.split(":")[0]:float(task.split(":")[1]) for task in pop_task_performance[i].split(",")}
+                for task in pathway:
+                    pop_task_performances[pop_i][f"{task}_{i}"] = pathway[task]
+            # Calc agg score
+            cur_agg_score = sum([pop_task_performances[pop_i][task] for task in world_tasks])
+            if max_agg_score == None:
+                max_agg_score = cur_agg_score
+                max_agg_score_pop_i = pop_i
+            elif cur_agg_score > max_agg_score:
+                max_agg_score = cur_agg_score
+                max_agg_score_pop_i = pop_i
+
         if collect_pop_profiles:
-            max_agg_score_pop_i = 0
-            max_agg_score = None
-            pop_task_performances = [{} for _ in range(num_pops)]
-            for pop_i in range(len(targ_epoch_run_world_summary_data)):
-                pop_line = targ_epoch_run_world_summary_data[pop_i]
-                pop_task_performance = pop_line["task_performance"].strip("[]{}").split("},{")
-                # pop_task_performance_lookup = {}
-                for i in range(len(pop_task_performance)):
-                    pathway = {task.split(":")[0]:float(task.split(":")[1]) for task in pop_task_performance[i].split(",")}
-                    for task in pathway:
-                        pop_task_performances[pop_i][f"{task}_{i}"] = pathway[task]
-                # Calc agg score
-                cur_agg_score = sum([pop_task_performances[pop_i][task] for task in world_tasks])
-                if max_agg_score == None:
-                    max_agg_score = cur_agg_score
-                    max_agg_score_pop_i = pop_i
-                elif cur_agg_score > max_agg_score:
-                    max_agg_score = cur_agg_score
-                    max_agg_score_pop_i = pop_i
             # Calculate pairwise distances
             pop_task_pairwise_dists = [ [ (sum([ abs(pop_task_performances[pop_i][task] - pop_task_performances[pop_j][task]) for task in world_tasks]), pop_j) for pop_j in range(num_pops) if pop_j != pop_i] for pop_i in range(num_pops)]
             for dists in pop_task_pairwise_dists:
