@@ -101,9 +101,9 @@ def main():
     parser.add_argument("--trait_cov_thresh", type=float, help="Threshold for trait score to count toward trait coverage", default=default_trait_cov_thresh)
     parser.add_argument("--units", type=str, default="epoch", choices=["epoch", "update", "interval", "total"], help="Unit for resolution of time series")
     parser.add_argument("--resolution", type=int, default=1, help="What resolution should we collect time series data at?")
-    parser.add_argument("--collect_pairwise_pop_comps", type=bool, default=True, help="Should we aggregate pairwise population comparisions?")
-    parser.add_argument("--collect_pop_profiles", type=bool, default=True, help="Should we aggregate population profiles?")
-    parser.add_argument("--collect_time_series", type=bool, default=True, help="Should we aggregate time series data?")
+    parser.add_argument("--skip_pairwise_pop_comps", action="store_false", help="Should we aggregate pairwise population comparisions?")
+    parser.add_argument("--skip_pop_profiles", action="store_false", help="Should we aggregate population profiles?")
+    parser.add_argument("--skip_time_series", action="store_false", help="Should we aggregate time series data?")
 
     # Parse user arguments
     args = parser.parse_args()
@@ -112,9 +112,9 @@ def main():
     time_series_units = args.units
     time_series_resolution = args.resolution
     trait_cov_thresh = args.trait_cov_thresh
-    collect_pairwise_pop_comps = args.collect_pairwise_pop_comps
-    collect_pop_profiles = args.collect_pop_profiles
-    collect_time_series = args.collect_time_series
+    collect_pairwise_pop_comps = args.skip_pairwise_pop_comps
+    collect_pop_profiles = args.skip_pop_profiles
+    collect_time_series = args.skip_time_series
 
     # Does data directory exist, if not exit.
     if not os.path.exists(data_dir):
