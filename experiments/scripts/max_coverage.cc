@@ -201,12 +201,24 @@ emp::vector<SolutionInfo> solver(MetapopulationInfo& metapop) {
   //////////////////////////////////////////////////////////////
   // Given a number of populations, find maximum task coverage.
   //////////////////////////////////////////////////////////////
+  // - Compress redundant populations (choose 1 representative of each profile)
+  std::unordered_set<std::string> unique_profiles;
+  emp::vector<size_t> unique_pop_ids;
+  for (size_t pop_i = 0; pop_i < pops.size(); ++pop_i) {
+    std::string profile(pops[pop_i].covered_tasks.ToString());
+    if (emp::Has(unique_profiles, profile)) continue;
+    unique_pop_ids.emplace_back(pop_i);
+    unique_profiles.emplace(profile);
+  }
+  emp_assert(unique_profiles.size() > 0);
+  emp_assert(unique_pop_ids.size() > 0);
+
   // -- Prep computations --
   // - Find population with the maximum task coverage.
-  size_t best_single_cov_pop_id=0;
-  size_t best_single_pop_cov=metapop.pops[0].num_tasks_covered;
-  for (size_t pop_i = 1; pop_i < metapop.pops.size(); ++pop_i) {
-    const size_t cur_pop_cov = metapop.pops[pop_i].num_tasks_covered;
+  size_t best_single_cov_pop_id=unique_pop_ids[0];
+  size_t best_single_pop_cov=pops[best_single_cov_pop_id].num_tasks_covered;
+  for (size_t pop_i : unique_pop_ids) {
+    const size_t cur_pop_cov = pops[pop_i].num_tasks_covered;
     if (cur_pop_cov > best_single_pop_cov) {
       best_single_cov_pop_id = pop_i;
       best_single_pop_cov = cur_pop_cov;
@@ -217,7 +229,7 @@ emp::vector<SolutionInfo> solver(MetapopulationInfo& metapop) {
   emp::vector< std::unordered_set<size_t> > pop_set_that_cover_each_task(tasks.size());
   emp::vector< emp::vector<size_t> > pops_that_cover_each_task(tasks.size());
   for (size_t task_i = 0; task_i < tasks.size(); ++task_i) {
-    for (size_t pop_i = 0; pop_i < pops.size(); ++pop_i) {
+    for (size_t pop_i : unique_pop_ids) {
       if (pops[pop_i].covered_tasks[task_i]) {
         pops_that_cover_each_task[task_i].emplace_back(pop_i);
         pop_set_that_cover_each_task[task_i].emplace(pop_i);
@@ -229,7 +241,7 @@ emp::vector<SolutionInfo> solver(MetapopulationInfo& metapop) {
   solutions[0].num_pops = 1;
   solutions[0].max_tasks_covered = best_single_pop_cov;
   solutions[0].pop_idxs.emplace_back(best_single_cov_pop_id);
-  solutions[0].covered_tasks = metapop.pops[best_single_cov_pop_id].covered_tasks;
+  solutions[0].covered_tasks = pops[best_single_cov_pop_id].covered_tasks;
 
   // -- Solve --
   size_t prev_solution_i = 0;
@@ -239,7 +251,7 @@ emp::vector<SolutionInfo> solver(MetapopulationInfo& metapop) {
     sol.num_pops = prev_sol.num_pops+1;
     const size_t N = sol.num_pops;
     prev_solution_i = sol_i; // Update this here so we can shortcut loop w/out worrying about updating this later.
-    // std::cout << "    Solving N=" << N << std::endl;
+
     // Can we solve for this N trivially using previous solution (for N-1)?
     // If prev solution coverage == metapop task coverage, we can do no better than previous solution.
     if (prev_sol.max_tasks_covered == max_possible_coverage) {
@@ -276,7 +288,7 @@ emp::vector<SolutionInfo> solver(MetapopulationInfo& metapop) {
     );
     int add_id = -1;
     size_t add_value = 0;
-    for (size_t pop_i = 0; pop_i < pops.size(); ++pop_i) {
+    for (size_t pop_i : unique_pop_ids) {
       if (emp::Has(bound_pops, pop_i)) continue;
       const size_t cur_add_value = bound.covered_tasks.OR(pops[pop_i].covered_tasks).CountOnes();
       if (cur_add_value > add_value) {
@@ -303,15 +315,17 @@ emp::vector<SolutionInfo> solver(MetapopulationInfo& metapop) {
     // Create initial problem state
     emp::vector<SolveState> state_stack(1);
     auto& initial_state = state_stack.back();
-    for (size_t pop_i = 0; pop_i < pops.size(); ++pop_i) {
+    for (size_t pop_i : unique_pop_ids) {
       initial_state.undecided.emplace(pop_i);
     }
-    emp_assert(initial_state.undecided.size() == pops.size());
+    emp_assert(initial_state.undecided.size() == unique_pop_ids.size());
     initial_state.include.resize(0);
     initial_state.exclude.resize(0);
     initial_state.covered_tasks.Clear();
     initial_state.num_tasks_covered=0;
 
+    // If fewer than N populations are needed to achieve maximum possible coverage, we should never get to this point.
+    emp_assert(unique_pop_ids.size() <= N);
     while (state_stack.size()) {
       // std::cout << "    - State stack size: " << state_stack.size() << std::endl;
       SolveState eval_state(state_stack.back());
