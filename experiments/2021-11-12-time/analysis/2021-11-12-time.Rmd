@@ -66,12 +66,6 @@ exp_summary_data$TOURNAMENT_SEL_TOURN_SIZE <- as.factor(
   exp_summary_data$TOURNAMENT_SEL_TOURN_SIZE
 )
 
-exp_summary_data$POPULATION_SAMPLING_SIZE <- as.factor(
-  exp_summary_data$POPULATION_SAMPLING_SIZE
-)
-
-exp_summary_data$SAMPLE_SIZE <- exp_summary_data$POPULATION_SAMPLING_SIZE
-exp_summary_data$ENV <- exp_summary_data$AVIDAGP_ENV_FILE
 exp_summary_data$U_PER_E <- exp_summary_data$UPDATES_PER_EPOCH
 ```
 
@@ -85,6 +79,33 @@ cb_palette <- "Set2"
 # Create a directory to store plots
 plot_directory <- paste0(working_directory, "plots/")
 dir.create(plot_directory, showWarnings=FALSE)
+
+selection_method_breaks <- c("elite", "tourn", "lex", "nde", "random", "none")
+selection_method_labels <- c("ELITE", "TOURN", "LEX", "NDE", "RAND", "NONE")
+
+exp_summary_data$SELECTION_METHOD_LABEL <- factor(
+  exp_summary_data$SELECTION_METHOD,
+  levels=c(
+    "elite",
+    "tourn",
+    "lex",
+    "nde",
+    "ndt",
+    "random",
+    "none"
+  ),
+  labels=c(
+    "Elite Selection",
+    "Tournament Selection",
+    "Lexicase Selection",
+    "Non-dominated Elite Selection",
+    "Non-dominated Tournament Selection",
+    "Random Selection",
+    "No Selection"
+  )
+)
+
+selection_methods_smaller_set_colors <- c("#66C2A5", "#8DA0CB", "#E78AC3", "#FFD92F")
 ```
 
 ## Average number of organisms
@@ -127,7 +148,6 @@ ggplot(
   ) +
   theme(
     legend.position="none"
-    # panel.border=element_rect(colour="grey",size=1)
   )
 
 ggsave(
@@ -135,14 +155,32 @@ ggsave(
 )
 ```
 
+```{r}
+for (timing in levels(exp_summary_data$U_PER_E)) {
+  for (sel in c("elite", "lex", "nde", "none")) {
+    print(
+      paste(
+        timing,
+        sel,
+        median(filter(exp_summary_data, U_PER_E==timing & SELECTION_METHOD==sel)$avg_num_orgs)
+      )
+    )
+  }
+  print(
+    paste(
+      timing, "overall", median(filter(exp_summary_data, U_PER_E==timing)$avg_num_orgs)
+    )
+  )
+}
+```
+
 ## Average generations
 
 ```{r}
 ggplot(
-    # filter(exp_summary_data, U_PER_E %in% c("50", "100", "200")),
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=U_PER_E,
       y=avg_gens,
       fill=SELECTION_METHOD
     )
@@ -162,33 +200,36 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
-  scale_fill_brewer(
-    palette="Set2"
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
   ) +
-  scale_color_brewer(
-    palette="Set2"
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
+  xlab("Updates per epoch") +
   facet_wrap(
-    ~U_PER_E,
-    scales="free",
-    labeller=label_both
+    ~SELECTION_METHOD_LABEL,
+    scales="fixed",
+    nrow=1
   ) +
   theme(
     legend.position="none"
   )
 
 ggsave(
-  paste0(plot_directory, "avg_gens.pdf"),
-  width=10,
-  height=15
+  paste0(plot_directory, "avg_gens_facet_sel.pdf"),
+  width=20,
+  height=10
 )
 ```
+
+## Total generations
 
 ```{r}
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=U_PER_E,
       y=total_gens_approx,
       fill=SELECTION_METHOD
     )
@@ -208,15 +249,16 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
-  scale_fill_brewer(
-    palette="Set2"
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
   ) +
-  scale_color_brewer(
-    palette="Set2"
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_wrap(
-    ~U_PER_E,
-    labeller=label_both
+    ~SELECTION_METHOD,
+    labeller=label_both,
+    nrow=1
   ) +
   theme(
     legend.position="none"
@@ -224,13 +266,31 @@ ggplot(
 
 ggsave(
   paste0(plot_directory, "total_gens_approx.pdf"),
-  width=10,
-  height=15
+  width=20,
+  height=10
 )
 
 median(exp_summary_data$total_gens_approx) # Used for determining how many generations to run EC for
 ```
 
+```{r}
+for (timing in levels(exp_summary_data$U_PER_E)) {
+  for (sel in c("elite", "lex", "nde", "none")) {
+    print(
+      paste(
+        timing,
+        sel,
+        median(filter(exp_summary_data, U_PER_E==timing & SELECTION_METHOD==sel)$total_gens_approx)
+      )
+    )
+  }
+  print(
+    paste(
+      timing, "overall", median(filter(exp_summary_data, U_PER_E==timing)$total_gens_approx)
+    )
+  )
+}
+```
 
 ## Performance
 
@@ -240,7 +300,7 @@ median(exp_summary_data$total_gens_approx) # Used for determining how many gener
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=U_PER_E,
       y=avg_cpu_cycles_per_replication,
       fill=SELECTION_METHOD
     )
@@ -260,126 +320,35 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
-  scale_fill_brewer(
-    palette="Set2"
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
   ) +
-  scale_color_brewer(
-    palette="Set2"
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
+    ~SELECTION_METHOD,
+    scales="fixed",
+    labeller=label_both,
+    nrow=1
   ) +
   theme(
     legend.position="none"
   )
 
 ggsave(
-  paste0(plot_directory, "avg_cpu_cycles_per_replication.pdf")
-)
-```
-
-### Max aggregate performance
-
-```{r}
-ggplot(
-    # exp_summary_data,
-    filter(exp_summary_data, U_PER_E %in% c("20", "50")),
-    aes(
-      x=SELECTION_METHOD,
-      y=max_aggregate_score,
-      fill=SELECTION_METHOD
-    )
-  ) +
-  geom_flat_violin(
-    position = position_nudge(x = .2, y = 0),
-    alpha = .8
-  ) +
-  geom_point(
-    mapping=aes(color=SELECTION_METHOD),
-    position = position_jitter(width = .15),
-    size = .5,
-    alpha = 0.8
-  ) +
-  geom_boxplot(
-    width = .1,
-    outlier.shape = NA,
-    alpha = 0.5
-  ) +
-  scale_fill_brewer(
-    palette="Set2"
-  ) +
-  scale_color_brewer(
-    palette="Set2"
-  ) +
-  facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
-  ) +
-  theme(
-    legend.position="none",
-    panel.border=element_rect(colour="grey",size=1)
-  )
-
-ggsave(
-  paste0(plot_directory, "max_aggregate_score.pdf")
+  paste0(plot_directory, "avg_cpu_cycles_per_replication.pdf"),
+  width=20,
+  height=10
 )
 ```
 
 ### Max trait coverage
 
 ```{r}
-ggplot(
-    exp_summary_data,
-    aes(
-      x=SELECTION_METHOD,
-      y=max_trait_coverage,
-      fill=SELECTION_METHOD
-    )
-  ) +
-  geom_flat_violin(
-    position = position_nudge(x = .2, y = 0),
-    alpha = .8,
-    adjust=1.5
-  ) +
-  geom_point(
-    mapping=aes(color=SELECTION_METHOD),
-    position = position_jitter(height=0.1, width = .15),
-    size = .5,
-    alpha = 0.8
-  ) +
-  geom_boxplot(
-    width = .1,
-    outlier.shape = NA,
-    alpha = 0.5
-  ) +
-  scale_y_continuous(
-    breaks=seq(0,18,2)
-  ) +
-  scale_fill_brewer(
-    palette="Set2"
-  ) +
-  scale_color_brewer(
-    palette="Set2"
-  ) +
-  facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
-  ) +
-  theme(
-    legend.position="none"
-  )
 
-ggsave(
-  paste0(plot_directory, "max_trait_coverage.pdf")
-)
-```
-
-```{r}
-ggplot(
+max_task_coverage_fig <-
+  ggplot(
     exp_summary_data,
     aes(
       x=U_PER_E,
@@ -404,83 +373,62 @@ ggplot(
     alpha = 0.5
   ) +
   scale_y_continuous(
+    name="Task Coverage",
+    limits=c(-0.5, 18.5),
     breaks=seq(0,18,2)
   ) +
-  scale_fill_brewer(
-    palette="Set2"
+  scale_x_discrete(
+    name="Updates per epoch"
   ) +
-  scale_color_brewer(
-    palette="Set2"
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
   ) +
-  xlab("Updates per epoch") +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
   facet_wrap(
-    ~SELECTION_METHOD,
+    ~SELECTION_METHOD_LABEL,
     scales="fixed",
-    labeller=label_both,
     nrow=1
   ) +
   theme(
     legend.position="none"
   )
+
 ggsave(
-  paste0(plot_directory, "max_trait_coverage_facet_sel.pdf"),
+  plot=max_task_coverage_fig,
+  filename=paste0(plot_directory, "max_trait_coverage.pdf"),
   width=20,
   height=10
 )
 ```
+```{r}
+for (sel in c("elite", "lex", "nde", "none")) {
+  print(sel)
+  sel_summary_data <- filter(exp_summary_data, SELECTION_METHOD==sel)
+  kt <- kruskal.test(
+    formula=max_trait_coverage~U_PER_E,
+    data=sel_summary_data
+  )
+  print(kt)
+  if (kt$p.value < 0.05) {
+    pwt <- pairwise.wilcox.test(
+      x=sel_summary_data$max_trait_coverage,
+      g=sel_summary_data$U_PER_E,
+      p.adjust.method="bonferroni",
+    )
+    print(pwt)
+  } else {
+    print("Not significant")
+  }
+}
 
+```
 ### Total trait coverage
 
 ```{r}
-ggplot(
-    exp_summary_data,
-    aes(
-      x=SELECTION_METHOD,
-      y=total_trait_coverage,
-      fill=SELECTION_METHOD
-    )
-  ) +
-  geom_flat_violin(
-    position = position_nudge(x = .2, y = 0),
-    alpha = .8,
-    adjust=1.5
-  ) +
-  geom_point(
-    mapping=aes(color=SELECTION_METHOD),
-    position = position_jitter(height=0.1, width = .15),
-    size = .5,
-    alpha = 0.8
-  ) +
-  geom_boxplot(
-    width = .1,
-    outlier.shape = NA,
-    alpha = 0.5
-  ) +
-  scale_y_continuous(
-    breaks=seq(0,18,2)
-  ) +
-  scale_fill_brewer(
-    palette="Set2"
-  ) +
-  scale_color_brewer(
-    palette="Set2"
-  ) +
-  facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
-  ) +
-  theme(
-    legend.position="none"
-  )
-
-ggsave(
-  paste0(plot_directory, "total_trait_coverage.pdf")
-)
-```
-
-```{r}
-ggplot(
+total_task_coverage_fig <-
+  ggplot(
     exp_summary_data,
     aes(
       x=U_PER_E,
@@ -505,26 +453,31 @@ ggplot(
     alpha = 0.5
   ) +
   scale_y_continuous(
+    name="Task Coverage",
+    limits=c(-0.5, 18.5),
     breaks=seq(0,18,2)
   ) +
-  scale_fill_brewer(
-    palette="Set2"
+  scale_x_discrete(
+    name="Updates per epoch"
   ) +
-  scale_color_brewer(
-    palette="Set2"
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
   ) +
-  xlab("Updates per epoch") +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
   facet_wrap(
-    ~SELECTION_METHOD,
+    ~SELECTION_METHOD_LABEL,
     scales="fixed",
-    labeller=label_both,
     nrow=1
   ) +
   theme(
     legend.position="none"
   )
+total_task_coverage_fig
 ggsave(
-  paste0(plot_directory, "total_trait_coverage_facet_sel.pdf"),
+  plot=total_task_coverage_fig,
+  filename=paste0(plot_directory, "total_trait_coverage.pdf"),
   width=20,
   height=10
 )
@@ -533,50 +486,6 @@ ggsave(
 ## Population-level Task Profile Diversity
 
 ### Task profile richness
-
-```{r}
-ggplot(
-    exp_summary_data,
-    aes(
-      x=SELECTION_METHOD,
-      y=num_pop_trait_profiles,
-      fill=SELECTION_METHOD
-    )
-  ) +
-  geom_flat_violin(
-    position = position_nudge(x = .2, y = 0),
-    alpha = .8
-  ) +
-  geom_point(
-    mapping=aes(color=SELECTION_METHOD),
-    position = position_jitter(height=0, width = .15),
-    size = .5,
-    alpha = 0.8
-  ) +
-  geom_boxplot(
-    width = .1,
-    outlier.shape = NA,
-    alpha = 0.5
-  ) +
-  scale_fill_brewer(
-    palette="Set2"
-  ) +
-  scale_color_brewer(
-    palette="Set2"
-  ) +
-  facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
-  ) +
-  theme(
-    legend.position="none"
-  )
-
-ggsave(
-  paste0(plot_directory, "num_pop_trait_profiles.pdf")
-)
-```
 
 ```{r}
 ggplot(
@@ -678,50 +587,6 @@ ggsave(
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
-      y=avg_cosine_dist_from_centroid,
-      fill=SELECTION_METHOD
-    )
-  ) +
-  geom_flat_violin(
-    position = position_nudge(x = .2, y = 0),
-    alpha = .8
-  ) +
-  geom_point(
-    mapping=aes(color=SELECTION_METHOD),
-    position = position_jitter(height=0, width = .15),
-    size = .5,
-    alpha = 0.8
-  ) +
-  geom_boxplot(
-    width = .1,
-    outlier.shape = NA,
-    alpha = 0.5
-  ) +
-  scale_fill_brewer(
-    palette="Set2"
-  ) +
-  scale_color_brewer(
-    palette="Set2"
-  ) +
-  facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
-  ) +
-  theme(
-    legend.position="none"
-  )
-
-ggsave(
-  paste0(plot_directory, "avg_cosine_dist_from_centroid.pdf")
-)
-```
-
-```{r}
-ggplot(
-    exp_summary_data,
-    aes(
       x=U_PER_E,
       y=avg_cosine_dist_from_centroid,
       fill=SELECTION_METHOD
@@ -774,49 +639,6 @@ ggsave(
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
-      y=avg_unique_selected,
-      fill=SELECTION_METHOD
-    )
-  ) +
-  geom_flat_violin(
-    position = position_nudge(x = .2, y = 0),
-    alpha = .8
-  ) +
-  geom_point(
-    mapping=aes(color=SELECTION_METHOD),
-    position = position_jitter(height=0, width = .15),
-    size = .5,
-    alpha = 0.8
-  ) +
-  geom_boxplot(
-    width = .1,
-    outlier.shape = NA,
-    alpha = 0.5
-  ) +
-  scale_fill_brewer(
-    palette="Set2"
-  ) +
-  scale_color_brewer(
-    palette="Set2"
-  ) +
-  facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
-  ) +
-  theme(
-    legend.position="none"
-  )
-ggsave(
-  paste0(plot_directory, "avg_unique_selected.pdf")
-)
-```
-
-```{r}
-ggplot(
-    exp_summary_data,
-    aes(
       x=U_PER_E,
       y=avg_unique_selected,
       fill=SELECTION_METHOD
@@ -864,7 +686,7 @@ ggsave(
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=U_PER_E,
       y=avg_entropy_selected,
       fill=SELECTION_METHOD
     )
@@ -891,8 +713,8 @@ ggplot(
     palette="Set2"
   ) +
   facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
+    ~SELECTION_METHOD,
+    scales="fixed",
     labeller=label_both
   ) +
   theme(
@@ -901,6 +723,36 @@ ggplot(
 
 ggsave(
   paste0(plot_directory, "avg_entropy_selected.pdf")
+)
+```
+
+## Manuscript Figures
+
+```{r}
+grid <- plot_grid(
+  max_task_coverage_fig +
+    theme(
+      axis.text.x = element_text(size = 9, angle=-30, hjust=0),
+      strip.text.x = element_text(size = 10)
+
+    ) +
+    ggtitle("Best population task coverage"),
+  total_task_coverage_fig +
+    theme(
+      axis.text.x = element_text(size = 9, angle=-30, hjust=0),
+      strip.text.x = element_text(size = 10)
+    ) +
+    ggtitle("Metapopulation task coverage"),
+  nrow=2,
+  ncol=1,
+  labels="auto"
+)
+grid
+
+save_plot(
+  plot=grid,
+  filename=paste0(plot_directory, "2021-11-12-timing-figure.pdf"),
+  base_height=6
 )
 ```
 

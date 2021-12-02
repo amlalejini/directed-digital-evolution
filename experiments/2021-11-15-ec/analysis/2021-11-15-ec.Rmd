@@ -19,6 +19,8 @@ library(cowplot)
 library(RColorBrewer)
 library(scales)
 library(viridis)
+library(rstatix)
+library(ggsignif)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 ```
 
@@ -69,14 +71,20 @@ cb_palette <- "Set2"
 # Create a directory to store plots
 plot_directory <- paste0(working_directory, "plots/")
 dir.create(plot_directory, showWarnings=FALSE)
+
+selection_method_breaks <- c("elite", "tourn", "lex", "nde", "random", "none")
+selection_method_labels <- c("ELITE", "TOURN", "LEX", "NDE", "RAND", "NONE")
 ```
 
 ## Performance
 
 ### Max aggregate performance
 
+This is also max task coverage for the EC setup.
+
 ```{r}
-ggplot(
+max_task_cov_fig <-
+  ggplot(
     exp_summary_data,
     aes(
       x=SELECTION_METHOD,
@@ -86,7 +94,8 @@ ggplot(
   ) +
   geom_flat_violin(
     position = position_nudge(x = .2, y = 0),
-    alpha = .8
+    alpha = .8,
+    adjust=1.5
   ) +
   geom_point(
     mapping=aes(color=SELECTION_METHOD),
@@ -99,18 +108,48 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
+  scale_y_continuous(
+    name="Task Coverage",
+    limits=c(-0.5,22.5),
+    breaks=seq(0,22,2)
+  ) +
+  scale_x_discrete(
+    name="Selection Method",
+    breaks=selection_method_breaks,
+    labels=selection_method_labels
+  ) +
   scale_fill_brewer(
-    palette="Set2"
+    palette=cb_palette
   ) +
   scale_color_brewer(
-    palette="Set2"
+    palette=cb_palette
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
+    axis.text = element_text(size = 9),
+    axis.title = element_text(size=10)
   )
+max_task_cov_fig
 
 ggsave(
-  paste0(plot_directory, "max_aggregate_score.pdf")
+  plot=max_task_cov_fig,
+  filename=paste0(plot_directory, "2021-11-15-ec-performance.pdf"),
+  height=3,
+  width=4
+)
+```
+
+```{r}
+kruskal.test(
+  formula=max_fit_aggregate_score~SELECTION_METHOD,
+  data=exp_summary_data
+)
+
+# Kruskal-wallis is significant, so we do a post-hoc wilcoxon rank-sum.
+pairwise.wilcox.test(
+  x=exp_summary_data$max_fit_aggregate_score,
+  g=exp_summary_data$SELECTION_METHOD,
+  p.adjust.method="bonferroni",
 )
 ```
 
