@@ -76,7 +76,8 @@ combos.add_val(
         "lexicase",
         "non-dominated-elite",
         "random",
-        "none"
+        "none",
+        "elite-10"
     ]
 )
 
@@ -163,6 +164,12 @@ def main():
             run_param_info["POPULATION_SAMPLING_METHOD"] = "full"
         else:
             run_param_info["POPULATION_SAMPLING_METHOD"] = "random"
+
+        if run_param_info["SELECTION_METHOD"] == "elite-10":
+            run_param_info["SELECTION_METHOD"] = "elite"
+            run_param_info["ELITE_SEL_NUM_ELITES"] = "10"
+        else:
+            run_param_info["ELITE_SEL_NUM_ELITES"] = "1"
 
         fields = list(run_param_info.keys())
         fields.sort()
