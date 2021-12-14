@@ -83,6 +83,43 @@ void NoSelect(emp::World<ORG>& world) {
   }
 }
 
+
+/// ==ELITE== Selection picks a set of the most fit individuals from the population to move to
+/// the next generation.  Find top e_count individuals and make copy_count copies of each.
+/// @param world The emp::World object with the organisms to be selected.
+/// @param e_count How many distinct organisms should be chosen, starting from the most fit.
+/// @param repro_count How many total reproduction events to carry out?
+template<typename ORG>
+void EliteSelect(emp::World<ORG> & world, size_t e_count=1, size_t repro_count=1) {
+  emp_assert(e_count > 0 && e_count <= world.GetNumOrgs(), e_count);
+  emp_assert(repro_count > 0);
+
+  // Load the population into a multimap, sorted by fitness.
+  std::multimap<double, size_t> fit_map;
+  for (size_t id = 0; id < world.GetSize(); id++) {
+    if (world.IsOccupied(id)) {
+      const double cur_fit = world.CalcFitnessID(id);
+      fit_map.insert( std::make_pair(cur_fit, id) );
+    }
+  }
+
+  emp::vector<size_t> elites(e_count, 0);
+  // Grab the organisms with the top fitnesses.
+  auto m = fit_map.rbegin();
+  for (size_t i = 0; i < e_count; i++) {
+    const size_t repro_id = m->second;
+    elites[i] = repro_id;
+    ++m;
+  }
+  // Reproduce elites up to repro_count.
+  for (size_t i = 0; i < repro_count; ++i) {
+    const size_t selected_id = elites[i%e_count];
+    world.DoBirth(world.GetGenomeAt(selected_id), selected_id);
+  }
+
+}
+
+
 template<typename ORG>
 void NonDominatedEliteSelect(
   emp::World<ORG>& world,
@@ -544,7 +581,7 @@ void AvidaGPEvoCompWorld::SetupSelection() {
 void AvidaGPEvoCompWorld::SetupEliteSelection() {
   do_selection_sig.AddAction(
     [this]() {
-      emp::EliteSelect(*this, config.ELITE_SEL_NUM_ELITES(), config.POP_SIZE());
+      dirdevo::EliteSelect(*this, config.ELITE_SEL_NUM_ELITES(), config.POP_SIZE());
     }
   );
 }
