@@ -197,6 +197,9 @@ def main():
         # To make analyses easier, change selection method name for elite + num elite = 10:
         if (experiment_summary_info["SELECTION_METHOD"] == "elite") and (experiment_summary_info["ELITE_SEL_NUM_ELITES"] == "10"):
             experiment_summary_info["SELECTION_METHOD"] = "elite-10"
+        # Patch in AVIDAGP_ENV_BANK_SIZE
+        if not "AVIDAGP_ENV_BANK_SIZE" in experiment_summary_info:
+            experiment_summary_info["AVIDAGP_ENV_BANK_SIZE"] = "10000"
 
         # Grab a few useful parameter values
         num_pops = int(experiment_summary_info["NUM_POPS"])
