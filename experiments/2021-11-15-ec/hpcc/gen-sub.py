@@ -64,7 +64,8 @@ combos.add_val(
         "lexicase",
         "non-dominated-elite",
         "random",
-        "none"
+        "none",
+        "elite-10"
     ]
 )
 
@@ -140,6 +141,12 @@ def main():
         # first, just copy over condition dictionary values
         run_param_info = {key:condition_dict[key] for key in condition_dict if not "_MULTI_PARAM_" in key}
         run_param_info["SEED"] = "${SEED}"
+
+        if run_param_info["SELECTION_METHOD"] == "elite-10":
+            run_param_info["SELECTION_METHOD"] = "elite"
+            run_param_info["ELITE_SEL_NUM_ELITES"] = "10"
+        else:
+            run_param_info["ELITE_SEL_NUM_ELITES"] = "1"
 
         fields = list(run_param_info.keys())
         fields.sort()
