@@ -65,7 +65,7 @@ combos.add_val(
         "non-dominated-elite",
         "random",
         "none",
-        "elite-10"
+        "top-10"
     ]
 )
 
@@ -142,9 +142,9 @@ def main():
         run_param_info = {key:condition_dict[key] for key in condition_dict if not "_MULTI_PARAM_" in key}
         run_param_info["SEED"] = "${SEED}"
 
-        if run_param_info["SELECTION_METHOD"] == "elite-10":
+        if run_param_info["SELECTION_METHOD"] == "top-10":
             run_param_info["SELECTION_METHOD"] = "elite"
-            run_param_info["ELITE_SEL_NUM_ELITES"] = "10"
+            run_param_info["ELITE_SEL_NUM_ELITES"] = "100"
         else:
             run_param_info["ELITE_SEL_NUM_ELITES"] = "1"
 
