@@ -73,7 +73,7 @@ def main():
             experiment_summary_info[line["parameter"]] = line["value"]
 
         # To make analyses easier, change selection method name for elite + num elite = 10:
-        if (experiment_summary_info["SELECTION_METHOD"] == "elite") and (experiment_summary_info["ELITE_SEL_NUM_ELITES"] == "10"):
+        if (experiment_summary_info["SELECTION_METHOD"] == "elite") and (experiment_summary_info["ELITE_SEL_NUM_ELITES"] == "100"):
             experiment_summary_info["SELECTION_METHOD"] = "elite-10"
 
         # Grab a few useful parameter values
