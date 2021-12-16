@@ -198,6 +198,11 @@ def main():
         for param in world_params:
             if len(world_params[param]) == 1:
                 experiment_summary_info[param] = list(world_params[param])[0]
+
+        # To make analyses easier, change selection method name for elite + num elite = 10:
+        if (experiment_summary_info["SELECTION_METHOD"] == "elite") and (experiment_summary_info["ELITE_SEL_NUM_ELITES"] == "10"):
+            experiment_summary_info["SELECTION_METHOD"] = "elite-10"
+
         # Grab a few useful parameter values
         num_pops = int(experiment_summary_info["NUM_POPS"])
         max_pop_size = int(experiment_summary_info["world_size"])
