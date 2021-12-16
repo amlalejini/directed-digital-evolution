@@ -105,7 +105,8 @@ combos.add_val(
         "lexicase",
         "non-dominated-elite",
         "random",
-        "none"
+        "none",
+        "elite-10"
     ]
 )
 
@@ -198,11 +199,19 @@ def main():
         # run_param_info["OUTPUT_SUMMARY_UPDATE_RESOLUTION"] = str(condition_dict["UPDATES_PER_EPOCH"])
         run_param_info["OUTPUT_PHYLOGENY_SNAPSHOT_EPOCH_RESOLUTION"] = "500"
         run_param_info["SEED"] = "${SEED}"
+
         if (condition_dict["POPULATION_SAMPLING_SIZE"] == "900"):
             run_param_info["POPULATION_SAMPLING_METHOD"] = "full"
         else:
             run_param_info["POPULATION_SAMPLING_METHOD"] = "random"
+
         run_param_info["AVIDAGP_ENV_BANK_SIZE"] = env_bank_size_by_pops[num_pops]
+
+        if run_param_info["SELECTION_METHOD"] == "elite-10":
+            run_param_info["SELECTION_METHOD"] = "elite"
+            run_param_info["ELITE_SEL_NUM_ELITES"] = "10"
+        else:
+            run_param_info["ELITE_SEL_NUM_ELITES"] = "1"
 
         fields = list(run_param_info.keys())
         fields.sort()
