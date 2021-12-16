@@ -72,6 +72,10 @@ def main():
             if line["parameter"] in run_config_drop_fields: continue
             experiment_summary_info[line["parameter"]] = line["value"]
 
+        # To make analyses easier, change selection method name for elite + num elite = 10:
+        if (experiment_summary_info["SELECTION_METHOD"] == "elite") and (experiment_summary_info["ELITE_SEL_NUM_ELITES"] == "10"):
+            experiment_summary_info["SELECTION_METHOD"] = "elite-10"
+
         # Grab a few useful parameter values
         max_update = int(experiment_summary_info["GENS"])
         num_tasks = int(experiment_summary_info["total_tasks"])
