@@ -30,6 +30,7 @@ coverage_include/
 directed-digital-experiment
 *.cfg
 output/
+*.tar.gz
 
 pyenv/
 
