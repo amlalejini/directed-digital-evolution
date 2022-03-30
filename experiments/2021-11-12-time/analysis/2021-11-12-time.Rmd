@@ -104,8 +104,9 @@ exp_summary_data$SELECTION_METHOD_LABEL <- factor(
     "No Selection"
   )
 )
-
-selection_methods_smaller_set_colors <- c("#66C2A5", "#8DA0CB", "#E78AC3", "#FFD92F")
+# 1, 4, 5, 7
+selection_methods_smaller_set_colors <- c("#66C2A5", "#E78AC3", "#A6D854", "#E5C494")
+# c("#66C2A5", "#8DA0CB", "#E78AC3", "#FFD92F")
 ```
 
 ## Average number of organisms
@@ -378,7 +379,7 @@ max_task_coverage_fig <-
     breaks=seq(0,18,2)
   ) +
   scale_x_discrete(
-    name="Updates per epoch"
+    name="Maturation period (updates)"
   ) +
   scale_fill_manual(
     values=selection_methods_smaller_set_colors
@@ -422,7 +423,6 @@ for (sel in c("elite", "lex", "nde", "none")) {
     print("Not significant")
   }
 }
-
 ```
 ### Total trait coverage
 
@@ -458,7 +458,7 @@ total_task_coverage_fig <-
     breaks=seq(0,18,2)
   ) +
   scale_x_discrete(
-    name="Updates per epoch"
+    name="Maturation period (updates)"
   ) +
   scale_fill_manual(
     values=selection_methods_smaller_set_colors
@@ -614,7 +614,7 @@ ggplot(
   scale_color_brewer(
     palette="Set2"
   ) +
-  xlab("Updates per epoch") +
+  xlab("Maturation period (updates)") +
   facet_wrap(
     ~SELECTION_METHOD,
     scales="fixed",
