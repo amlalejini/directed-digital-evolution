@@ -5,13 +5,13 @@ SGP_DIR := third-party/signalgp-lite/include
 #####################################################
 # ---- Set which executable to compile ----
 # Directed evolution model setup:
-PROJECT := directed-digital-evolution
-MAIN_CPP := source/native.cpp
-THREADING := -DDIRDEVO_THREADING -pthread
+PROJECT ?= directed-digital-evolution
+MAIN_CPP ?= source/native.cpp
+THREADING ?= -DDIRDEVO_THREADING -pthread
 # GP setup:
-# PROJECT := avidagp-ec
-# MAIN_CPP := source/native-ec.cpp
-# THREADING := -DDIRDEVO_SINGLE_THREAD
+# PROJECT ?= avidagp-ec
+# MAIN_CPP ?= source/native-ec.cpp
+# THREADING ?= -DDIRDEVO_SINGLE_THREAD
 #######################################################
 
 # Flags to use regardless of compiler
