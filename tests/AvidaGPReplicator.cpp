@@ -6,9 +6,9 @@
 
 #include "emp/math/Random.hpp"
 
-#include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPOrganism.hpp"
-#include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPL9Task.hpp"
-#include "dirdevo/ExperimentSetups/AvidaGPL9/AvidaGPMutator.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGP/AvidaGPOrganism.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGP/AvidaGPMultiPathwayTask.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGP/AvidaGPMutator.hpp"
 
 #include "dirdevo/DirectedDevoWorld.hpp"
 #include "dirdevo/DirectedDevoConfig.hpp"
@@ -17,7 +17,7 @@
 TEST_CASE("AvidaGPReplicator on AvidaGPL9Task", "[l9]") {
 
   using org_t = dirdevo::AvidaGPOrganism;
-  using task_t = dirdevo::AvidaGPL9Task;
+  using task_t = dirdevo::AvidaGPMultiPathwayTask;
   using world_t = dirdevo::DirectedDevoWorld<org_t,task_t>;
 
   // Need to build a world with an AvidaGPL9 task for the correct instruction set.

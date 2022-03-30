@@ -6,12 +6,12 @@
 
 #include "emp/datastructs/vector_utils.hpp"
 
-#include "dirdevo/ExperimentSetups/AvidaGPL9/L9TaskSet.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGP/AvidaGPTaskSet.hpp"
 
 TEST_CASE("L9 TaskSet", "[l9][TaskSet]")
 {
 
-  dirdevo::L9TaskSet task_set;
+  dirdevo::AvidaGPTaskSet task_set;
 
   task_set.AddTasksByName({
     "ECHO",

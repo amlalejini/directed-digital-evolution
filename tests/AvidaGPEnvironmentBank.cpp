@@ -9,17 +9,17 @@
 #include "emp/datastructs/map_utils.hpp"
 #include "emp/datastructs/set_utils.hpp"
 
-#include "dirdevo/ExperimentSetups/AvidaGPL9/L9TaskSet.hpp"
-#include "dirdevo/ExperimentSetups/AvidaGPL9/L9EnvironmentBank.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGP/AvidaGPTaskSet.hpp"
+#include "dirdevo/ExperimentSetups/AvidaGP/AvidaGPEnvironmentBank.hpp"
 
 TEST_CASE("L9EnvironmentBank", "[l9]")
 {
   constexpr size_t seed=2;
-  dirdevo::L9TaskSet task_set;
+  dirdevo::AvidaGPTaskSet task_set;
   emp::Random random(seed);
 
   // Create a size-10 environment bank
-  dirdevo::L9EnvironmentBank env_bank10(random, task_set);
+  dirdevo::AvidaGPEnvironmentBank env_bank10(random, task_set);
   env_bank10.GenerateBank(10);
   CHECK(env_bank10.GetSize() == 10);
   // Is each environment collision-free?
@@ -31,7 +31,7 @@ TEST_CASE("L9EnvironmentBank", "[l9]")
       auto& task = task_set.GetTask(task_id);
 
       const uint32_t calc_task_output = task.calc_output_fun(
-        (task.num_inputs > 1) ? env.input_buffer : emp::vector<uint32_t>({env.input_buffer[0]})
+        (task.num_inputs > 1) ? env.input_buffer : emp::vector<double>({env.input_buffer[0]})
       );
       const uint32_t env_task_output = env.correct_outputs[task_id];
       CHECK(calc_task_output == env_task_output);
@@ -41,7 +41,7 @@ TEST_CASE("L9EnvironmentBank", "[l9]")
   }
 
   // Create a big environment bank.
-  dirdevo::L9EnvironmentBank env_bank10000(random, task_set);
+  dirdevo::AvidaGPEnvironmentBank env_bank10000(random, task_set);
   env_bank10000.GenerateBank(10000);
   CHECK(env_bank10000.GetSize() == 10000);
 

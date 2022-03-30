@@ -1,4 +1,4 @@
-TEST_NAMES := selection L9TaskSet L9EnvironmentBank pareto
+TEST_NAMES := selection pareto AvidaGPReplicator AvidaGPEnvironmentBank AvidaGPTaskSet
 
 TO_ROOT := $(shell git rev-parse --show-cdup)
 
