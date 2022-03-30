@@ -77,6 +77,28 @@ dir.create(plot_directory, showWarnings=FALSE)
 selection_method_breaks <- c("elite", "tourn", "lex", "nde", "random", "none")
 selection_method_labels <- c("ELITE", "TOURN", "LEX", "NDE", "RAND", "NONE")
 
+exp_summary_data$SELECTION_METHOD_LABEL <- factor(
+  exp_summary_data$SELECTION_METHOD,
+  levels=c(
+    "elite",
+    "tourn",
+    "lex",
+    "nde",
+    "ndt",
+    "random",
+    "none"
+  ),
+  labels=c(
+    "Elite Selection",
+    "Tournament Selection",
+    "Lexicase Selection",
+    "Non-dominated Elite Selection",
+    "Non-dominated Tournament Selection",
+    "Random Selection",
+    "No Selection"
+  )
+)
+
 selection_methods_smaller_set_colors <- c("#66C2A5", "#8DA0CB", "#E78AC3", "#FFD92F")
 
 # "#66C2A5" "#FC8D62" "#8DA0CB" "#E78AC3" "#A6D854" "#FFD92F" "#E5C494" "#B3B3B3"
@@ -141,10 +163,10 @@ ggplot(
       fill=SELECTION_METHOD
     )
   ) +
-  # geom_flat_violin(
-  #   position = position_nudge(x = .2, y = 0),
-  #   alpha = .8
-  # ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
   geom_point(
     mapping=aes(color=SELECTION_METHOD),
     position = position_jitter(width = .15),
@@ -331,7 +353,8 @@ ggsave(
 ### Max trait coverage
 
 ```{r}
-ggplot(
+max_task_coverage_fig <-
+  ggplot(
     exp_summary_data,
     aes(
       x=NUM_POPS,
@@ -356,18 +379,22 @@ ggplot(
     alpha = 0.5
   ) +
   scale_y_continuous(
+    name="Task Coverage",
+    limits=c(-0.5, 18.5),
     breaks=seq(0,18,2)
   ) +
-  scale_fill_brewer(
-    palette="Set2"
+  scale_x_discrete(
+    name="Metapopulation size"
   ) +
-  scale_color_brewer(
-    palette="Set2"
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_wrap(
-    ~SELECTION_METHOD,
+    ~SELECTION_METHOD_LABEL,
     scales="fixed",
-    labeller=label_both,
     nrow=1
   ) +
   theme(
@@ -375,16 +402,40 @@ ggplot(
   )
 
 ggsave(
-  paste0(plot_directory, "max_trait_coverage.pdf"),
+  plot=max_task_coverage_fig,
+  filename=paste0(plot_directory, "max_trait_coverage.pdf"),
   width=20,
   height=10
 )
 ```
 
+```{r}
+for (sel in c("elite", "lex", "nde", "none")) {
+  print(sel)
+  sel_summary_data <- filter(exp_summary_data, SELECTION_METHOD==sel)
+  kt <- kruskal.test(
+    formula=max_trait_coverage~NUM_POPS,
+    data=sel_summary_data
+  )
+  print(kt)
+  if (kt$p.value < 0.05) {
+    pwt <- pairwise.wilcox.test(
+      x=sel_summary_data$max_trait_coverage,
+      g=sel_summary_data$NUM_POPS,
+      p.adjust.method="bonferroni",
+    )
+    print(pwt)
+  } else {
+    print("Not significant")
+  }
+}
+```
+
 ### Total trait coverage
 
 ```{r}
-ggplot(
+total_task_coverage_fig <-
+  ggplot(
     exp_summary_data,
     aes(
       x=NUM_POPS,
@@ -409,26 +460,31 @@ ggplot(
     alpha = 0.5
   ) +
   scale_y_continuous(
+    name="Task Coverage",
+    limits=c(-0.5, 18.5),
     breaks=seq(0,18,2)
   ) +
-  scale_fill_brewer(
-    palette="Set2"
+  scale_x_discrete(
+    name="Metapopulation size"
   ) +
-  scale_color_brewer(
-    palette="Set2"
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_wrap(
-    ~SELECTION_METHOD,
+    ~SELECTION_METHOD_LABEL,
     scales="fixed",
-    labeller=label_both,
     nrow=1
   ) +
   theme(
     legend.position="none"
   )
-
+total_task_coverage_fig
 ggsave(
-  paste0(plot_directory, "total_trait_coverage.pdf"),
+  plot=total_task_coverage_fig,
+  filename=paste0(plot_directory, "total_trait_coverage.pdf"),
   width=20,
   height=10
 )
@@ -714,6 +770,166 @@ task_coverage_per_pop_data$metapop_size <- as.factor(
 
 ```
 
+### Number of populations required for maximum metapopulation coverage
+
+```{r}
+summarized_coverage <-
+  task_coverage_per_pop_data %>%
+  filter(max_tasks_covered_prop>=1) %>%
+  group_by(SEED) %>%
+  top_n(-1, n_pops)
+
+ggplot(
+    summarized_coverage,
+    aes(
+      x=metapop_size,
+      y=n_pops,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8,
+    adjust=1.5
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(height=0.1, width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_y_continuous(
+    name="Number of populations"
+    # limits=c(-0.5, 18.5),
+    # breaks=seq(0,18,2)
+  ) +
+  # scale_x_discrete(
+  #   name="Metapopulation size"
+  # ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  facet_wrap(
+    ~SELECTION_METHOD,
+    scales="fixed",
+    nrow=1
+  ) +
+  theme(
+    legend.position="none"
+  )
+
+ggsave(
+  paste0(plot_directory, "num_pops_req_for_max_metapop_cov.pdf"),
+  width=20,
+  height=10
+)
+
+# ggplot(
+#   summarized_coverage,
+#   aes(
+#     x=max_tasks_covered,
+#     y=n_pops
+#   )
+# )
+
+```
+
+### Metapopulation task coverage versus number of populations to achieve
+
+```{r}
+library(gmodels)
+
+summary_stats <-
+  summarized_coverage %>%
+    # filter(metapop_size==384) %>%
+    group_by(SELECTION_METHOD, metapop_size) %>%
+    summarize(
+      mean.n_pops_prop=mean(n_pops_prop),
+      sd.n_pops_prop=sd(n_pops_prop, na.rm=TRUE),
+      ci.low.n_pops_prop=ci(n_pops_prop, na.rm=TRUE)[2],
+      ci.high.n_pops_prop=ci(n_pops_prop, na.rm=TRUE)[3],
+
+      mean.n_pops=mean(n_pops),
+      sd.n_pops=sd(n_pops, na.rm=TRUE),
+      ci.low.n_pops=ci(n_pops, na.rm=TRUE)[2],
+      ci.high.n_pops=ci(n_pops, na.rm=TRUE)[3],
+
+      mean.max_tasks_covered=mean(max_tasks_covered),
+      sd.max_tasks_covered=sd(max_tasks_covered, na.rm=TRUE),
+      ci.low.max_tasks_covered=ci(max_tasks_covered, na.rm=TRUE)[2],
+      ci.high.max_tasks_covered=ci(max_tasks_covered, na.rm=TRUE)[3],
+
+      n=n()
+    )
+
+ggplot(
+    summary_stats,
+    aes(
+      x=mean.max_tasks_covered,
+      y=mean.n_pops,
+      fill=SELECTION_METHOD,
+      color=SELECTION_METHOD
+    )
+  ) +
+  geom_point() +
+  # geom_point(
+  #   data=summarized_coverage,
+  #   mapping=aes(
+  #     x=max_tasks_covered,
+  #     y=n_pops_prop,
+  #     fill=SELECTION_METHOD,
+  #     color=SELECTION_METHOD
+  #   ),
+  #   alpha=0.1
+  # ) +
+  geom_errorbar(
+    aes(
+      ymin=ci.low.n_pops,
+      ymax=ci.high.n_pops,
+      width=0
+    )
+  ) +
+  geom_errorbarh(
+    aes(
+      xmin=ci.low.max_tasks_covered,
+      xmax=ci.high.max_tasks_covered,
+      height=0
+    )
+  ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  facet_wrap(
+    ~metapop_size,
+    scales="free",
+    nrow=7,
+    labeller=label_both
+  ) +
+  coord_flip() +
+  theme(
+    legend.position="bottom"
+  )
+
+ggsave(
+  paste0(plot_directory, "n_pops_vs_max_tasks.pdf"),
+  width=10,
+  height=30
+)
+```
+
+### Populations to cover N tasks
+
 ```{r}
 ggplot(
     task_coverage_per_pop_data,
@@ -888,4 +1104,34 @@ ggsave(
   height=15
 )
 
+```
+
+## Manuscript Figures
+
+```{r}
+grid <- plot_grid(
+  max_task_coverage_fig +
+    theme(
+      axis.text.x = element_text(size = 9, angle=-30, hjust=0),
+      strip.text.x = element_text(size = 10)
+
+    ) +
+    ggtitle("Best population task coverage"),
+  total_task_coverage_fig +
+    theme(
+      axis.text.x = element_text(size = 9, angle=-30, hjust=0),
+      strip.text.x = element_text(size = 10)
+    ) +
+    ggtitle("Metapopulation task coverage"),
+  nrow=2,
+  ncol=1,
+  labels="auto"
+)
+grid
+
+save_plot(
+  plot=grid,
+  filename=paste0(plot_directory, "2021-11-16-pops-figure.pdf"),
+  base_height=6
+)
 ```

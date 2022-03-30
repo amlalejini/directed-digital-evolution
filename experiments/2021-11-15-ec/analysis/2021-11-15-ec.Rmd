@@ -1,4 +1,6 @@
-# 2021-11-15 - Evolutionary computing setup
+# 2021-11-15 - Evolutionary computation experiment
+
+Data analyses for our conventional evolutionary computing experiment.
 
 ## Overview
 
@@ -17,10 +19,6 @@ library(tidyverse)
 library(ggplot2)
 library(cowplot)
 library(RColorBrewer)
-library(scales)
-library(viridis)
-library(rstatix)
-library(ggsignif)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 ```
 
@@ -32,7 +30,7 @@ print(version)
 
 ## Setup
 
-Experiment summary data
+Load experiment summary data.
 
 ```{r}
 exp_summary_data_loc <- paste0(working_directory,"data/experiment_summary.csv")
@@ -42,6 +40,7 @@ exp_summary_data$SELECTION_METHOD <- factor(
   exp_summary_data$SELECTION_METHOD,
   levels=c(
     "elite",
+    "elite-10",
     "tournament",
     "lexicase",
     "non-dominated-elite",
@@ -51,6 +50,7 @@ exp_summary_data$SELECTION_METHOD <- factor(
   ),
   labels=c(
     "elite",
+    "elite-10",
     "tourn",
     "lex",
     "nde",
@@ -61,7 +61,40 @@ exp_summary_data$SELECTION_METHOD <- factor(
 )
 ```
 
-Miscellaneous setup
+Load time series data.
+
+```{r}
+time_series_data_loc <- paste0(working_directory,"data/pop_snapshot_time_series.csv")
+time_series_data <- read.csv(time_series_data_loc, na.strings="NONE")
+
+get_sel <- function(seed) {
+  return(filter(exp_summary_data, SEED==seed)$SELECTION_METHOD)
+}
+
+solution_evolved_fun <- function(seed, update) {
+  d <- filter(exp_summary_data, SEED==seed)
+  return(update==d$update && d$max_fit_is_solution=="1");
+}
+
+time_series_data$SELECTION_METHOD <- mapply(
+  get_sel,
+  time_series_data$SEED
+)
+
+time_series_data$solution_evolved <- mapply(
+  solution_evolved_fun,
+  time_series_data$SEED,
+  time_series_data$update
+)
+
+time_series_data$SELECTION_METHOD <- as.factor(
+  time_series_data$SELECTION_METHOD
+)
+
+exp_data_gen_2000 <- filter(time_series_data, update==2000)
+```
+
+Miscellaneous setup.
 
 ```{r}
 # Configure our default graphing theme
@@ -72,15 +105,53 @@ cb_palette <- "Set2"
 plot_directory <- paste0(working_directory, "plots/")
 dir.create(plot_directory, showWarnings=FALSE)
 
-selection_method_breaks <- c("elite", "tourn", "lex", "nde", "random", "none")
-selection_method_labels <- c("ELITE", "TOURN", "LEX", "NDE", "RAND", "NONE")
+selection_method_breaks <- c("elite", "elite-10", "tourn", "lex", "nde", "random", "none")
+selection_method_labels <- c("ELITE", "TOP-10", "TOURN", "LEX", "NDE", "RAND", "NONE")
 ```
 
 ## Performance
 
+### Number of successful replicates
+
+```{r}
+ggplot(
+    filter(exp_summary_data, max_fit_is_solution=="1"),
+    aes(x=SELECTION_METHOD, fill=SELECTION_METHOD)
+  ) +
+  geom_bar() +
+  geom_text(
+    stat="count",
+    mapping=aes(label=..count..),
+    position=position_dodge(0.9),
+    vjust=0
+  ) +
+  scale_y_continuous(
+    limits=c(0, 50),
+    breaks=seq(0,50,10)
+  ) +
+  scale_x_discrete(
+    name="Selection Method",
+    limits=selection_method_breaks,
+    breaks=selection_method_breaks,
+    labels=selection_method_labels
+  ) +
+  scale_fill_brewer(
+    palette=cb_palette
+  ) +
+  scale_color_brewer(
+    palette=cb_palette
+  ) +
+  ylab("Successful replicates") +
+  theme(legend.position = "none")
+
+ggsave(
+  paste0(plot_directory, "2021-11-15-num-solutions.pdf")
+)
+```
+
 ### Max aggregate performance
 
-This is also max task coverage for the EC setup.
+Because each task is evaluated as pass/fail, aggregate scores also correspond to
 
 ```{r}
 max_task_cov_fig <-
@@ -126,7 +197,7 @@ max_task_cov_fig <-
   ) +
   theme(
     legend.position="none",
-    axis.text = element_text(size = 9),
+    axis.text = element_text(size = 8),
     axis.title = element_text(size=10)
   )
 max_task_cov_fig
@@ -137,6 +208,13 @@ ggsave(
   height=3,
   width=4
 )
+
+# save_plot(
+#   filename=paste0(plot_directory, "2021-11-15-ec-performance-2.pdf"),
+#   plot=max_task_cov_fig,
+#   base_height=6,
+#   base_asp=2.5
+# )
 ```
 
 ```{r}
@@ -194,55 +272,6 @@ ggsave(
 )
 ```
 
-### Number of solutions
-
-```{r}
-ggplot(
-    filter(exp_summary_data, max_fit_is_solution=="1"),
-    aes(x=SELECTION_METHOD, fill=SELECTION_METHOD)
-  ) +
-  geom_bar() +
-  geom_text(
-    stat="count",
-    mapping=aes(label=..count..),
-    position=position_dodge(0.9),
-    vjust=0
-  ) +
-  scale_y_continuous(
-    limits=c(0, 50),
-    breaks=seq(0,50,10)
-  ) +
-  scale_x_discrete(
-    limits=c(
-      "elite",
-      "tourn",
-      "lex",
-      "nde",
-      "random",
-      "none"
-    ),
-    breaks=c(
-      "elite",
-      "tourn",
-      "lex",
-      "nde",
-      "random",
-      "none"
-    )
-  ) +
-  scale_fill_brewer(
-    palette="Set2"
-  ) +
-  scale_color_brewer(
-    palette="Set2"
-  ) +
-  ylab("Successful replicates") +
-  theme(legend.position = "none")
-
-ggsave(
-  paste0(plot_directory, "num_solutions.pdf")
-)
-```
 
 ### How many generations elapse before solutions evolve?
 
@@ -305,59 +334,6 @@ ggsave(
 ```
 
 ## Time series data
-
-```{r}
-time_series_data_loc <- paste0(working_directory,"data/pop_snapshot_time_series.csv")
-time_series_data <- read.csv(time_series_data_loc, na.strings="NONE")
-
-get_sel <- function(seed) {
-  return(filter(exp_summary_data, SEED==seed)$SELECTION_METHOD)
-}
-
-
-solution_evolved_fun <- function(seed, update) {
-  d <- filter(exp_summary_data, SEED==seed)
-  return(update==d$update && d$max_fit_is_solution=="1");
-}
-
-time_series_data$SELECTION_METHOD <- mapply(
-  get_sel,
-  time_series_data$SEED
-)
-
-time_series_data$solution_evolved <- mapply(
-  solution_evolved_fun,
-  time_series_data$SEED,
-  time_series_data$update
-)
-
-time_series_data$SELECTION_METHOD <- as.factor(
-  time_series_data$SELECTION_METHOD
-)
-
-# Specify experimental condition for each datum.
-# times_series_data$SELECTION_METHOD <- factor(
-#   times_series_data$SELECTION_METHOD,
-#   levels=c(
-#     "elite",
-#     "tournament",
-#     "lexicase",
-#     "non-dominated-elite",
-#     "non-dominated-tournament",
-#     "random",
-#     "none"
-#   ),
-#   labels=c(
-#     "elite",
-#     "tourn",
-#     "lex",
-#     "nde",
-#     "ndt",
-#     "random",
-#     "none"
-#   )
-# )
-```
 
 Note that these time series plots are a little weird in that it only shows data from runs where solutions have not evolved yet.
 Once a solution evolves, we stopped the run, so no data exists.
@@ -434,6 +410,76 @@ ggsave(
   paste0(plot_directory, "max_org_task_coverage_ot.pdf"),
   width=20,
   height=10
+)
+```
+
+### Max org coverage at generation 2000
+
+```{r}
+ggplot(
+    exp_data_gen_2000,
+    aes(
+      x=SELECTION_METHOD,
+      y=max_org_task_coverage,
+      fill=SELECTION_METHOD
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8,
+    adjust=1.5
+  ) +
+  geom_point(
+    mapping=aes(color=SELECTION_METHOD),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_y_continuous(
+    name="Task Coverage",
+    limits=c(-0.5,22.5),
+    breaks=seq(0,22,2)
+  ) +
+  scale_x_discrete(
+    name="Selection Method",
+    breaks=selection_method_breaks,
+    labels=selection_method_labels
+  ) +
+  scale_fill_brewer(
+    palette=cb_palette
+  ) +
+  scale_color_brewer(
+    palette=cb_palette
+  ) +
+  theme(
+    legend.position="none",
+    axis.text = element_text(size = 8),
+    axis.title = element_text(size=10)
+  )
+
+ggsave(
+  filename=paste0(plot_directory, "max_aggregate_score_gen_2000.pdf"),
+  height=3,
+  width=4
+)
+```
+
+```{r}
+kruskal.test(
+  formula=max_org_task_coverage~SELECTION_METHOD,
+  data=exp_data_gen_2000
+)
+
+# Kruskal-wallis is significant, so we do a post-hoc wilcoxon rank-sum.
+pairwise.wilcox.test(
+  x=exp_data_gen_2000$max_org_task_coverage,
+  g=exp_data_gen_2000$SELECTION_METHOD,
+  p.adjust.method="bonferroni",
 )
 ```
 
