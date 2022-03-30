@@ -127,6 +127,8 @@ cb_palette <- "Paired"
 # Create a directory to store plots
 plot_directory <- paste0(working_directory, "plots/")
 dir.create(plot_directory, showWarnings=FALSE)
+
+selection_methods_smaller_set_colors <- c("#66C2A5", "#E78AC3")
 ```
 
 ## Average number of organisms
@@ -344,7 +346,7 @@ ggplot(
     aes(
       x=genome_length,
       y=max_trait_coverage,
-      fill=genome_length
+      fill=SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -352,7 +354,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=genome_length),
+    mapping=aes(color=SELECTION_METHOD),
     position = position_jitter(height=0, width = .15),
     size = .5,
     alpha = 0.8
@@ -362,11 +364,23 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
+  scale_x_discrete(
+    name="Genome length"
+  ) +
   scale_y_continuous(
+    name="Task coverage",
     breaks=seq(0,18,2)
   ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
   facet_wrap(
-    ~SELECTION_METHOD
+    ~SELECTION_METHOD,
+    nrow=1,
+    labeller=label_both
   ) +
   theme(
     legend.position="none",
@@ -374,7 +388,9 @@ ggplot(
   )
 
 ggsave(
-  paste0(plot_directory, "max_trait_coverage.pdf")
+  paste0(plot_directory, "2021-11-08-best-pop-task-cov.pdf"),
+  width=8,
+  height=4
 )
 ```
 
@@ -386,7 +402,7 @@ ggplot(
     aes(
       x=genome_length,
       y=total_trait_coverage,
-      fill=genome_length
+      fill=SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -394,7 +410,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=genome_length),
+    mapping=aes(color=SELECTION_METHOD),
     position = position_jitter(height=0, width = .15),
     size = .5,
     alpha = 0.8
@@ -404,11 +420,23 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
+  scale_x_discrete(
+    name="Genome length"
+  ) +
   scale_y_continuous(
+    name="Task coverage",
     breaks=seq(0,18,2)
   ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
   facet_wrap(
-    ~SELECTION_METHOD
+    ~SELECTION_METHOD,
+    nrow=1,
+    labeller=label_both
   ) +
   theme(
     legend.position="none",
@@ -416,7 +444,9 @@ ggplot(
   )
 
 ggsave(
-  paste0(plot_directory, "total_trait_coverage.pdf")
+  paste0(plot_directory, "2021-11-08-metapop-task-cov.pdf"),
+  width=8,
+  height=4
 )
 ```
 
