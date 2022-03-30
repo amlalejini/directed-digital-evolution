@@ -38,3 +38,6 @@ data/
 # Root directory scratch files
 time-exec.sh
 local/
+
+# Editor cfg files
+.vscode
