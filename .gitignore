@@ -28,6 +28,9 @@ node_modules/
 coverage_include/
 
 directed-digital-experiment
+directed-digital-evolution
+avidagp-ec
+debug_file
 *.cfg
 output/
 *.tar.gz

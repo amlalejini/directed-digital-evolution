@@ -73,7 +73,7 @@ doto-badge.json:
 badges: documentation-coverage-badge.json version-badge.json doto-badge.json
 
 clean:
-	rm -f $(PROJECT) web/$(PROJECT).js web/*.js.map web/*.js.map *~ source/*.o web/*.wasm web/*.wast
+	rm -f $(PROJECT) rm debug_file web/$(PROJECT).js web/*.js.map web/*.js.map *~ source/*.o web/*.wasm web/*.wast
 
 test: debug debug-web
 	./directed-digital-evolution | grep -q 'Hello, world!' && echo 'matched!' || exit 1
