@@ -6,6 +6,7 @@
 	path = third-party/Empirical
 	url = https://github.com/devosoft/Empirical.git
 	branch = master
+	checkout = 109e5ceffbd672c4b18a3b8dd33589a3c8a24a1c
 [submodule "third-party/force-cover"]
 	path = third-party/force-cover
 	url = https://github.com/emilydolson/force-cover.git
