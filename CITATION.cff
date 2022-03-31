@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Lalejini"
+  given-names: "Alexander"
+  orcid: "https://orcid.org/0000-0003-0994-2718"
+- family-names: "Dolson"
+  given-names: "Emily"
+  orcid: "https://orcid.org/0000-0001-8616-4898"
+- family-names: "Vostinar"
+  given-names: "Anya E."
+  orcid: "https://orcid.org/0000-0001-7216-5283"
+- family-names: "Zaman"
+  given-names: "Luis"
+  orcid: "https://orcid.org/0000-0001-6838-7385"
+title: "Directed digital evolution software"
+doi: 10.5281/zenodo.6403135
+url: "https://github.com/amlalejini/directed-digital-evolution"
+# preferred-citation:
+#   type: article
+#   authors:
+#   - family-names: "Lisa"
+#     given-names: "Mona"
+#     orcid: "https://orcid.org/0000-0000-0000-0000"
+#   - family-names: "Bot"
+#     given-names: "Hew"
+#     orcid: "https://orcid.org/0000-0000-0000-0000"
+#   doi: "10.0000/00000"
+#   journal: "Journal Title"
+#   month: 9
+#   start: 1 # First page number
+#   end: 10 # Last page number
+#   title: "My awesome research software"
+#   issue: 1
+#   volume: 1
+#   year: 2021
