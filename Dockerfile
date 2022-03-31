@@ -128,7 +128,7 @@ RUN \
 # build supplemental material (will also run data analyses)
 ########################################################
 RUN \
-  cd /opt/evolutionary-consequences-of-plasticity/ \
+  cd /opt/directed-digital-evolution/ \
     && \
   ./build_book.sh \
     && \
