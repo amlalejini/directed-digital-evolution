@@ -1,0 +1,18 @@
+# R
+.RData
+.Rhistory
+
+# data
+experiments/*/analysis/data
+experiments/*/analysis/imgs
+experiments/*/analysis/plots
+
+# misc
+experiments/pyenv/
+local/
+output/
+time-exec.sh
+_site/
+.vscode/
+_book/
+*.tar.gz
