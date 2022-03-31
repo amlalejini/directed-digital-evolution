@@ -44,3 +44,6 @@ local/
 
 # Editor cfg files
 .vscode
+
+# Compiled supplemental material
+_book/

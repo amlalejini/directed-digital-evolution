@@ -1,0 +1,13 @@
+book_filename: "supplemental-material"
+language:
+  ui:
+    chapter_name: "Chapter "
+delete_merged_file: true
+rmd_files: [
+  "index.Rmd",
+  "docs/software-availability.md",
+  "docs/data-availability.md",
+  "docs/running-experiments.md",
+  "docs/digital-organisms.md",
+  "tail.Rmd"
+  ]

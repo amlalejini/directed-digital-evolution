@@ -1,0 +1,17 @@
+bookdown::gitbook:
+  css: style.css
+  split_by: "chapter"
+  citation_package: natbib
+  config:
+    toc:
+      before: |
+        <li><a href="./">Supplemental material</a></li>
+      after: |
+        <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with ❤ and bookdown</a></li>
+    edit: https://github.com/amlalejini/directed-digital-evolution/tree/main/%s
+#     download: ["pdf"]
+# bookdown::pdf_book:
+#   latex_engine: pdflatex
+#   citation_package: natbib
+#   keep_tex: yes
+#   split_by: "chapter"

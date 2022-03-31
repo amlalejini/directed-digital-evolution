@@ -1,0 +1,17 @@
+---
+title: "Supplemental Material for Directed Digital Evolution Project"
+author: "Alexander Lalejini, Emily Dolson, Anya E. Vostinar, and Luis Zaman"
+date: "`r Sys.Date()`"
+output: bookdown::gitbook
+documentclass: book
+bibliography: ["bib/packages.bib", "bib/supplemental.bib"]
+biblio-style: apalike
+nocite: '@*'
+link-citations: yes
+github-repo: amlalejini/directed-digital-evolution
+description: "Supplemental material"
+---
+
+# Introduction
+
+Hello world!
