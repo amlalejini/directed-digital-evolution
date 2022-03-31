@@ -5,7 +5,7 @@ Here, we provide supplemental information about the digital organisms used in ou
 ## Virtual Hardware Components
 
 Each digital organism is defined by a sequence of program instructions (its genome) and a set of virtual hardware components used to interpret and express those instructions.
-The virtual hardware and genetic representation used in this work extends that of [@dolson_exploring_2019,hernandez_what_2021]. The virtual hardware includes the following components:
+The virtual hardware and genetic representation used in this work extends that of [@dolson_exploring_2019,hernandez_what_2022]. The virtual hardware includes the following components:
 
 - **Instruction pointer**:
   A marker that indicates the position in the genome currently being executed.
