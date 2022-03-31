@@ -136,7 +136,7 @@ RUN \
     && \
   export EXP_TAG=2021-11-15-ec \
     && \
-  ./download_exp_data.sh \
+  ./download_data.sh \
     && \
   echo "downloaded experiment data"
 
