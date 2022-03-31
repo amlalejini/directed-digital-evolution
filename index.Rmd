@@ -14,4 +14,43 @@ description: "Supplemental material"
 
 # Introduction
 
-Hello world!
+This is the supplemental material for the preprint, "Artificial selection methods from evolutionary computing show promise for directed evolution of microbes".
+
+## About this supplemental material
+
+This supplemental material is hosted on [GitHub](https://github.com/amlalejini/directed-digital-evolution) using GitHub pages.
+This source code and configuration files used to generate this supplemental material can be found in the following repository: <https://github.com/amlalejini/directed-digital-evolution>.
+
+### Contents
+
+Our supplemental material includes the following:
+
+- Software availability (Section \@ref(software-availability))
+- Data availability (Section \@ref(data-availability))
+- Guide for compiling and running our experiments (Section \@ref(compiling-and-running-our-experiments))
+- Supplemental information about the digital organisms used in this work (Section \@ref(digital-organisms))
+- Experiment analyses:
+  - Directed digital evolution experiment (Section \@ref(directed-digital-evolution-experiment))
+  - Aligned individual-level and population-level task directed evolution experiment (Section \@ref(aligned-individual-level-and-population-level-task-directed-evolution-experiment))
+  - Varying population maturation period experiment (Section \@ref(varying-population-maturation-period))
+  - Varied genome lengths experiment (Section \@ref(varied-genome-lengths))
+
+## Contributing authors
+
+- [Alexander Lalejini](https://lalejini.com/)
+- [Emily Dolson](https://cse.msu.edu/~dolsonem/)
+- [Anya E. Vostinar](https://anyaevostinar.github.io/)
+- [Luis Zaman](https://zeeelab.com/)
+
+## Research overview
+
+Abstract:
+
+> Directed microbial evolution harnesses evolutionary processes in the laboratory to construct microorganisms with enhanced or novel functional traits.
+  Attempting to direct evolutionary processes for applied goals is fundamental to evolutionary computation, which harnesses the principles of Darwinian evolution as a general purpose search engine for solutions to challenging computational problems.
+  Despite their overlapping approaches, artificial selection methods from evolutionary computing are not commonly applied to living systems in the laboratory.
+  In this work, we ask if parent selection algorithms---procedures for choosing promising progenitors---from evolutionary computation might be useful for directing the evolution of microbial populations when selecting for multiple functional traits.
+  To do so, we introduce an agent-based model of directed microbial evolution, which we used to evaluate how well three selection algorithms from evolutionary computing (tournament selection, lexicase selection, and non-dominated elite selection) performed relative to methods commonly used in the laboratory (elite and top-10\% selection).
+  We found that multi-objective selection techniques from evolutionary computing (lexicase and non-dominated elite) generally outperformed the commonly used directed evolution approaches when selecting for multiple traits of interest.
+  Our results motivate ongoing work transferring these multi-objective selection procedures into the laboratory.
+  Additionally, our findings suggest that more sophisticated artificial selection methods from evolutionary computation should also be evaluated for use in directed microbial evolution.
