@@ -37,7 +37,21 @@ The configuration files used for each experiment can be found inside the particu
 
 ## Docker
 
+You can use the Dockerfile in [our repository](https://github.com/amlalejini/directed-digital-evolution/) to build a docker image locally, or you can pull the latest docker image from this DockerHub repository: [amlalejini/directed-digital-evolution](https://hub.docker.com/r/amlalejini/directed-digital-evolution).
+
+To pull the latest docker image from DockerHub, run
+
 ```
-docker tag local-image:tagname new-repo:tagname
-docker push new-repo:tagname
+docker pull amlalejini/directed-digital-evolution
+```
+
+Regardless of whether you built the image locally or pulled it from DockerHub, it should contain:
+
+- all of the requisite dependencies to run our experiment software and analysis scripts
+- all of our project source code (from our GitHub repository)
+
+To run the container interactively:
+
+```
+docker run -it --entrypoint bash amlalejini/directed-digital-evolution
 ```
