@@ -1,4 +1,4 @@
-# Aligned individual- and population-level task directed evolution experiment
+# Aligned individual-level and population-level task directed evolution experiment
 
 ## Overview
 
