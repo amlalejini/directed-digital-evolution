@@ -182,7 +182,7 @@ max_trait_cov_fig <-
   ) +
   scale_y_continuous(
     name="Task Coverage",
-    limits=c(-0.5,18),
+    limits=c(-0.5,18.5),
     breaks=seq(0,18,2)
   ) +
   scale_x_discrete(
