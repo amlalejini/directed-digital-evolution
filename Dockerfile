@@ -125,6 +125,22 @@ RUN \
   echo "installed r and configured r environment"
 
 ########################################################
+# download data needed to compile supplement
+########################################################
+RUN \
+  export OSF_PROJECT=zn63x \
+    && \
+  export PROJECT_PATH=/opt/directed-digital-evolution \
+    && \
+  cd ${PROJECT_PATH} \
+    && \
+  export EXP_TAG=2021-11-15-ec \
+    && \
+  ./download_exp_data.sh \
+    && \
+  echo "downloaded experiment data"
+
+########################################################
 # build supplemental material (will also run data analyses)
 ########################################################
 RUN \
