@@ -1,6 +1,8 @@
-# 2021-11-30 - Aligned tasks
+# Aligned individual- and population-level task directed evolution experiment
 
 ## Overview
+
+Supplemental information and data analyses for the directed evolution experiment where rewards for individual- and population-level tasks are aligned.
 
 ```{r}
 experiment_slug <- "2021-11-30-aligned-tasks"
@@ -203,6 +205,8 @@ ggsave(
 )
 ```
 
+Statistical results:
+
 ```{r}
 kruskal.test(
   formula=max_trait_coverage~SELECTION_METHOD,
@@ -219,10 +223,12 @@ pairwise.wilcox.test(
 
 ### Best single-population task coverage time series
 
+To speed up graphing, we plot a low-resolution version of the time series.
+
 ```{r}
 max_trait_cov_ot_fig <-
   ggplot(
-    times_series_data,
+    filter(times_series_data, (updates_elapsed%%10000)==0 | updates_elapsed==1),
     aes(
       x=updates_elapsed,
       y=max_trait_coverage,
@@ -263,7 +269,7 @@ max_trait_cov_ot_fig <-
 max_trait_cov_ot_fig
 ggsave(
   plot=max_trait_cov_ot_fig,
-  filename=paste0(plot_directory, "2021-11-30-best-pop-task-cov-ts.pdf"),
+  filename=paste0(plot_directory, "2021-11-30-best-pop-task-cov-ts.png"),
   width=10,
   height=6
 )
@@ -299,7 +305,7 @@ total_trait_cov_fig <-
   ) +
   scale_y_continuous(
     name="Task Coverage",
-    limits=c(-0.5,18),
+    limits=c(-0.5,18.5),
     breaks=seq(0,18,2)
   ) +
   scale_x_discrete(
@@ -324,6 +330,8 @@ ggsave(
 )
 ```
 
+Statistical results:
+
 ```{r}
 kruskal.test(
   formula=total_trait_coverage~SELECTION_METHOD,
@@ -340,10 +348,12 @@ pairwise.wilcox.test(
 
 ### Metapopulation task coverage time series
 
+To speed up graphing, we plot a low-resolution version of the time series.
+
 ```{r}
 metapop_task_cov_ot_fig <-
   ggplot(
-    times_series_data,
+    filter(times_series_data, (updates_elapsed%%10000)==0 | updates_elapsed==1),
     aes(
       x=updates_elapsed,
       y=total_trait_coverage,
@@ -391,6 +401,12 @@ ggsave(
 ```
 
 ## Metapopulation task profile diversity
+
+We measured the "phenotypic" diversity within evolved metapopulations in three ways:
+
+1. the number of task profiles (richness)
+2. the spread of task profiles as the average cosine distance from the centroid profile
+3. the Shannon entropy of task profiles
 
 ### Number of different task profiles
 
@@ -443,6 +459,8 @@ ggsave(
 )
 ```
 
+Statistical results
+
 ```{r}
 kruskal.test(
   formula=num_pop_trait_profiles~SELECTION_METHOD,
@@ -457,12 +475,14 @@ pairwise.wilcox.test(
 )
 ```
 
-### Number of different task profiles over time
+#### Number of different task profiles over time
+
+To speed up graphing, we reduced the time series resolution in this plot.
 
 ```{r}
 num_task_profiles_ot_fig <-
   ggplot(
-    times_series_data,
+    filter(times_series_data, (updates_elapsed%%10000)==0 | updates_elapsed==1),
     aes(
       x=updates_elapsed,
       y=num_pop_trait_profiles,
@@ -502,7 +522,7 @@ num_task_profiles_ot_fig <-
 num_task_profiles_ot_fig
 ggsave(
   num_task_profiles_ot_fig,
-  filename=paste0(plot_directory, "2021-11-30-num-task-profiles-ts.pdf"),
+  filename=paste0(plot_directory, "2021-11-30-num-task-profiles-ts.png"),
   width=10,
   height=6
 )
@@ -558,6 +578,8 @@ ggsave(
   paste0(plot_directory, "2021-11-30-task-profile-spread.pdf")
 )
 ```
+
+Statistical results:
 
 ```{r}
 kruskal.test(
@@ -622,6 +644,8 @@ ggsave(
 )
 ```
 
+Statistical results:
+
 ```{r}
 kruskal.test(
   formula=pop_trait_profile_entropy~SELECTION_METHOD,
@@ -683,70 +707,6 @@ ggplot(
 
 ggsave(
   paste0(plot_directory, "2021-11-30-task-cov-per-n-pops.pdf"),
-  width=10,
-  height=6
-)
-```
-
-```{r}
-ggplot(
-    filter(
-      task_coverage_per_pop_data,
-      n_pops > 0 & n_pops <= 5
-    ),
-    aes(
-      x=SELECTION_METHOD,
-      y=max_tasks_covered,
-      fill=SELECTION_METHOD
-    )
-  ) +
-  geom_flat_violin(
-    position = position_nudge(x = .2, y = 0),
-    alpha = .8
-  ) +
-  geom_point(
-    mapping=aes(color=SELECTION_METHOD),
-    position = position_jitter(height=0, width = .15),
-    size = .5,
-    alpha = 0.8
-  ) +
-  geom_boxplot(
-    width = .1,
-    outlier.shape = NA,
-    alpha = 0.5
-  ) +
-  scale_y_continuous(
-    name="Maximum task coverage"
-  ) +
-  scale_x_discrete(
-    name="Selection Method",
-    breaks=selection_method_breaks,
-    labels=selection_method_labels
-  ) +
-  scale_fill_brewer(
-    palette=cb_palette,
-    name="Selection Method",
-    breaks=selection_method_breaks,
-    labels=selection_method_labels
-  ) +
-  scale_color_brewer(
-    palette=cb_palette,
-    name="Selection Method",
-    breaks=selection_method_breaks,
-    labels=selection_method_labels
-  ) +
-  facet_wrap(
-    ~n_pops,
-    nrow=1,
-    labeller=label_both
-  ) +
-  theme(
-    legend.position="bottom",
-    axis.text.x = element_blank()
-  )
-
-ggsave(
-  paste0(plot_directory, "2021-11-30-task-cov-per-n-pops-alt.pdf"),
   width=10,
   height=6
 )
@@ -991,47 +951,5 @@ save_plot(
   filename=paste0(plot_directory, "2021-11-30-selection-figure.pdf"),
   plot=grid,
   base_height=6
-)
-```
-
-Experimenting with size:
-
-```{r}
-# NOTE - This is just a rough draft!
-grid <- plot_grid(
-  max_trait_cov_fig +
-    theme(
-      axis.title.x=element_blank(),
-      axis.text.x = element_text(size = 9)
-    ) +
-    ggtitle("Best population task coverage"),
-  total_trait_cov_fig +
-    theme(
-      axis.title.x=element_blank(),
-      axis.text.x = element_text(size = 9)
-    ) +
-    ggtitle("Metapopulation task coverage"),
-  num_pop_task_profiles_fig +
-    theme(
-      axis.text.x = element_text(size = 9)
-    ) +
-    ggtitle("Diversity of task profiles"),
-  task_profile_spread_fig +
-    theme(
-      axis.text.x = element_text(size = 9)
-    ) +
-    ggtitle("Spread of task profiles"),
-  nrow=2,
-  ncol=2,
-  labels="auto"
-)
-grid
-
-save_plot(
-  filename=paste0(plot_directory, "2021-11-30-selection-figure-2.pdf"),
-  plot=grid,
-  base_height=6,
-  base_asp=2.5
-
 )
 ```

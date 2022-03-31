@@ -142,6 +142,10 @@ RUN \
     && \
   ./download_data.sh \
     && \
+  export EXP_TAG=2021-11-30-aligned-tasks \
+    && \
+  ./download_data.sh \
+    && \
   echo "downloaded experiment data"
 
 ########################################################

@@ -11,5 +11,6 @@ rmd_files: [
   "docs/digital-organisms.md",
   "experiments/2021-11-15-ec/analysis/2021-11-15-ec.Rmd",
   "experiments/2021-11-11-selection/analysis/2021-11-11-selection.Rmd",
+  "experiments/2021-11-30-aligned-tasks/analysis/2021-11-30-aligned-tasks.Rmd",
   "tail.Rmd"
   ]
