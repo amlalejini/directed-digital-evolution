@@ -33,53 +33,27 @@ CFLAGS_web_debug := $(CFLAGS_all) $(OFLAGS_web_debug) $(OFLAGS_web_all)
 
 default: $(PROJECT)
 native: $(PROJECT)
-web: $(PROJECT).js
-all: $(PROJECT) $(PROJECT).js
+# web: $(PROJECT).js
+all: $(PROJECT) #$(PROJECT).js
 
 debug:	CFLAGS_nat := $(CFLAGS_nat_debug)
 debug:	$(PROJECT)
 
-debug-web:	CFLAGS_web := $(CFLAGS_web_debug)
-debug-web:	$(PROJECT).js
+# debug-web:	CFLAGS_web := $(CFLAGS_web_debug)
+# debug-web:	$(PROJECT).js
 
-web-debug:	debug-web
+# web-debug:	debug-web
 
 # see https://stackoverflow.com/a/57760267 RE: -lstdc++fs
 $(PROJECT):	${MAIN_CPP} include/
 	$(CXX) $(CFLAGS_nat) ${MAIN_CPP} -o $(PROJECT) -lstdc++fs
-	@echo To build the web version use: make web
-
-$(PROJECT).js: source/web.cpp include/
-	cd third-party/emsdk && . ./emsdk_env.sh && cd - && $(CXX_web) $(CFLAGS_web) source/web.cpp -o web/$(PROJECT).js
-
-docs:
-	cd docs && make html
+# @echo To build the web version use: make web
 
 serve:
 	python3 -m http.server
 
-docs/_build/doc-coverage.json:
-	cd docs && make coverage
-
-documentation-coverage-badge.json: docs/_build/doc-coverage.json
-	python3 ci/parse_documentation_coverage.py docs/_build/doc-coverage.json > web/documentation-coverage-badge.json
-
-version-badge.json:
-	python3 ci/parse_version.py .bumpversion.cfg > web/version-badge.json
-
-doto-badge.json:
-	python3 ci/parse_dotos.py $$(./ci/grep_dotos.sh) > web/doto-badge.json
-
-badges: documentation-coverage-badge.json version-badge.json doto-badge.json
-
 clean:
 	rm -f $(PROJECT) rm debug_file web/$(PROJECT).js web/*.js.map web/*.js.map *~ source/*.o web/*.wasm web/*.wast
-
-test: debug debug-web
-	./directed-digital-evolution | grep -q 'Hello, world!' && echo 'matched!' || exit 1
-	npm install
-	echo "const puppeteer = require('puppeteer'); var express = require('express'); var app = express(); app.use(express.static('web')); app.listen(3000); express.static.mime.types['wasm'] = 'application/wasm'; function sleep(millis) { return new Promise(resolve => setTimeout(resolve, millis)); } async function run() { const browser = await puppeteer.launch(); const page = await browser.newPage(); await page.goto('http://localhost:3000/directed-digital-evolution.html'); await sleep(1000); const html = await page.content(); console.log(html); browser.close(); process.exit(0); } run();" | node | tr -d '\n' | grep -q "Hello, browser!" && echo "matched!" || exit 1
-	echo "const puppeteer = require('puppeteer'); var express = require('express'); var app = express(); app.use(express.static('web')); app.listen(3000); express.static.mime.types['wasm'] = 'application/wasm'; function sleep(millis) { return new Promise(resolve => setTimeout(resolve, millis)); } async function run() { const browser = await puppeteer.launch(); const page = await browser.newPage(); page.on('console', msg => console.log(msg.text())); await page.goto('http://localhost:3000/directed-digital-evolution.html'); await sleep(1000); await page.content(); browser.close(); process.exit(0); } run();" | node | grep -q "Hello, console!" && echo "matched!"|| exit 1
 
 tests:
 	cd tests && make
