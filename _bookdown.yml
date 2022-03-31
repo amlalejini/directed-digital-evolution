@@ -13,5 +13,7 @@ rmd_files: [
   "experiments/2021-11-11-selection/analysis/2021-11-11-selection.Rmd",
   "experiments/2021-11-30-aligned-tasks/analysis/2021-11-30-aligned-tasks.Rmd",
   "experiments/2021-11-12-time/analysis/2021-11-12-time.Rmd",
+  # "experiments/2021-11-16-time/analysis/2021-11-16-pops.Rmd",
+  "experiments/2021-11-08-longer-genomes/analysis/2021-11-08-longer-genomes.Rmd",
   "tail.Rmd"
   ]
