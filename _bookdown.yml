@@ -9,5 +9,6 @@ rmd_files: [
   "docs/data-availability.md",
   "docs/running-experiments.md",
   "docs/digital-organisms.md",
+  "experiments/2021-11-15-ec/analysis/2021-11-15-ec.Rmd",
   "tail.Rmd"
   ]
