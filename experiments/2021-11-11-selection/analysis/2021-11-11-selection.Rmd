@@ -1031,6 +1031,22 @@ median(exp_summary_data$total_gens_approx) # Used for determining how many gener
 
 ```
 
+## Representative task profiles
+
+Visualized task profiles of two example metapopulations.
+
+Elite selection
+
+```{r}
+knitr::include_graphics("https://raw.githubusercontent.com/amlalejini/directed-digital-evolution/main/docs/media/metapop-profiles/profile_70007_elite.png")
+```
+
+Lexicase selection
+
+```{r}
+knitr::include_graphics("https://raw.githubusercontent.com/amlalejini/directed-digital-evolution/main/docs/media/metapop-profiles/profile_70110_lex.png")
+```
+
 ## Manuscript figures
 
 ```{r}
