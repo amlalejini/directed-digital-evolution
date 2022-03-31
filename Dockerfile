@@ -138,6 +138,10 @@ RUN \
     && \
   ./download_data.sh \
     && \
+  export EXP_TAG=2021-11-11-selection \
+    && \
+  ./download_data.sh \
+    && \
   echo "downloaded experiment data"
 
 ########################################################
