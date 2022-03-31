@@ -1,6 +1,27 @@
-# 2021-11-12 - Selection
+# Varying population maturation period
 
 ## Overview
+
+How robust are our digital directed evolution results at different maturation periods?
+Adjusting the length of population maturation periods shifts the balance of individual-level and population-level selection pressure.
+Shorter maturation periods have shorter stints where organisms compete within a population between population-level selection events;
+whereas, longer maturation periods have longer stints where organisms are competing for space within a population before a population-level selection event occurs.
+
+Naively, we might maximize selection pressure on population-level functions by minimizing maturation periods; however, maturation periods of organism-level evolution are important for accumulating genetic variation in a population.
+We could maximize genetic divergence among populations in a metapopulation by using long maturation periods; however, if population-level selection events are too infrequent, there may not be sufficient selection pressure to maintain population-level functions if they are not also sufficiently beneficial at the individual-level.
+We expect there to be an ideal maturation period length that will vary depending on the particular organisms and functions being evolved.
+
+We ran a supplemental experiment to evaluate the robustness of our results at a range of maturation period lengths.
+For each of elite selection, lexicase selection, non-dominated elite selection, and no selection (control), we ran 50 replicates of digital directed evolution with the following maturation period lengths (given in updates):
+20,
+50,
+100,
+200  (the default used in our main experiments),
+500,
+and 1,000.
+For each condition, we held the total number of updates constant (400,000 total updates);
+that is, we ran fewer overall cycles of directed evolution at larger maturation periods (e.g., 400 cycles for 1,000 update maturation periods), and a greater number of cycles at smaller maturation periods (e.g., 20,000 cycles for 20 update maturation periods).
+We used a more limited set of selection schemes for this supplemental experiment due to constraints on computing resources.
 
 ```{r}
 experiment_slug <- "2021-11-12-time"
@@ -18,7 +39,6 @@ library(ggplot2)
 library(cowplot)
 library(RColorBrewer)
 library(scales)
-library(viridis)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 ```
 
@@ -117,7 +137,7 @@ Average number of organisms per world at the end of a run.
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=U_PER_E,
       y=avg_num_orgs,
       fill=SELECTION_METHOD
     )
@@ -137,6 +157,9 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
+  scale_x_discrete(
+    name="Maturation period (updates)"
+  ) +
   scale_fill_brewer(
     palette="Set2"
   ) +
@@ -144,11 +167,12 @@ ggplot(
     palette="Set2"
   ) +
   facet_wrap(
-    ~U_PER_E,
+    ~SELECTION_METHOD,
     scales="free_y"
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
+    axis.text.x = element_text(size = 9, angle=-30, hjust=0)
   )
 
 ggsave(
@@ -175,7 +199,7 @@ for (timing in levels(exp_summary_data$U_PER_E)) {
 }
 ```
 
-## Average generations
+## Average generations elapsed during the maturation period
 
 ```{r}
 ggplot(
@@ -207,14 +231,15 @@ ggplot(
   scale_color_manual(
     values=selection_methods_smaller_set_colors
   ) +
-  xlab("Updates per epoch") +
+  xlab("Updates per maturation period") +
   facet_wrap(
     ~SELECTION_METHOD_LABEL,
     scales="fixed",
     nrow=1
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
+    axis.text.x = element_text(size = 9, angle=-30, hjust=0)
   )
 
 ggsave(
@@ -250,6 +275,9 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
+  scale_x_discrete(
+    name="Maturation period (updates)"
+  ) +
   scale_fill_manual(
     values=selection_methods_smaller_set_colors
   ) +
@@ -258,11 +286,11 @@ ggplot(
   ) +
   facet_wrap(
     ~SELECTION_METHOD,
-    labeller=label_both,
     nrow=1
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
+    axis.text.x = element_text(size = 9, angle=-30, hjust=0)
   )
 
 ggsave(
@@ -321,6 +349,9 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
+  scale_x_discrete(
+    name="Maturation period (updates)"
+  ) +
   scale_fill_manual(
     values=selection_methods_smaller_set_colors
   ) +
@@ -330,11 +361,11 @@ ggplot(
   facet_wrap(
     ~SELECTION_METHOD,
     scales="fixed",
-    labeller=label_both,
     nrow=1
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
+    axis.text.x = element_text(size = 9, angle=-30, hjust=0)
   )
 
 ggsave(
@@ -344,7 +375,7 @@ ggsave(
 )
 ```
 
-### Max trait coverage
+### Best-population task coverage
 
 ```{r}
 
@@ -393,9 +424,10 @@ max_task_coverage_fig <-
     nrow=1
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
+    axis.text.x = element_text(size = 9, angle=-30, hjust=0)
   )
-
+max_task_coverage_fig
 ggsave(
   plot=max_task_coverage_fig,
   filename=paste0(plot_directory, "max_trait_coverage.pdf"),
@@ -424,7 +456,8 @@ for (sel in c("elite", "lex", "nde", "none")) {
   }
 }
 ```
-### Total trait coverage
+
+### Metapopulation task coverage
 
 ```{r}
 total_task_coverage_fig <-
@@ -472,7 +505,8 @@ total_task_coverage_fig <-
     nrow=1
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
+    axis.text.x = element_text(size = 9, angle=-30, hjust=0)
   )
 total_task_coverage_fig
 ggsave(
@@ -518,15 +552,15 @@ ggplot(
   scale_color_brewer(
     palette="Set2"
   ) +
-  xlab("Updates per epoch") +
+  xlab("Maturation period (updates)") +
   facet_wrap(
     ~SELECTION_METHOD,
     scales="fixed",
-    labeller=label_both,
     nrow=1
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
+    axis.text.x = element_text(size = 9, angle=-30, hjust=0)
   )
 ggsave(
   paste0(plot_directory, "num_pop_trait_profiles_facet_sel.pdf"),
@@ -541,18 +575,19 @@ ggsave(
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=U_PER_E,
       y=pop_trait_profile_entropy,
       fill=SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
     position = position_nudge(x = .2, y = 0),
-    alpha = .8
+    alpha = .8,
+    adjust=1.5
   ) +
   geom_point(
     mapping=aes(color=SELECTION_METHOD),
-    position = position_jitter(height=0, width = .15),
+    position = position_jitter(width = .15),
     size = .5,
     alpha = 0.8
   ) +
@@ -567,17 +602,20 @@ ggplot(
   scale_color_brewer(
     palette="Set2"
   ) +
+  xlab("Maturation period (updates)") +
   facet_wrap(
-    ~U_PER_E,
-    scales="free_y",
-    labeller=label_both
+    ~SELECTION_METHOD,
+    scales="fixed",
+    nrow=1
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
+    axis.text.x = element_text(size = 9, angle=-30, hjust=0)
   )
-
 ggsave(
-  paste0(plot_directory, "pop_trait_profile_entropy.pdf")
+  paste0(plot_directory, "pop_trait_profile_entropy.pdf"),
+  width=20,
+  height=10
 )
 ```
 
@@ -618,11 +656,11 @@ ggplot(
   facet_wrap(
     ~SELECTION_METHOD,
     scales="fixed",
-    labeller=label_both,
     nrow=1
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
+    axis.text.x = element_text(size = 9, angle=-30, hjust=0)
   )
 ggsave(
   paste0(plot_directory, "avg_cosine_dist_from_centroid_facet_sel.pdf"),
@@ -659,6 +697,9 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
+  scale_x_discrete(
+    name="Maturation period (updates)"
+  ) +
   scale_fill_brewer(
     palette="Set2"
   ) +
@@ -671,7 +712,8 @@ ggplot(
     nrow=1
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
+    axis.text.x = element_text(size = 9, angle=-30, hjust=0)
   )
 ggsave(
   paste0(plot_directory, "avg_unique_selected_facet_sel.pdf"),
@@ -706,6 +748,9 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
+  scale_x_discrete(
+    name="Maturation period (updates)"
+  ) +
   scale_fill_brewer(
     palette="Set2"
   ) +
@@ -718,7 +763,8 @@ ggplot(
     labeller=label_both
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
+    axis.text.x = element_text(size = 9, angle=-30, hjust=0)
   )
 
 ggsave(
@@ -755,4 +801,11 @@ save_plot(
   base_height=6
 )
 ```
+
+## Discussion
+
+Lengthening maturation period improves task coverage in the no selection control: there is more genetic variation that can build up between selection bottlenecks, which allows more population-level tasks to evolve by chance.
+Performance was surprisingly stable in elite and non-dominated elite selection.
+However, lengthening maturation period harms lexicase selection's performance on metapopulation coverage.
+Overall, this experiment indicates that different selection schemes may respond differently to adjustments to the balance between individual-level and population-level selection, warranting further exploration in future work.
 
