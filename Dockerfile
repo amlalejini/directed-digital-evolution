@@ -146,6 +146,14 @@ RUN \
     && \
   ./download_data.sh \
     && \
+  export EXP_TAG=2021-11-12-time \
+    && \
+  ./download_data.sh \
+    && \
+  export EXP_TAG=2021-11-16-pops \
+    && \
+  ./download_data.sh \
+    && \
   echo "downloaded experiment data"
 
 ########################################################
