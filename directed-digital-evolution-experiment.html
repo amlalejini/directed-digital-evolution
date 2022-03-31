@@ -180,7 +180,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="7.9" data-path="directed-digital-evolution-experiment.html"><a href="directed-digital-evolution-experiment.html#average-number-of-organisms-in-populations-at-end-of-maturation-period"><i class="fa fa-check"></i><b>7.9</b> Average number of organisms in populations at end of maturation period<span></span></a></li>
 <li class="chapter" data-level="7.10" data-path="directed-digital-evolution-experiment.html"><a href="directed-digital-evolution-experiment.html#average-generations-per-maturation-period"><i class="fa fa-check"></i><b>7.10</b> Average generations per maturation period<span></span></a></li>
-<li class="chapter" data-level="7.11" data-path="directed-digital-evolution-experiment.html"><a href="directed-digital-evolution-experiment.html#manuscript-figures"><i class="fa fa-check"></i><b>7.11</b> Manuscript figures<span></span></a></li>
+<li class="chapter" data-level="7.11" data-path="directed-digital-evolution-experiment.html"><a href="directed-digital-evolution-experiment.html#representative-task-profiles"><i class="fa fa-check"></i><b>7.11</b> Representative task profiles<span></span></a></li>
+<li class="chapter" data-level="7.12" data-path="directed-digital-evolution-experiment.html"><a href="directed-digital-evolution-experiment.html#manuscript-figures"><i class="fa fa-check"></i><b>7.12</b> Manuscript figures<span></span></a></li>
 </ul></li>
 <li class="chapter" data-level="8" data-path="aligned-individual--and-population-level-task-directed-evolution-experiment.html"><a href="aligned-individual--and-population-level-task-directed-evolution-experiment.html"><i class="fa fa-check"></i><b>8</b> Aligned individual- and population-level task directed evolution experiment<span></span></a><ul>
 <li class="chapter" data-level="8.1" data-path="aligned-individual--and-population-level-task-directed-evolution-experiment.html"><a href="aligned-individual--and-population-level-task-directed-evolution-experiment.html#overview-2"><i class="fa fa-check"></i><b>8.1</b> Overview<span></span></a></li>
@@ -1315,42 +1316,52 @@ That is, for each N, we solved the maximum set coverage problem for task coverag
 <div class="sourceCode" id="cb133"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb133-1" title="1"><span class="kw">median</span>(exp_summary_data<span class="op">$</span>total_gens_approx) <span class="co"># Used for determining how many generations to run EC for</span></a></code></pre></div>
 <pre><code>## [1] 57365.67</code></pre>
 </div>
+<div id="representative-task-profiles" class="section level2 hasAnchor">
+<h2><span class="header-section-number">7.11</span> Representative task profiles<a href="directed-digital-evolution-experiment.html#representative-task-profiles" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Visualized task profiles of two example metapopulations.</p>
+<p>Elite selection</p>
+<div class="sourceCode" id="cb135"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb135-1" title="1">knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;https://raw.githubusercontent.com/amlalejini/directed-digital-evolution/main/docs/media/metapop-profiles/profile_70007_elite.png&quot;</span>)</a></code></pre></div>
+<p><img src="https://raw.githubusercontent.com/amlalejini/directed-digital-evolution/main/docs/media/metapop-profiles/profile_70007_elite.png" /><!-- --></p>
+<p>Lexicase selection</p>
+<div class="sourceCode" id="cb136"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb136-1" title="1">knitr<span class="op">::</span><span class="kw">include_graphics</span>(<span class="st">&quot;https://raw.githubusercontent.com/amlalejini/directed-digital-evolution/main/docs/media/metapop-profiles/profile_70110_lex.png&quot;</span>)</a></code></pre></div>
+<p><img src="https://raw.githubusercontent.com/amlalejini/directed-digital-evolution/main/docs/media/metapop-profiles/profile_70110_lex.png" /><!-- --></p>
+</div>
 <div id="manuscript-figures" class="section level2 hasAnchor">
-<h2><span class="header-section-number">7.11</span> Manuscript figures<a href="directed-digital-evolution-experiment.html#manuscript-figures" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<div class="sourceCode" id="cb135"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb135-1" title="1">grid &lt;-<span class="st"> </span><span class="kw">plot_grid</span>(</a>
-<a class="sourceLine" id="cb135-2" title="2">  max_trait_cov_fig <span class="op">+</span></a>
-<a class="sourceLine" id="cb135-3" title="3"><span class="st">    </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb135-4" title="4">      <span class="dt">axis.title.x=</span><span class="kw">element_blank</span>(),</a>
-<a class="sourceLine" id="cb135-5" title="5">      <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>)</a>
-<a class="sourceLine" id="cb135-6" title="6">    ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb135-7" title="7"><span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Best population task coverage&quot;</span>),</a>
-<a class="sourceLine" id="cb135-8" title="8">  total_trait_cov_fig <span class="op">+</span></a>
-<a class="sourceLine" id="cb135-9" title="9"><span class="st">    </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb135-10" title="10">      <span class="dt">axis.title.x=</span><span class="kw">element_blank</span>(),</a>
-<a class="sourceLine" id="cb135-11" title="11">      <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>)</a>
-<a class="sourceLine" id="cb135-12" title="12">    ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb135-13" title="13"><span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Metapopulation task coverage&quot;</span>),</a>
-<a class="sourceLine" id="cb135-14" title="14">  num_pop_task_profiles_fig <span class="op">+</span></a>
-<a class="sourceLine" id="cb135-15" title="15"><span class="st">    </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb135-16" title="16">      <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>)</a>
-<a class="sourceLine" id="cb135-17" title="17">    ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb135-18" title="18"><span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Diversity of task profiles&quot;</span>),</a>
-<a class="sourceLine" id="cb135-19" title="19">  task_profile_spread_fig <span class="op">+</span></a>
-<a class="sourceLine" id="cb135-20" title="20"><span class="st">    </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb135-21" title="21">      <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>)</a>
-<a class="sourceLine" id="cb135-22" title="22">    ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb135-23" title="23"><span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Spread of task profiles&quot;</span>),</a>
-<a class="sourceLine" id="cb135-24" title="24">  <span class="dt">nrow=</span><span class="dv">2</span>,</a>
-<a class="sourceLine" id="cb135-25" title="25">  <span class="dt">ncol=</span><span class="dv">2</span>,</a>
-<a class="sourceLine" id="cb135-26" title="26">  <span class="dt">labels=</span><span class="st">&quot;auto&quot;</span></a>
-<a class="sourceLine" id="cb135-27" title="27">)</a>
-<a class="sourceLine" id="cb135-28" title="28">grid</a></code></pre></div>
-<p><img src="supplemental-material_files/figure-html/unnamed-chunk-42-1.png" width="672" /></p>
-<div class="sourceCode" id="cb136"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb136-1" title="1"><span class="kw">save_plot</span>(</a>
-<a class="sourceLine" id="cb136-2" title="2">  <span class="dt">filename=</span><span class="kw">paste0</span>(plot_directory, <span class="st">&quot;2021-11-11-selection-figure.pdf&quot;</span>),</a>
-<a class="sourceLine" id="cb136-3" title="3">  <span class="dt">plot=</span>grid,</a>
-<a class="sourceLine" id="cb136-4" title="4">  <span class="dt">base_height=</span><span class="dv">6</span></a>
-<a class="sourceLine" id="cb136-5" title="5">)</a></code></pre></div>
+<h2><span class="header-section-number">7.12</span> Manuscript figures<a href="directed-digital-evolution-experiment.html#manuscript-figures" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div class="sourceCode" id="cb137"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb137-1" title="1">grid &lt;-<span class="st"> </span><span class="kw">plot_grid</span>(</a>
+<a class="sourceLine" id="cb137-2" title="2">  max_trait_cov_fig <span class="op">+</span></a>
+<a class="sourceLine" id="cb137-3" title="3"><span class="st">    </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb137-4" title="4">      <span class="dt">axis.title.x=</span><span class="kw">element_blank</span>(),</a>
+<a class="sourceLine" id="cb137-5" title="5">      <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>)</a>
+<a class="sourceLine" id="cb137-6" title="6">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb137-7" title="7"><span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Best population task coverage&quot;</span>),</a>
+<a class="sourceLine" id="cb137-8" title="8">  total_trait_cov_fig <span class="op">+</span></a>
+<a class="sourceLine" id="cb137-9" title="9"><span class="st">    </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb137-10" title="10">      <span class="dt">axis.title.x=</span><span class="kw">element_blank</span>(),</a>
+<a class="sourceLine" id="cb137-11" title="11">      <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>)</a>
+<a class="sourceLine" id="cb137-12" title="12">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb137-13" title="13"><span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Metapopulation task coverage&quot;</span>),</a>
+<a class="sourceLine" id="cb137-14" title="14">  num_pop_task_profiles_fig <span class="op">+</span></a>
+<a class="sourceLine" id="cb137-15" title="15"><span class="st">    </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb137-16" title="16">      <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>)</a>
+<a class="sourceLine" id="cb137-17" title="17">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb137-18" title="18"><span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Diversity of task profiles&quot;</span>),</a>
+<a class="sourceLine" id="cb137-19" title="19">  task_profile_spread_fig <span class="op">+</span></a>
+<a class="sourceLine" id="cb137-20" title="20"><span class="st">    </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb137-21" title="21">      <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>)</a>
+<a class="sourceLine" id="cb137-22" title="22">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb137-23" title="23"><span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">&quot;Spread of task profiles&quot;</span>),</a>
+<a class="sourceLine" id="cb137-24" title="24">  <span class="dt">nrow=</span><span class="dv">2</span>,</a>
+<a class="sourceLine" id="cb137-25" title="25">  <span class="dt">ncol=</span><span class="dv">2</span>,</a>
+<a class="sourceLine" id="cb137-26" title="26">  <span class="dt">labels=</span><span class="st">&quot;auto&quot;</span></a>
+<a class="sourceLine" id="cb137-27" title="27">)</a>
+<a class="sourceLine" id="cb137-28" title="28">grid</a></code></pre></div>
+<p><img src="supplemental-material_files/figure-html/unnamed-chunk-44-1.png" width="672" /></p>
+<div class="sourceCode" id="cb138"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb138-1" title="1"><span class="kw">save_plot</span>(</a>
+<a class="sourceLine" id="cb138-2" title="2">  <span class="dt">filename=</span><span class="kw">paste0</span>(plot_directory, <span class="st">&quot;2021-11-11-selection-figure.pdf&quot;</span>),</a>
+<a class="sourceLine" id="cb138-3" title="3">  <span class="dt">plot=</span>grid,</a>
+<a class="sourceLine" id="cb138-4" title="4">  <span class="dt">base_height=</span><span class="dv">6</span></a>
+<a class="sourceLine" id="cb138-5" title="5">)</a></code></pre></div>
 
 </div>
 </div>
