@@ -124,5 +124,15 @@ RUN \
     && \
   echo "installed r and configured r environment"
 
+########################################################
+# build supplemental material (will also run data analyses)
+########################################################
+RUN \
+  cd /opt/evolutionary-consequences-of-plasticity/ \
+    && \
+  ./build_book.sh \
+    && \
+  echo "ran analyses and built supplemental material"
+
 # Define default working directory.
 WORKDIR /opt/directed-digital-evolution

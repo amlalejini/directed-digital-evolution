@@ -1,0 +1,46 @@
+name: Build and deploy supplement to gh-pages
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - name: docker build
+        run:
+        |
+          docker build . --file Dockerfile --tag supplemental
+          docker container create --name pages_build supplemental:latest
+          docker cp pages_build:/opt/directed-digital-evolution/_book ./_book
+      - name: deploy to github pages
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to
+          FOLDER: _book    # The folder the action should deploy
+          CLEAN: true      # Automatically remove deleted files from the deploy branch
+
+
+#   gcc-debug:
+#     name: Unit Tests (gcc, debug mode)
+#     runs-on: ubuntu-20.04
+#     env:
+#       CXX: g++
+#     steps:
+#       - uses: actions/checkout@v2
+#         with:
+#           submodules: 'recursive'
+      # Adapted from https://askubuntu.com/a/524368
+      # - run: echo $(hostname -I | cut -d\  -f1) $(hostname) | sudo -h 127.0.0.1 tee -a /etc/hosts
+      # - uses: docker-practice/actions-setup-docker@v1
+      # - run: docker build -t amlalejini/directed-digital-evolution .
+      # - run: docker ps -a
+      # - run: docker run -e "CXX=${CXX}" --cap-add=SYS_ADMIN -e "CXX=${CXX}" -i amlalejini/directed-digital-evolution /bin/bash -c "set -x && cd /opt/directed-digital-evolution/tests && make"
