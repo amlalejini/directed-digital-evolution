@@ -1,8 +1,63 @@
-FROM devosoft/empirical
+# ======= USAGE =======
+# Run interactively:
+#   docker run -it --entrypoint bash dockertest:latest
 
-USER root
+# Pull a base image
+FROM ubuntu:20.04
 
 COPY . /opt/directed-digital-evolution
+
+# To make installs not ask questions about timezones
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=America/New_York
+
+##############################
+# install base dependencies
+# - for R repository
+#   - dirmngr
+#   - gpg-agent
+# - for bookdown compilation
+#   - pandoc, pandoc-citeproc, texlive-base, texlive-latex-extra
+##############################
+RUN \
+  apt-get update \
+    && \
+  apt-get install -y -qq --no-install-recommends \
+    software-properties-common \
+    curl \
+    g++-10 \
+    make  \
+    cmake \
+    python3 \
+    python3-pip \
+    python3-virtualenv \
+    git \
+    libssl-dev \
+    libcurl4-openssl-dev \
+    libxml2-dev \
+    libz-dev \
+    libgit2-dev \
+    libpng-dev \
+    libfontconfig1-dev \
+    libmagick++-dev \
+    libgdal-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    liblapack-dev \
+    libblas-dev \
+    libstdc++-10-dev \
+    dirmngr \
+    gpg-agent \
+    pandoc \
+    pandoc-citeproc \
+    texlive-base \
+    texlive-latex-extra \
+    lmodern \
+    && \
+  echo "installed base dependencies"
+
+# Wire g++ command to g++-10
+RUN cd /usr/bin/ && ln -s g++-10 g++ && cd /
 
 RUN \
   pip3 install -r /opt/directed-digital-evolution/experiments/requirements.txt \
@@ -11,18 +66,6 @@ RUN \
     && \
   echo "installed python requirements"
 
-# make sure unprivileged user has access to new files in opt
-# adapted from https://stackoverflow.com/a/27703359
-# and https://superuser.com/a/235398
-RUN \
-  chgrp --recursive user /opt/directed-digital-evolution \
-    && \
-  chmod --recursive g+rwx /opt/directed-digital-evolution \
-    && \
-  echo "user granted permissions to /opt/directed-digital-evolution"
-
-USER user
-
 # Init & update git submodules
 RUN \
   cd /opt/directed-digital-evolution \
@@ -30,6 +73,14 @@ RUN \
   git submodule update --init --recursive \
     && \
   echo "download git submodules"
+
+# Build experiment
+RUN \
+  cd /opt/directed-digital-evolution \
+    && \
+  ./build_exps.sh \
+    && \
+  echo "build experiment software"
 
 ########################################################
 # install r

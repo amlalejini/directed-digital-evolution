@@ -12,7 +12,7 @@ make native
 echo "...Done."
 
 # Build single-threaded gp
-echo "Compiling single-threaded directed digital evolution..."
+echo "Compiling single-threaded genetic programming experiment..."
 export PROJECT=avidagp-ec
 export MAIN_CPP=source/native-ec.cpp
 export THREADING=-DDIRDEVO_SINGLE_THREAD
