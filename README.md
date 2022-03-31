@@ -3,7 +3,7 @@
 [![supplemental](https://img.shields.io/badge/go%20to-supplemental%20material-ff69b4)](https://lalejini.com/directed-digital-evolution/)
 [![OSF](https://img.shields.io/badge/data%20%40%20OSF-10.17605%2FOSF.IO%2FZN63X-blue)](https://osf.io/zn63x/)
 [![DockerHub link](https://img.shields.io/badge/DockerHub-Hosted-blue)](https://hub.docker.com/r/amlalejini/directed-digital-evolution/)
-[![GitHub stars](https://img.shields.io/github/stars/amlalejini/directed-digital-evolution.svg?style=flat-square&logo=github&label=Stars&logoColor=white)](https://github.com/amlalejini/directed-digital-evolution)
+[![GitHub stars](https://img.shields.io/github/stars/amlalejini/directed-digital-evolution.svg?logo=github&label=Stars&logoColor=white)](https://github.com/amlalejini/directed-digital-evolution)
 
 Click the supplemental material badge (in pink) at the top of this readme to navigate to the supplemental material ebook.
 
