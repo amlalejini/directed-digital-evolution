@@ -63,7 +63,7 @@ exp_summary_data$SELECTION_METHOD <- factor(
 Load time series data.
 
 ```{r}
-times_series_data_loc <- paste0(working_directory,"data/evaluation_time_series.csv")
+times_series_data_loc <- paste0(working_directory,"data/evaluation_time_series_corrected.csv")
 times_series_data <- read.csv(times_series_data_loc, na.strings="NONE")
 
 # Specify experimental condition for each datum.
@@ -90,6 +90,8 @@ times_series_data$SELECTION_METHOD <- factor(
     "none"
   )
 )
+
+times_series_data$epoch_offset <- times_series_data$epoch+1
 ```
 
 Load task coverage per population data.
@@ -189,9 +191,15 @@ max_trait_cov_fig <-
     labels=selection_method_labels
   ) +
   scale_fill_brewer(
+    name="Selection Method",
+    breaks=selection_method_breaks,
+    labels=selection_method_labels,
     palette=cb_palette
   ) +
   scale_color_brewer(
+    name="Selection Method",
+    breaks=selection_method_breaks,
+    labels=selection_method_labels,
     palette=cb_palette
   ) +
   theme(
@@ -228,9 +236,9 @@ To speed up graphing, we plot a low-resolution version of the time series.
 ```{r}
 max_trait_cov_ot_fig <-
   ggplot(
-    filter(times_series_data, (updates_elapsed%%10000)==0 | updates_elapsed==1),
+    filter(times_series_data, (epoch_offset%%10)==0 | epoch_offset==1),
     aes(
-      x=updates_elapsed,
+      x=epoch_offset,
       y=max_trait_coverage,
       fill=SELECTION_METHOD,
       color=SELECTION_METHOD
@@ -245,10 +253,11 @@ max_trait_cov_ot_fig <-
     linetype=0
   ) +
   scale_x_continuous(
-    name="Updates elapsed"
+    name="Cycle"
   ) +
   scale_y_continuous(
     name="Task Coverage",
+    limits=c(-0.5,18),
     breaks=seq(0,18,2)
   ) +
   scale_fill_brewer(
@@ -269,7 +278,7 @@ max_trait_cov_ot_fig <-
 max_trait_cov_ot_fig
 ggsave(
   plot=max_trait_cov_ot_fig,
-  filename=paste0(plot_directory, "2021-11-30-best-pop-task-cov-ts.png"),
+  filename=paste0(plot_directory, "2021-11-30-best-pop-task-cov-ts.pdf"),
   width=10,
   height=6
 )
@@ -314,10 +323,16 @@ total_trait_cov_fig <-
     labels=selection_method_labels
   ) +
   scale_fill_brewer(
-    palette=cb_palette
+    name="Selection Method",
+    palette=cb_palette,
+    breaks=selection_method_breaks,
+    labels=selection_method_labels
   ) +
   scale_color_brewer(
-    palette=cb_palette
+    name="Selection Method",
+    palette=cb_palette,
+    breaks=selection_method_breaks,
+    labels=selection_method_labels
   ) +
   theme(
     legend.position="none"
@@ -353,9 +368,9 @@ To speed up graphing, we plot a low-resolution version of the time series.
 ```{r}
 metapop_task_cov_ot_fig <-
   ggplot(
-    filter(times_series_data, (updates_elapsed%%10000)==0 | updates_elapsed==1),
+    filter(times_series_data, (epoch_offset%%10)==0 | epoch_offset==1),
     aes(
-      x=updates_elapsed,
+      x=epoch_offset,
       y=total_trait_coverage,
       fill=SELECTION_METHOD,
       color=SELECTION_METHOD
@@ -370,10 +385,11 @@ metapop_task_cov_ot_fig <-
     linetype=0
   ) +
   scale_x_continuous(
-    name="Updates elapsed"
+    name="Cycle"
   ) +
   scale_y_continuous(
     name="Task Coverage",
+    limits=c(-0.5,18.5),
     breaks=seq(0,18,2)
   ) +
   scale_fill_brewer(
@@ -916,6 +932,8 @@ median(exp_summary_data$total_gens_approx) # Used for determining how many gener
 
 ## Manuscript figures
 
+Without time series:
+
 ```{r}
 # NOTE - This is just a rough draft!
 grid <- plot_grid(
@@ -951,5 +969,124 @@ save_plot(
   filename=paste0(plot_directory, "2021-11-30-selection-figure.pdf"),
   plot=grid,
   base_height=6
+)
+```
+
+With time series:
+
+```{r}
+legend <- cowplot::get_legend(
+    max_trait_cov_ot_fig +
+      guides(
+        color=guide_legend(nrow=1),
+        fill=guide_legend(nrow=1)
+      ) +
+      theme(
+        legend.position = "bottom",
+        legend.box="horizontal",
+        legend.justification="center"
+      )
+  )
+
+max_trait_cov_row <- plot_grid(
+  max_trait_cov_ot_fig +
+    ggtitle("Best population task coverage (over time)") +
+    theme(
+      legend.position="none"
+      # plot.title=element_text(size=12),
+      # axis.text=element_text(size=10),
+      # axis.text.x = element_text(size = 9),
+      # axis.title.y = element_text(size = 10)
+    ),
+  max_trait_cov_fig +
+    ggtitle("Best population task coverage (final)"),
+    theme(
+      legend.position="none"
+      # plot.title=element_text(size=12),
+      # axis.text=element_text(size=10),
+      # axis.text.x = element_text(size = 9),
+      # axis.title.y = element_text(size = 10)
+    ),
+  nrow=1,
+  ncol=2,
+  align="h",
+  labels=c("a", "b")
+  # rel_widths=c(3,2),
+)
+max_trait_cov_row
+
+total_trait_cov_row <- plot_grid(
+  metapop_task_cov_ot_fig +
+    ggtitle("Metapopulation task coverage (over time)") +
+    theme(
+      legend.position="none"
+      # plot.title=element_text(size=12),
+      # axis.text=element_text(size=10),
+      # axis.text.x = element_text(size = 9),
+      # axis.title.y = element_text(size = 10)
+    ),
+  total_trait_cov_fig +
+    ggtitle("Metapopulation task coverage (final)"),
+    theme(
+      legend.position="none"
+      # plot.title=element_text(size=12),
+      # axis.text=element_text(size=10),
+      # axis.text.x = element_text(size = 9),
+      # axis.title.y = element_text(size = 10)
+    ),
+  nrow=1,
+  ncol=2,
+  align="h",
+  labels=c("c", "d")
+  # rel_widths=c(3,2),
+)
+total_trait_cov_row
+
+diversity_row <-  plot_grid(
+  num_pop_task_profiles_fig +
+    ggtitle("Diversity of task profiles") +
+    theme(
+      legend.position="none"
+      # plot.title=element_text(size=12),
+      # axis.text=element_text(size=10),
+      # axis.text.x = element_text(size = 9),
+      # axis.title.y = element_text(size = 10)
+    ),
+  task_profile_spread_fig +
+    ggtitle("Spread of task profiles"),
+    theme(
+      legend.position="none"
+      # plot.title=element_text(size=12),
+      # axis.text=element_text(size=10),
+      # axis.text.x = element_text(size = 9),
+      # axis.title.y = element_text(size = 10)
+    ),
+  nrow=1,
+  ncol=2,
+  align="h",
+  labels=c("e", "f")
+  # rel_widths=c(3,2),
+)
+# diversity_row
+
+grid <- plot_grid(
+  max_trait_cov_row,
+  total_trait_cov_row,
+  diversity_row,
+  legend,
+  nrow=4,
+  ncol=1,
+  rel_heights=c(1, 1, 1, 0.1)
+
+)
+grid
+
+save_plot(
+  filename=paste0(plot_directory, "2021-11-30-aligned-tasks-figure-with-timeseries.pdf"),
+  plot=grid,
+  base_width=12,
+  base_height=10,
+  # base_asp=1.6,
+  dpi=600
 )
 ```
