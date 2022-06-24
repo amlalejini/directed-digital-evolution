@@ -23,6 +23,8 @@ final-task-coverage
 generation-2000-task-coverage
 population-level-task-coverage
 generations-elapsed-before-a-solution-evolves
+best-task-coverage-over-time
+manuscript-figure
 directed-digital-evolution-experiment
 overview-1
 analysis-dependencies-1
