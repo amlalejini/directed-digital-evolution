@@ -64,7 +64,7 @@ exp_summary_data$SELECTION_METHOD <- factor(
 Load time series data.
 
 ```{r}
-time_series_data_loc <- paste0(working_directory,"data/pop_snapshot_time_series.csv")
+time_series_data_loc <- paste0(working_directory,"data/pop_snapshot_time_series_corrected.csv")
 time_series_data <- read.csv(time_series_data_loc, na.strings="NONE")
 
 get_sel <- function(seed) {
@@ -196,9 +196,9 @@ max_task_cov_fig <-
     palette=cb_palette
   ) +
   theme(
-    legend.position="none",
-    axis.text = element_text(size = 8),
-    axis.title = element_text(size=10)
+    legend.position="none"
+    # axis.text = element_text(size = 8),
+    # axis.title = element_text(size=10)
   )
 max_task_cov_fig
 
@@ -411,5 +411,110 @@ ggplot(
   )
 ggsave(
   paste0(plot_directory, "updates_until_solution.pdf")
+)
+```
+
+## Best task coverage over time
+
+```{r}
+max_task_cov_ts <-
+  ggplot(
+    time_series_data,
+    aes(
+      x=update,
+      y=max_org_task_coverage,
+      fill=SELECTION_METHOD,
+      color=SELECTION_METHOD
+    )
+  ) +
+  stat_summary(geom="line", fun=mean) +
+  stat_summary(
+    geom="ribbon",
+    fun.data="mean_cl_boot",
+    fun.args=list(conf.int=0.95),
+    alpha=0.2,
+    linetype=0
+  ) +
+  scale_y_continuous(
+    name="Task Coverage",
+    limits=c(-0.5,22.5),
+    breaks=seq(0,22,2)
+  ) +
+  scale_x_continuous(
+    name="Generation",
+    limits=c(0, 55000),
+    breaks=c(0, 10000, 20000, 30000, 40000, 50000)
+  ) +
+  scale_fill_brewer(
+    name="Selection method",
+    palette=cb_palette,
+    breaks=selection_method_breaks,
+    labels=selection_method_labels
+  ) +
+  scale_color_brewer(
+    name="Selection method",
+    palette=cb_palette,
+    breaks=selection_method_breaks,
+    labels=selection_method_labels
+  ) +
+  theme(
+    legend.position="none"
+  )
+max_task_cov_ts
+
+ggsave(
+  paste0(plot_directory, "2021-11-15-ec-performance-ts.pdf")
+)
+```
+
+## Manuscript Figure
+
+```{r}
+legend <- cowplot::get_legend(
+    max_task_cov_ts +
+      guides(
+        color=guide_legend(nrow=1),
+        fill=guide_legend(nrow=1)
+      ) +
+      theme(
+        legend.position = "bottom",
+        legend.box="horizontal",
+        legend.justification="center"
+      )
+  )
+
+grid <- plot_grid(
+  max_task_cov_ts +
+    ggtitle("Task coverage over time") +
+    labs(subtitle="") +
+    theme(legend.position="none"),
+  max_task_cov_fig +
+    ggtitle("Final task coverage") +
+    theme(),
+  nrow=1,
+  ncol=2,
+  align="h",
+  # rel_widths=c(3,2),
+  labels="auto"
+)
+# grid
+grid <- plot_grid(
+  grid,
+  legend,
+  nrow=2,
+  ncol=1,
+  rel_heights=c(1, 0.1)
+)
+grid
+
+save_plot(
+  paste(
+    plot_directory,
+    "2021-11-15-performance-fig.pdf",
+    sep=""
+  ),
+  grid,
+  base_width=12,
+  base_height=6
 )
 ```
