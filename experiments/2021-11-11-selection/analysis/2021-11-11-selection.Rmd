@@ -282,6 +282,77 @@ ggsave(
 )
 ```
 
+#### First 30 cycles of the experiment
+
+```{r}
+max_trait_cov_ot_early_fig <-
+  ggplot(
+    # times_series_data,
+    filter(times_series_data, (epoch_offset <= 30)),
+    aes(
+      x=epoch_offset,
+      y=max_trait_coverage,
+      fill=SELECTION_METHOD,
+      color=SELECTION_METHOD
+    )
+  ) +
+  stat_summary(geom="line", fun=mean) +
+  stat_summary(
+    geom="ribbon",
+    fun.data="mean_cl_boot",
+    fun.args=list(conf.int=0.95),
+    alpha=0.2,
+    linetype=0
+  ) +
+  scale_x_continuous(
+    name="Cycles"
+  ) +
+  scale_y_continuous(
+    name="Task Coverage",
+    limits=c(-0.5,18.5),
+    breaks=seq(0,18,2)
+  ) +
+  scale_fill_brewer(
+    name="Selection Method",
+    palette=cb_palette,
+    breaks=selection_method_breaks,
+    labels=selection_method_labels
+  ) +
+  scale_color_brewer(
+    name="Selection Method",
+    palette=cb_palette,
+    breaks=selection_method_breaks,
+    labels=selection_method_labels
+  ) +
+  theme(
+    legend.position="bottom"
+  )
+max_trait_cov_ot_early_fig
+
+ggsave(
+  filename=paste0(plot_directory, "2021-11-11-best-pop-task-cov-ts-early.pdf"),
+  width=10,
+  height=6
+)
+```
+
+After just 10 cycles, we observed significant gains from using NDE and LEX selection protocols.
+
+```{r}
+early_data <- filter(times_series_data, epoch_offset==10)
+kruskal.test(
+  formula=max_trait_coverage~SELECTION_METHOD,
+  data=early_data
+)
+
+# Kruskal-wallis is significant, so we do a post-hoc wilcoxon rank-sum.
+pairwise.wilcox.test(
+  x=early_data$max_trait_coverage,
+  g=early_data$SELECTION_METHOD,
+  p.adjust.method="bonferroni",
+)
+```
+
 ## Metapopulation task coverage
 
 Metapopulation task coverage at the end of the experiment.
@@ -314,7 +385,7 @@ total_trait_cov_fig <-
   ) +
   scale_y_continuous(
     name="Task Coverage",
-    limits=c(-0.5,18),
+    limits=c(-0.5,18.5),
     breaks=seq(0,18,2)
   ) +
   scale_x_discrete(
@@ -410,6 +481,77 @@ ggsave(
   filename=paste0(plot_directory, "2021-11-11-metapop-task-cov-ts.pdf"),
   width=10,
   height=6
+)
+```
+
+#### First 30 cycles of the experiment
+
+```{r}
+metapop_task_cov_ot_early_fig <-
+  ggplot(
+    # times_series_data,
+    filter(times_series_data, (epoch_offset <= 30)),
+    aes(
+      x=epoch_offset,
+      y=total_trait_coverage,
+      fill=SELECTION_METHOD,
+      color=SELECTION_METHOD
+    )
+  ) +
+  stat_summary(geom="line", fun=mean) +
+  stat_summary(
+    geom="ribbon",
+    fun.data="mean_cl_boot",
+    fun.args=list(conf.int=0.95),
+    alpha=0.2,
+    linetype=0
+  ) +
+  scale_x_continuous(
+    name="Cycles"
+  ) +
+  scale_y_continuous(
+    name="Task Coverage",
+    limits=c(-0.5,18.5),
+    breaks=seq(0,18,2)
+  ) +
+  scale_fill_brewer(
+    name="Selection Method",
+    palette=cb_palette,
+    breaks=selection_method_breaks,
+    labels=selection_method_labels
+  ) +
+  scale_color_brewer(
+    name="Selection Method",
+    palette=cb_palette,
+    breaks=selection_method_breaks,
+    labels=selection_method_labels
+  ) +
+  theme(
+    legend.position="bottom"
+  )
+metapop_task_cov_ot_early_fig
+
+ggsave(
+  filename=paste0(plot_directory, "2021-11-11-metapop-task-cov-ts-early.pdf"),
+  width=10,
+  height=6
+)
+```
+
+After just 10 cycles, we observed significant gains from using NDE and LEX selection protocols.
+
+```{r}
+early_data <- filter(times_series_data, epoch_offset==10)
+kruskal.test(
+  formula=total_trait_coverage~SELECTION_METHOD,
+  data=early_data
+)
+
+# Kruskal-wallis is significant, so we do a post-hoc wilcoxon rank-sum.
+pairwise.wilcox.test(
+  x=early_data$total_trait_coverage,
+  g=early_data$SELECTION_METHOD,
+  p.adjust.method="bonferroni",
 )
 ```
 
@@ -1112,8 +1254,6 @@ save_plot(
 With time series:
 
 ```{r}
-# todo - compose each row individually
-
 legend <- cowplot::get_legend(
     max_trait_cov_ot_fig +
       guides(
@@ -1149,7 +1289,7 @@ max_trait_cov_row <- plot_grid(
   nrow=1,
   ncol=2,
   align="h",
-  labels="auto"
+  labels=c("a", "b")
   # rel_widths=c(3,2),
 )
 # max_trait_cov_row
@@ -1176,7 +1316,7 @@ total_trait_cov_row <- plot_grid(
   nrow=1,
   ncol=2,
   align="h",
-  labels="auto"
+  labels=c("c", "d")
   # rel_widths=c(3,2),
 )
 # total_trait_cov_row
@@ -1203,7 +1343,7 @@ diversity_row <-  plot_grid(
   nrow=1,
   ncol=2,
   align="h",
-  labels="auto"
+  labels=c("e", "f")
   # rel_widths=c(3,2),
 )
 # diversity_row
@@ -1228,8 +1368,4 @@ save_plot(
   # base_asp=1.6,
   dpi=600
 )
-```
-
-```{r}
-print("done")
 ```
