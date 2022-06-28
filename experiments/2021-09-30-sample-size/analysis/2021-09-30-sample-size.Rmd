@@ -1,6 +1,23 @@
-# 2021-09-30 - Propagule Sample Size
+# Population propagule sample size
 
-Comparing selection schemes at initial baseline directed evolution settings.
+In this preliminary experiment, we looked at the effect of varying the size of propagules used when creating "offspring" populations from "parent" populations.
+
+
+We conducted these exploratory experiments well before the final set of experiments presented in our manuscript, so their setups are not the same:
+
+- We only compared elite, lexicase, non-dominated elite, and a no selection control.
+- The environment is simpler with 8 population-level functions instead of 18.
+- The maximum population size is 900 instead of 1,000.
+- The maturation period is longer (300 updates versus 200)
+- We ran the experiment for fewer cycles (500 instead of 2,000).
+
+Overall, we found that the effect of propagule size varied by selection scheme.
+For elite selection and the no-selection control, sample size had little effect.
+For lexicase and non-dominated elite selection, the smallest propagule size (1% of the maximum population size)
+resulted in significantly better outcomes than using larger propagule sizes (e.g., 100% of the maximum population size).
+
+Because these data were collected during early experiments, we tracked fewer population/metapopulation statistics.
+Future work should further investigate the effects of propagule size, especially in the context of more complex environments that support more complex organism-organism interaction.
 
 ## Overview
 
@@ -78,6 +95,8 @@ exp_summary_data$POPULATION_SAMPLING_SIZE <- as.factor(
 )
 
 exp_summary_data$SAMPLE_SIZE <- exp_summary_data$POPULATION_SAMPLING_SIZE
+
+exp_summary_data <- filter(exp_summary_data, UPDATES_PER_EPOCH=="300")
 ```
 
 Miscellaneous setup
@@ -86,10 +105,37 @@ Miscellaneous setup
 # Configure our default graphing theme
 theme_set(theme_cowplot())
 # Palette
-cb_palette <- "Paired"
+cb_palette <- "Accent"
 # Create a directory to store plots
 plot_directory <- paste0(working_directory, "plots/")
 dir.create(plot_directory, showWarnings=FALSE)
+
+sel.labs <- c(
+  "elite",
+  "tournament",
+  "lex",
+  "nde",
+  "ndt",
+  "random",
+  "none"
+)
+names(sel.labs) <- c(
+  "elite",
+  "tournament",
+  "lex",
+  "nde",
+  "ndt",
+  "random",
+  "none"
+)
+upe.labs <- c(
+  "updates per cycle=100",
+  "updates per cycle=300"
+)
+names(upe.labs) <- c(
+  "100",
+  "300"
+)
 ```
 
 ## Average number of organisms
@@ -100,9 +146,9 @@ Average number of organisms per world at the end of a run.
 ggplot(
     exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=POPULATION_SAMPLING_SIZE,
       y=avg_num_orgs,
-      fill=SELECTION_METHOD
+      fill=POPULATION_SAMPLING_SIZE
     )
   ) +
   geom_flat_violin(
@@ -110,7 +156,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=SELECTION_METHOD),
+    mapping=aes(color=POPULATION_SAMPLING_SIZE),
     position = position_jitter(width = .15),
     size = .5,
     alpha = 0.8
@@ -121,11 +167,12 @@ ggplot(
     alpha = 0.5
   ) +
   facet_grid(
-    UPDATES_PER_EPOCH~POPULATION_SAMPLING_SIZE
-    # labeller = label_both
+    UPDATES_PER_EPOCH~SELECTION_METHOD,
+    labeller = labeller(UPDATES_PER_EPOCH=upe.labs, SELECTION_METHOD=sel.labs)
   ) +
   theme(
     legend.position="none",
+    axis.text.x=element_text(angle=45,hjust=1)
   )
 
 ggsave(
@@ -133,15 +180,18 @@ ggsave(
 )
 ```
 
-## Average generations
+In general, the smaller propagule sizes are less likely to reach 900 organisms during the maturation period.
+However, all final population sizes are within 25 organisms of each, so no substantial differences here.
+
+## Average generations per maturation period
 
 ```{r}
 ggplot(
-    exp_summary_data,
+  exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
+      x=POPULATION_SAMPLING_SIZE,
       y=avg_gens,
-      fill=SELECTION_METHOD
+      fill=POPULATION_SAMPLING_SIZE
     )
   ) +
   geom_flat_violin(
@@ -149,7 +199,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=SELECTION_METHOD),
+    mapping=aes(color=POPULATION_SAMPLING_SIZE),
     position = position_jitter(width = .15),
     size = .5,
     alpha = 0.8
@@ -160,11 +210,12 @@ ggplot(
     alpha = 0.5
   ) +
   facet_grid(
-    UPDATES_PER_EPOCH~POPULATION_SAMPLING_SIZE,
-    scales="free"
+    UPDATES_PER_EPOCH~SELECTION_METHOD,
+    labeller = labeller(UPDATES_PER_EPOCH=upe.labs, SELECTION_METHOD=sel.labs)
   ) +
   theme(
-    legend.position="none"
+    legend.position="none",
+    axis.text.x=element_text(angle=45,hjust=1)
   )
 
 ggsave(
@@ -176,15 +227,15 @@ ggsave(
 
 ## Performance
 
-### Max aggregate performance
+### Best population task coverage
 
 ```{r}
 ggplot(
-    exp_summary_data,
+  exp_summary_data,
     aes(
-      x=SELECTION_METHOD,
-      y=max_aggregate_score,
-      fill=SELECTION_METHOD
+      x=POPULATION_SAMPLING_SIZE,
+      y=max_trait_coverage,
+      fill=POPULATION_SAMPLING_SIZE
     )
   ) +
   geom_flat_violin(
@@ -192,7 +243,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=SELECTION_METHOD),
+    mapping=aes(color=POPULATION_SAMPLING_SIZE),
     position = position_jitter(width = .15),
     size = .5,
     alpha = 0.8
@@ -203,256 +254,106 @@ ggplot(
     alpha = 0.5
   ) +
   scale_y_continuous(
-    name="max_aggregate_score (log scale)",
-    trans=pseudo_log_trans(sigma = 1, base = 10),
-    breaks=c(0, 10, 100, 1000, 10000, 100000)
+    name="Task Coverage"
   ) +
   facet_grid(
-    UPDATES_PER_EPOCH~SAMPLE_SIZE,
-    labeller=label_both
+    UPDATES_PER_EPOCH~SELECTION_METHOD,
+    labeller = labeller(UPDATES_PER_EPOCH=upe.labs, SELECTION_METHOD=sel.labs)
   ) +
-  theme(
-    legend.position="none"
-  )
-
-ggsave(
-  paste0(plot_directory, "max_aggregate_score.pdf")
-)
-```
-
-### Max trait coverage
-
-```{r}
-ggplot(
-    exp_summary_data,
-    aes(
-      x=SELECTION_METHOD,
-      y=max_trait_coverage,
-      fill=SELECTION_METHOD
-    )
-  ) +
-  geom_flat_violin(
-    position = position_nudge(x = .2, y = 0),
-    alpha = .8
-  ) +
-  geom_point(
-    mapping=aes(color=SELECTION_METHOD),
-    position = position_jitter(height=0, width = .15),
-    size = .5,
-    alpha = 0.8
-  ) +
-  geom_boxplot(
-    width = .1,
-    outlier.shape = NA,
-    alpha = 0.5
-  ) +
-  facet_grid(
-    UPDATES_PER_EPOCH~SAMPLE_SIZE,
-    labeller=label_both  ) +
+  ggtitle("Best population task coverage") +
   theme(
     legend.position="none",
-    panel.border=element_rect(colour="grey",size=1)
-  )
-
-ggsave(
-  paste0(plot_directory, "max_trait_coverage.pdf")
-)
-```
-
-```{r}
-
-comp_data <- filter(
-  exp_summary_data,
-  NUM_POPS=="24" & UPDATES_PER_EPOCH=="100"
-)
-kruskal.test(
-  formula=max_trait_coverage~SELECTION_METHOD,
-  data=comp_data
-)
-
-pairwise.wilcox.test(
-  x=comp_data$max_trait_coverage,
-  g=comp_data$SELECTION_METHOD,
-  p.adjust.method="bonferroni",
-  exact=FALSE
-)
-```
-
-### Total trait coverage
-
-```{r}
-ggplot(
-    exp_summary_data,
-    aes(
-      x=SELECTION_METHOD,
-      y=total_trait_coverage,
-      fill=SELECTION_METHOD
-    )
-  ) +
-  geom_flat_violin(
-    position = position_nudge(x = .2, y = 0),
-    alpha = .8
-  ) +
-  geom_point(
-    mapping=aes(color=SELECTION_METHOD),
-    position = position_jitter(height=0, width = .15),
-    size = .5,
-    alpha = 0.8
-  ) +
-  geom_boxplot(
-    width = .1,
-    outlier.shape = NA,
-    alpha = 0.5
-  ) +
-  facet_grid(
-    UPDATES_PER_EPOCH~POPULATION_SAMPLING_SIZE
-  ) +
-  theme(
-    legend.position="none",
-    panel.border=element_rect(colour="grey",size=1)
-  )
-
-ggsave(
-  paste0(plot_directory, "total_trait_coverage.pdf")
-)
-```
-
-```{r}
-comp_data <- filter(
-  exp_summary_data,
-  NUM_POPS=="24" & UPDATES_PER_EPOCH=="100"
-)
-kruskal.test(
-  formula=total_trait_coverage~SELECTION_METHOD,
-  data=comp_data
-)
-
-pairwise.wilcox.test(
-  x=comp_data$total_trait_coverage,
-  g=comp_data$SELECTION_METHOD,
-  p.adjust.method="bonferroni",
-  exact=FALSE
-)
-```
-
-## Selection
-
-### Average number of unique populations selected
-
-```{r}
-ggplot(
-    exp_summary_data,
-    aes(
-      x=SELECTION_METHOD,
-      y=avg_unique_selected,
-      fill=SELECTION_METHOD
-    )
-  ) +
-  geom_flat_violin(
-    position = position_nudge(x = .2, y = 0),
-    alpha = .8
-  ) +
-  geom_point(
-    mapping=aes(color=SELECTION_METHOD),
-    position = position_jitter(height=0, width = .15),
-    size = .5,
-    alpha = 0.8
-  ) +
-  geom_boxplot(
-    width = .1,
-    outlier.shape = NA,
-    alpha = 0.5
-  ) +
-  facet_grid(
-    UPDATES_PER_EPOCH~POPULATION_SAMPLING_SIZE
-  ) +
-  theme(
-    legend.position="none"
-  )
-
-ggsave(
-  paste0(plot_directory, "avg_unique_selected.pdf")
-)
-```
-
-### Average entropy of selection ids
-
-```{r}
-ggplot(
-    exp_summary_data,
-    aes(
-      x=SELECTION_METHOD,
-      y=avg_entropy_selected,
-      fill=SELECTION_METHOD
-    )
-  ) +
-  geom_flat_violin(
-    position = position_nudge(x = .2, y = 0),
-    alpha = .8
-  ) +
-  geom_point(
-    mapping=aes(color=SELECTION_METHOD),
-    position = position_jitter(height=0, width = .15),
-    size = .5,
-    alpha = 0.8
-  ) +
-  geom_boxplot(
-    width = .1,
-    outlier.shape = NA,
-    alpha = 0.5
-  ) +
-  facet_grid(
-    UPDATES_PER_EPOCH~POPULATION_SAMPLING_SIZE
-  ) +
-  theme(
-    legend.position="none"
-  )
-
-ggsave(
-  paste0(plot_directory, "avg_entropy_selected.pdf")
-)
-```
-
-## 2021-11-03 - Lab meeting
-
-```{r}
-ggplot(
-    filter(
-      exp_summary_data,
-      UPDATES_PER_EPOCH=="300"
-    ),
-    aes(
-      x=SELECTION_METHOD,
-      y=max_trait_coverage,
-      fill=SELECTION_METHOD
-    )
-  ) +
-  geom_flat_violin(
-    position = position_nudge(x = .2, y = 0),
-    alpha = .8
-  ) +
-  geom_point(
-    mapping=aes(color=SELECTION_METHOD),
-    position = position_jitter(height=0, width = .15),
-    size = .5,
-    alpha = 0.8
-  ) +
-  geom_boxplot(
-    width = .1,
-    outlier.shape = NA,
-    alpha = 0.5
-  ) +
-  facet_grid(
-    UPDATES_PER_EPOCH~SAMPLE_SIZE,
-    labeller=label_both  ) +
-  theme(
-    legend.position="none",
+    axis.text.x=element_text(angle=45,hjust=1),
     panel.border=element_rect(colour="grey",size=1)
   )
 
 ggsave(
   paste0(plot_directory, "max_trait_coverage.png"),
-  width=10, height=5
+  width=10,
+  height=6
+)
+```
+
+```{r}
+comp_data <- filter(
+  exp_summary_data,
+  SELECTION_METHOD=="lex"
+)
+kruskal.test(
+  formula=max_trait_coverage~POPULATION_SAMPLING_SIZE,
+  data=comp_data
+)
+
+pairwise.wilcox.test(
+  x=comp_data$max_trait_coverage,
+  g=comp_data$POPULATION_SAMPLING_SIZE,
+  p.adjust.method="bonferroni",
+  exact=FALSE
+)
+```
+
+### Metapopulation task coverage
+
+```{r}
+ggplot(
+  exp_summary_data,
+    aes(
+      x=POPULATION_SAMPLING_SIZE,
+      y=total_trait_coverage,
+      fill=POPULATION_SAMPLING_SIZE
+    )
+  ) +
+  geom_flat_violin(
+    position = position_nudge(x = .2, y = 0),
+    alpha = .8
+  ) +
+  geom_point(
+    mapping=aes(color=POPULATION_SAMPLING_SIZE),
+    position = position_jitter(width = .15),
+    size = .5,
+    alpha = 0.8
+  ) +
+  geom_boxplot(
+    width = .1,
+    outlier.shape = NA,
+    alpha = 0.5
+  ) +
+  scale_y_continuous(
+    name="Task Coverage"
+  ) +
+  facet_grid(
+    UPDATES_PER_EPOCH~SELECTION_METHOD,
+    labeller = labeller(UPDATES_PER_EPOCH=upe.labs, SELECTION_METHOD=sel.labs)
+  ) +
+  ggtitle("Metapopulation task coverage") +
+  theme(
+    legend.position="none",
+    axis.text.x=element_text(angle=45,hjust=1),
+    panel.border=element_rect(colour="grey",size=1)
+  )
+
+ggsave(
+  paste0(plot_directory, "total_trait_coverage.png"),
+  width=10,
+  height=6
+)
+```
+
+```{r}
+comp_data <- filter(
+  exp_summary_data,
+  SELECTION_METHOD=="lex"
+)
+kruskal.test(
+  formula=total_trait_coverage~POPULATION_SAMPLING_SIZE,
+  data=comp_data
+)
+
+pairwise.wilcox.test(
+  x=comp_data$total_trait_coverage,
+  g=comp_data$POPULATION_SAMPLING_SIZE,
+  p.adjust.method="bonferroni",
+  exact=FALSE
 )
 ```
 
