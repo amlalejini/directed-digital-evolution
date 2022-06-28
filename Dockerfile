@@ -158,6 +158,10 @@ RUN \
     && \
   ./download_data.sh \
     && \
+  export EXP_TAG=2021-09-30-sample-size \
+    && \
+  ./download_data.sh \
+    && \
   echo "downloaded experiment data"
 
 ########################################################
