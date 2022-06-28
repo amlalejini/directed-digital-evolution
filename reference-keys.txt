@@ -31,8 +31,10 @@ analysis-dependencies-1
 setup-1
 best-single-population-task-coverage
 best-single-population-task-coverage-time-series
+first-30-cycles-of-the-experiment
 metapopulation-task-coverage
 metapopulation-task-coverage-time-series
+first-30-cycles-of-the-experiment-1
 metapopulation-task-profile-diversity
 number-of-different-task-profiles
 number-of-different-task-profiles-over-time
@@ -52,8 +54,10 @@ analysis-dependencies-2
 setup-2
 best-single-population-task-coverage-1
 best-single-population-task-coverage-time-series-1
+first-30-cycles-of-the-experiment-2
 metapopulation-task-coverage-1
 metapopulation-task-coverage-time-series-1
+first-30-cycles-of-the-experiment-3
 metapopulation-task-profile-diversity-1
 number-of-different-task-profiles-1
 number-of-different-task-profiles-over-time-1
@@ -106,3 +110,12 @@ time-series
 best-single-population-task-coverage-3
 metapopulation-task-coverage-4
 discussion-1
+population-propagule-sample-size
+overview-5
+analysis-dependencies-5
+setup-5
+average-number-of-organisms-1
+average-generations-per-maturation-period-3
+performance-2
+best-population-task-coverage-1
+metapopulation-task-coverage-5
