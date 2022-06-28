@@ -423,8 +423,8 @@ To speed up graphing, we plot a low-resolution version of the time series.
 ```{r}
 metapop_task_cov_ot_fig <-
   ggplot(
-    times_series_data,
-    # filter(times_series_data, (epoch_offset%%10)==0 | epoch_offset==1),
+    # times_series_data,
+    filter(times_series_data, (epoch_offset%%10)==0 | epoch_offset==1),
     aes(
       x=epoch_offset,
       y=total_trait_coverage,
