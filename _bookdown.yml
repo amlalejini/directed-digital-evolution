@@ -14,5 +14,6 @@ rmd_files: [
   "experiments/2021-11-30-aligned-tasks/analysis/2021-11-30-aligned-tasks.Rmd",
   "experiments/2021-11-12-time/analysis/2021-11-12-time.Rmd",
   "experiments/2021-11-08-longer-genomes/analysis/2021-11-08-longer-genomes.Rmd",
+  "experiments/2021-09-30-sample-size/analysis/2021-09-30-sample-size.Rmd",
   "tail.Rmd"
   ]
