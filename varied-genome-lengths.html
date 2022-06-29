@@ -23,7 +23,7 @@
 <meta name="author" content="Alexander Lalejini, Emily Dolson, Anya E. Vostinar, and Luis Zaman" />
 
 
-<meta name="date" content="2022-06-27" />
+<meta name="date" content="2022-06-29" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -258,11 +258,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="10.8.1" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#average-number-of-unique-populations-selected-1"><i class="fa fa-check"></i><b>10.8.1</b> Average number of unique populations selected</a></li>
 <li class="chapter" data-level="10.8.2" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#average-entropy-of-selection-ids-1"><i class="fa fa-check"></i><b>10.8.2</b> Average entropy of selection ids</a></li>
 </ul></li>
-<li class="chapter" data-level="10.9" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#time-series"><i class="fa fa-check"></i><b>10.9</b> Time series</a><ul>
-<li class="chapter" data-level="10.9.1" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#best-single-population-task-coverage-3"><i class="fa fa-check"></i><b>10.9.1</b> Best single-population task coverage</a></li>
-<li class="chapter" data-level="10.9.2" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#metapopulation-task-coverage-4"><i class="fa fa-check"></i><b>10.9.2</b> Metapopulation task coverage</a></li>
-</ul></li>
-<li class="chapter" data-level="10.10" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#discussion-1"><i class="fa fa-check"></i><b>10.10</b> Discussion</a></li>
+<li class="chapter" data-level="10.9" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#discussion-1"><i class="fa fa-check"></i><b>10.9</b> Discussion</a></li>
 </ul></li>
 <li class="chapter" data-level="11" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html"><i class="fa fa-check"></i><b>11</b> Population propagule sample size</a><ul>
 <li class="chapter" data-level="11.1" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#overview-5"><i class="fa fa-check"></i><b>11.1</b> Overview</a></li>
@@ -272,7 +268,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="11.5" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#average-generations-per-maturation-period-3"><i class="fa fa-check"></i><b>11.5</b> Average generations per maturation period</a></li>
 <li class="chapter" data-level="11.6" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#performance-2"><i class="fa fa-check"></i><b>11.6</b> Performance</a><ul>
 <li class="chapter" data-level="11.6.1" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#best-population-task-coverage-1"><i class="fa fa-check"></i><b>11.6.1</b> Best population task coverage</a></li>
-<li class="chapter" data-level="11.6.2" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#metapopulation-task-coverage-5"><i class="fa fa-check"></i><b>11.6.2</b> Metapopulation task coverage</a></li>
+<li class="chapter" data-level="11.6.2" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#metapopulation-task-coverage-4"><i class="fa fa-check"></i><b>11.6.2</b> Metapopulation task coverage</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
@@ -307,6 +303,7 @@ Specifically, for each of elite and lexicase selection, we ran 30 replicates of 
 100 (default used in our main experiments),
 150,
 and 200.</p>
+<p>Note that these runs were performed with a maturation period of 300 updates and run for a total of 3,000 cycles (instead of 200 and 2,000, respectively).</p>
 <div class="sourceCode" id="cb351"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb351-1" title="1">experiment_slug &lt;-<span class="st"> &quot;2021-11-08-longer-genomes&quot;</span></a>
 <a class="sourceLine" id="cb351-2" title="2"></a>
 <a class="sourceLine" id="cb351-3" title="3">working_directory &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;experiments/&quot;</span>,experiment_slug,<span class="st">&quot;/analysis/&quot;</span>)</a></code></pre></div>
@@ -316,13 +313,11 @@ and 200.</p>
 <p>Load all required R libraries</p>
 <div class="sourceCode" id="cb352"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb352-1" title="1"><span class="kw">library</span>(tidyverse)</a>
 <a class="sourceLine" id="cb352-2" title="2"><span class="kw">library</span>(ggplot2)</a>
-<a class="sourceLine" id="cb352-3" title="3"><span class="co"># library(GGally)</span></a>
-<a class="sourceLine" id="cb352-4" title="4"><span class="co"># library(ggpcp)</span></a>
-<a class="sourceLine" id="cb352-5" title="5"><span class="kw">library</span>(cowplot)</a>
-<a class="sourceLine" id="cb352-6" title="6"><span class="kw">library</span>(RColorBrewer)</a>
-<a class="sourceLine" id="cb352-7" title="7"><span class="kw">library</span>(scales)</a>
-<a class="sourceLine" id="cb352-8" title="8"><span class="co"># library(viridis)</span></a>
-<a class="sourceLine" id="cb352-9" title="9"><span class="kw">source</span>(<span class="st">&quot;https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R&quot;</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb352-3" title="3"><span class="kw">library</span>(cowplot)</a>
+<a class="sourceLine" id="cb352-4" title="4"><span class="kw">library</span>(RColorBrewer)</a>
+<a class="sourceLine" id="cb352-5" title="5"><span class="kw">library</span>(scales)</a>
+<a class="sourceLine" id="cb352-6" title="6"><span class="kw">library</span>(khroma)</a>
+<a class="sourceLine" id="cb352-7" title="7"><span class="kw">source</span>(<span class="st">&quot;https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R&quot;</span>)</a></code></pre></div>
 <p>These analyses were knit with the following environment:</p>
 <div class="sourceCode" id="cb353"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb353-1" title="1"><span class="kw">print</span>(version)</a></code></pre></div>
 <pre><code>##                _                           
@@ -425,13 +420,11 @@ and 200.</p>
 <p>Miscellaneous setup</p>
 <div class="sourceCode" id="cb356"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb356-1" title="1"><span class="co"># Configure our default graphing theme</span></a>
 <a class="sourceLine" id="cb356-2" title="2"><span class="kw">theme_set</span>(<span class="kw">theme_cowplot</span>())</a>
-<a class="sourceLine" id="cb356-3" title="3"><span class="co"># Palette</span></a>
-<a class="sourceLine" id="cb356-4" title="4">cb_palette &lt;-<span class="st"> &quot;Paired&quot;</span></a>
-<a class="sourceLine" id="cb356-5" title="5"><span class="co"># Create a directory to store plots</span></a>
-<a class="sourceLine" id="cb356-6" title="6">plot_directory &lt;-<span class="st"> </span><span class="kw">paste0</span>(working_directory, <span class="st">&quot;plots/&quot;</span>)</a>
-<a class="sourceLine" id="cb356-7" title="7"><span class="kw">dir.create</span>(plot_directory, <span class="dt">showWarnings=</span><span class="ot">FALSE</span>)</a>
-<a class="sourceLine" id="cb356-8" title="8"></a>
-<a class="sourceLine" id="cb356-9" title="9">selection_methods_smaller_set_colors &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;#66C2A5&quot;</span>, <span class="st">&quot;#E78AC3&quot;</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb356-3" title="3"><span class="co"># Create a directory to store plots</span></a>
+<a class="sourceLine" id="cb356-4" title="4">plot_directory &lt;-<span class="st"> </span><span class="kw">paste0</span>(working_directory, <span class="st">&quot;plots/&quot;</span>)</a>
+<a class="sourceLine" id="cb356-5" title="5"><span class="kw">dir.create</span>(plot_directory, <span class="dt">showWarnings=</span><span class="ot">FALSE</span>)</a>
+<a class="sourceLine" id="cb356-6" title="6"></a>
+<a class="sourceLine" id="cb356-7" title="7">selection_methods_smaller_set_colors &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;#4477AA&quot;</span>, <span class="st">&quot;#CCBB44&quot;</span>)</a></code></pre></div>
 </div>
 <div id="average-generations-per-maturation-period-2" class="section level2 hasAnchor">
 <h2><span class="header-section-number">10.4</span> Average generations per maturation period<a href="varied-genome-lengths.html#average-generations-per-maturation-period-2" class="anchor-section" aria-label="Anchor link to header"></a></h2>
@@ -440,7 +433,7 @@ and 200.</p>
 <a class="sourceLine" id="cb357-3" title="3">    <span class="kw">aes</span>(</a>
 <a class="sourceLine" id="cb357-4" title="4">      <span class="dt">x=</span>genome_length,</a>
 <a class="sourceLine" id="cb357-5" title="5">      <span class="dt">y=</span>avg_gens,</a>
-<a class="sourceLine" id="cb357-6" title="6">      <span class="dt">fill=</span>genome_length</a>
+<a class="sourceLine" id="cb357-6" title="6">      <span class="dt">fill=</span>SELECTION_METHOD</a>
 <a class="sourceLine" id="cb357-7" title="7">    )</a>
 <a class="sourceLine" id="cb357-8" title="8">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb357-9" title="9"><span class="st">  </span><span class="kw">geom_flat_violin</span>(</a>
@@ -448,7 +441,7 @@ and 200.</p>
 <a class="sourceLine" id="cb357-11" title="11">    <span class="dt">alpha =</span> <span class="fl">.8</span></a>
 <a class="sourceLine" id="cb357-12" title="12">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb357-13" title="13"><span class="st">  </span><span class="kw">geom_point</span>(</a>
-<a class="sourceLine" id="cb357-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>genome_length),</a>
+<a class="sourceLine" id="cb357-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>SELECTION_METHOD),</a>
 <a class="sourceLine" id="cb357-15" title="15">    <span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">width =</span> <span class="fl">.15</span>),</a>
 <a class="sourceLine" id="cb357-16" title="16">    <span class="dt">size =</span> <span class="fl">.5</span>,</a>
 <a class="sourceLine" id="cb357-17" title="17">    <span class="dt">alpha =</span> <span class="fl">0.8</span></a>
@@ -458,13 +451,19 @@ and 200.</p>
 <a class="sourceLine" id="cb357-21" title="21">    <span class="dt">outlier.shape =</span> <span class="ot">NA</span>,</a>
 <a class="sourceLine" id="cb357-22" title="22">    <span class="dt">alpha =</span> <span class="fl">0.5</span></a>
 <a class="sourceLine" id="cb357-23" title="23">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb357-24" title="24"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
-<a class="sourceLine" id="cb357-25" title="25">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb357-24" title="24"><span class="st">  </span><span class="kw">scale_fill_manual</span>(</a>
+<a class="sourceLine" id="cb357-25" title="25">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb357-26" title="26">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb357-27" title="27"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb357-28" title="28">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
-<a class="sourceLine" id="cb357-29" title="29">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb357-30" title="30">  )</a></code></pre></div>
+<a class="sourceLine" id="cb357-27" title="27"><span class="st">  </span><span class="kw">scale_color_manual</span>(</a>
+<a class="sourceLine" id="cb357-28" title="28">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
+<a class="sourceLine" id="cb357-29" title="29">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb357-30" title="30"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
+<a class="sourceLine" id="cb357-31" title="31">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb357-32" title="32">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb357-33" title="33"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb357-34" title="34">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
+<a class="sourceLine" id="cb357-35" title="35">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb357-36" title="36">  )</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-109-1.png" width="672" /></p>
 <div class="sourceCode" id="cb358"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb358-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb358-2" title="2">  <span class="kw">paste0</span>(plot_directory, <span class="st">&quot;avg_gens.pdf&quot;</span>),</a>
@@ -479,7 +478,7 @@ and 200.</p>
 <a class="sourceLine" id="cb359-3" title="3">    <span class="kw">aes</span>(</a>
 <a class="sourceLine" id="cb359-4" title="4">      <span class="dt">x=</span>genome_length,</a>
 <a class="sourceLine" id="cb359-5" title="5">      <span class="dt">y=</span>total_gens_approx,</a>
-<a class="sourceLine" id="cb359-6" title="6">      <span class="dt">fill=</span>genome_length</a>
+<a class="sourceLine" id="cb359-6" title="6">      <span class="dt">fill=</span>SELECTION_METHOD</a>
 <a class="sourceLine" id="cb359-7" title="7">    )</a>
 <a class="sourceLine" id="cb359-8" title="8">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb359-9" title="9"><span class="st">  </span><span class="kw">geom_flat_violin</span>(</a>
@@ -487,7 +486,7 @@ and 200.</p>
 <a class="sourceLine" id="cb359-11" title="11">    <span class="dt">alpha =</span> <span class="fl">.8</span></a>
 <a class="sourceLine" id="cb359-12" title="12">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb359-13" title="13"><span class="st">  </span><span class="kw">geom_point</span>(</a>
-<a class="sourceLine" id="cb359-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>genome_length),</a>
+<a class="sourceLine" id="cb359-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>SELECTION_METHOD),</a>
 <a class="sourceLine" id="cb359-15" title="15">    <span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">width =</span> <span class="fl">.15</span>),</a>
 <a class="sourceLine" id="cb359-16" title="16">    <span class="dt">size =</span> <span class="fl">.5</span>,</a>
 <a class="sourceLine" id="cb359-17" title="17">    <span class="dt">alpha =</span> <span class="fl">0.8</span></a>
@@ -497,13 +496,19 @@ and 200.</p>
 <a class="sourceLine" id="cb359-21" title="21">    <span class="dt">outlier.shape =</span> <span class="ot">NA</span>,</a>
 <a class="sourceLine" id="cb359-22" title="22">    <span class="dt">alpha =</span> <span class="fl">0.5</span></a>
 <a class="sourceLine" id="cb359-23" title="23">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb359-24" title="24"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
-<a class="sourceLine" id="cb359-25" title="25">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb359-24" title="24"><span class="st">  </span><span class="kw">scale_fill_manual</span>(</a>
+<a class="sourceLine" id="cb359-25" title="25">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb359-26" title="26">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb359-27" title="27"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb359-28" title="28">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
-<a class="sourceLine" id="cb359-29" title="29">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb359-30" title="30">  )</a></code></pre></div>
+<a class="sourceLine" id="cb359-27" title="27"><span class="st">  </span><span class="kw">scale_color_manual</span>(</a>
+<a class="sourceLine" id="cb359-28" title="28">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
+<a class="sourceLine" id="cb359-29" title="29">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb359-30" title="30"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
+<a class="sourceLine" id="cb359-31" title="31">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb359-32" title="32">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb359-33" title="33"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb359-34" title="34">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
+<a class="sourceLine" id="cb359-35" title="35">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb359-36" title="36">  )</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-110-1.png" width="672" /></p>
 <div class="sourceCode" id="cb360"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb360-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb360-2" title="2">  <span class="kw">paste0</span>(plot_directory, <span class="st">&quot;total_gens_approx.pdf&quot;</span>),</a>
@@ -520,7 +525,7 @@ and 200.</p>
 <a class="sourceLine" id="cb361-3" title="3">    <span class="kw">aes</span>(</a>
 <a class="sourceLine" id="cb361-4" title="4">      <span class="dt">x=</span>genome_length,</a>
 <a class="sourceLine" id="cb361-5" title="5">      <span class="dt">y=</span>avg_cpu_cycles_per_replication,</a>
-<a class="sourceLine" id="cb361-6" title="6">      <span class="dt">fill=</span>genome_length</a>
+<a class="sourceLine" id="cb361-6" title="6">      <span class="dt">fill=</span>SELECTION_METHOD</a>
 <a class="sourceLine" id="cb361-7" title="7">    )</a>
 <a class="sourceLine" id="cb361-8" title="8">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb361-9" title="9"><span class="st">  </span><span class="kw">geom_flat_violin</span>(</a>
@@ -528,7 +533,7 @@ and 200.</p>
 <a class="sourceLine" id="cb361-11" title="11">    <span class="dt">alpha =</span> <span class="fl">.8</span></a>
 <a class="sourceLine" id="cb361-12" title="12">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb361-13" title="13"><span class="st">  </span><span class="kw">geom_point</span>(</a>
-<a class="sourceLine" id="cb361-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>genome_length),</a>
+<a class="sourceLine" id="cb361-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>SELECTION_METHOD),</a>
 <a class="sourceLine" id="cb361-15" title="15">    <span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">height=</span><span class="dv">0</span>, <span class="dt">width =</span> <span class="fl">.15</span>),</a>
 <a class="sourceLine" id="cb361-16" title="16">    <span class="dt">size =</span> <span class="fl">.5</span>,</a>
 <a class="sourceLine" id="cb361-17" title="17">    <span class="dt">alpha =</span> <span class="fl">0.8</span></a>
@@ -538,13 +543,19 @@ and 200.</p>
 <a class="sourceLine" id="cb361-21" title="21">    <span class="dt">outlier.shape =</span> <span class="ot">NA</span>,</a>
 <a class="sourceLine" id="cb361-22" title="22">    <span class="dt">alpha =</span> <span class="fl">0.5</span></a>
 <a class="sourceLine" id="cb361-23" title="23">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb361-24" title="24"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
-<a class="sourceLine" id="cb361-25" title="25">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb361-24" title="24"><span class="st">  </span><span class="kw">scale_fill_manual</span>(</a>
+<a class="sourceLine" id="cb361-25" title="25">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb361-26" title="26">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb361-27" title="27"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb361-28" title="28">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
-<a class="sourceLine" id="cb361-29" title="29">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb361-30" title="30">  )</a></code></pre></div>
+<a class="sourceLine" id="cb361-27" title="27"><span class="st">  </span><span class="kw">scale_color_manual</span>(</a>
+<a class="sourceLine" id="cb361-28" title="28">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
+<a class="sourceLine" id="cb361-29" title="29">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb361-30" title="30"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
+<a class="sourceLine" id="cb361-31" title="31">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb361-32" title="32">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb361-33" title="33"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb361-34" title="34">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
+<a class="sourceLine" id="cb361-35" title="35">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb361-36" title="36">  )</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-111-1.png" width="672" /></p>
 <div class="sourceCode" id="cb362"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb362-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb362-2" title="2">  <span class="kw">paste0</span>(plot_directory, <span class="st">&quot;avg_cpu_cycles_per_replication.pdf&quot;</span>)</a>
@@ -669,7 +680,7 @@ and 200.</p>
 <a class="sourceLine" id="cb368-3" title="3">    <span class="kw">aes</span>(</a>
 <a class="sourceLine" id="cb368-4" title="4">      <span class="dt">x=</span>genome_length,</a>
 <a class="sourceLine" id="cb368-5" title="5">      <span class="dt">y=</span>num_pop_trait_profiles,</a>
-<a class="sourceLine" id="cb368-6" title="6">      <span class="dt">fill=</span>genome_length</a>
+<a class="sourceLine" id="cb368-6" title="6">      <span class="dt">fill=</span>SELECTION_METHOD</a>
 <a class="sourceLine" id="cb368-7" title="7">    )</a>
 <a class="sourceLine" id="cb368-8" title="8">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb368-9" title="9"><span class="st">  </span><span class="kw">geom_flat_violin</span>(</a>
@@ -677,7 +688,7 @@ and 200.</p>
 <a class="sourceLine" id="cb368-11" title="11">    <span class="dt">alpha =</span> <span class="fl">.8</span></a>
 <a class="sourceLine" id="cb368-12" title="12">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb368-13" title="13"><span class="st">  </span><span class="kw">geom_point</span>(</a>
-<a class="sourceLine" id="cb368-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>genome_length),</a>
+<a class="sourceLine" id="cb368-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>SELECTION_METHOD),</a>
 <a class="sourceLine" id="cb368-15" title="15">    <span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">height=</span><span class="dv">0</span>, <span class="dt">width =</span> <span class="fl">.15</span>),</a>
 <a class="sourceLine" id="cb368-16" title="16">    <span class="dt">size =</span> <span class="fl">.5</span>,</a>
 <a class="sourceLine" id="cb368-17" title="17">    <span class="dt">alpha =</span> <span class="fl">0.8</span></a>
@@ -687,13 +698,19 @@ and 200.</p>
 <a class="sourceLine" id="cb368-21" title="21">    <span class="dt">outlier.shape =</span> <span class="ot">NA</span>,</a>
 <a class="sourceLine" id="cb368-22" title="22">    <span class="dt">alpha =</span> <span class="fl">0.5</span></a>
 <a class="sourceLine" id="cb368-23" title="23">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb368-24" title="24"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
-<a class="sourceLine" id="cb368-25" title="25">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb368-24" title="24"><span class="st">  </span><span class="kw">scale_fill_manual</span>(</a>
+<a class="sourceLine" id="cb368-25" title="25">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb368-26" title="26">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb368-27" title="27"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb368-28" title="28">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
-<a class="sourceLine" id="cb368-29" title="29">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb368-30" title="30">  )</a></code></pre></div>
+<a class="sourceLine" id="cb368-27" title="27"><span class="st">  </span><span class="kw">scale_color_manual</span>(</a>
+<a class="sourceLine" id="cb368-28" title="28">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
+<a class="sourceLine" id="cb368-29" title="29">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb368-30" title="30"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
+<a class="sourceLine" id="cb368-31" title="31">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb368-32" title="32">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb368-33" title="33"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb368-34" title="34">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
+<a class="sourceLine" id="cb368-35" title="35">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb368-36" title="36">  )</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-114-1.png" width="672" /></p>
 <div class="sourceCode" id="cb369"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb369-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb369-2" title="2">  <span class="kw">paste0</span>(plot_directory, <span class="st">&quot;num_pop_trait_profiles.pdf&quot;</span>)</a>
@@ -707,7 +724,7 @@ and 200.</p>
 <a class="sourceLine" id="cb371-3" title="3">    <span class="kw">aes</span>(</a>
 <a class="sourceLine" id="cb371-4" title="4">      <span class="dt">x=</span>genome_length,</a>
 <a class="sourceLine" id="cb371-5" title="5">      <span class="dt">y=</span>pop_trait_profile_entropy,</a>
-<a class="sourceLine" id="cb371-6" title="6">      <span class="dt">fill=</span>genome_length</a>
+<a class="sourceLine" id="cb371-6" title="6">      <span class="dt">fill=</span>SELECTION_METHOD</a>
 <a class="sourceLine" id="cb371-7" title="7">    )</a>
 <a class="sourceLine" id="cb371-8" title="8">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb371-9" title="9"><span class="st">  </span><span class="kw">geom_flat_violin</span>(</a>
@@ -715,7 +732,7 @@ and 200.</p>
 <a class="sourceLine" id="cb371-11" title="11">    <span class="dt">alpha =</span> <span class="fl">.8</span></a>
 <a class="sourceLine" id="cb371-12" title="12">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb371-13" title="13"><span class="st">  </span><span class="kw">geom_point</span>(</a>
-<a class="sourceLine" id="cb371-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>genome_length),</a>
+<a class="sourceLine" id="cb371-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>SELECTION_METHOD),</a>
 <a class="sourceLine" id="cb371-15" title="15">    <span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">height=</span><span class="dv">0</span>, <span class="dt">width =</span> <span class="fl">.15</span>),</a>
 <a class="sourceLine" id="cb371-16" title="16">    <span class="dt">size =</span> <span class="fl">.5</span>,</a>
 <a class="sourceLine" id="cb371-17" title="17">    <span class="dt">alpha =</span> <span class="fl">0.8</span></a>
@@ -725,13 +742,19 @@ and 200.</p>
 <a class="sourceLine" id="cb371-21" title="21">    <span class="dt">outlier.shape =</span> <span class="ot">NA</span>,</a>
 <a class="sourceLine" id="cb371-22" title="22">    <span class="dt">alpha =</span> <span class="fl">0.5</span></a>
 <a class="sourceLine" id="cb371-23" title="23">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb371-24" title="24"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
-<a class="sourceLine" id="cb371-25" title="25">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb371-24" title="24"><span class="st">  </span><span class="kw">scale_fill_manual</span>(</a>
+<a class="sourceLine" id="cb371-25" title="25">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb371-26" title="26">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb371-27" title="27"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb371-28" title="28">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
-<a class="sourceLine" id="cb371-29" title="29">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb371-30" title="30">  )</a></code></pre></div>
+<a class="sourceLine" id="cb371-27" title="27"><span class="st">  </span><span class="kw">scale_color_manual</span>(</a>
+<a class="sourceLine" id="cb371-28" title="28">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
+<a class="sourceLine" id="cb371-29" title="29">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb371-30" title="30"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
+<a class="sourceLine" id="cb371-31" title="31">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb371-32" title="32">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb371-33" title="33"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb371-34" title="34">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
+<a class="sourceLine" id="cb371-35" title="35">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb371-36" title="36">  )</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-115-1.png" width="672" /></p>
 <div class="sourceCode" id="cb372"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb372-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb372-2" title="2">  <span class="kw">paste0</span>(plot_directory, <span class="st">&quot;pop_trait_profile_entropy.pdf&quot;</span>)</a>
@@ -745,7 +768,7 @@ and 200.</p>
 <a class="sourceLine" id="cb374-3" title="3">    <span class="kw">aes</span>(</a>
 <a class="sourceLine" id="cb374-4" title="4">      <span class="dt">x=</span>genome_length,</a>
 <a class="sourceLine" id="cb374-5" title="5">      <span class="dt">y=</span>avg_cosine_dist_from_centroid,</a>
-<a class="sourceLine" id="cb374-6" title="6">      <span class="dt">fill=</span>genome_length</a>
+<a class="sourceLine" id="cb374-6" title="6">      <span class="dt">fill=</span>SELECTION_METHOD</a>
 <a class="sourceLine" id="cb374-7" title="7">    )</a>
 <a class="sourceLine" id="cb374-8" title="8">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb374-9" title="9"><span class="st">  </span><span class="kw">geom_flat_violin</span>(</a>
@@ -753,7 +776,7 @@ and 200.</p>
 <a class="sourceLine" id="cb374-11" title="11">    <span class="dt">alpha =</span> <span class="fl">.8</span></a>
 <a class="sourceLine" id="cb374-12" title="12">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb374-13" title="13"><span class="st">  </span><span class="kw">geom_point</span>(</a>
-<a class="sourceLine" id="cb374-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>genome_length),</a>
+<a class="sourceLine" id="cb374-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>SELECTION_METHOD),</a>
 <a class="sourceLine" id="cb374-15" title="15">    <span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">height=</span><span class="dv">0</span>, <span class="dt">width =</span> <span class="fl">.15</span>),</a>
 <a class="sourceLine" id="cb374-16" title="16">    <span class="dt">size =</span> <span class="fl">.5</span>,</a>
 <a class="sourceLine" id="cb374-17" title="17">    <span class="dt">alpha =</span> <span class="fl">0.8</span></a>
@@ -763,13 +786,19 @@ and 200.</p>
 <a class="sourceLine" id="cb374-21" title="21">    <span class="dt">outlier.shape =</span> <span class="ot">NA</span>,</a>
 <a class="sourceLine" id="cb374-22" title="22">    <span class="dt">alpha =</span> <span class="fl">0.5</span></a>
 <a class="sourceLine" id="cb374-23" title="23">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb374-24" title="24"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
-<a class="sourceLine" id="cb374-25" title="25">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb374-24" title="24"><span class="st">  </span><span class="kw">scale_fill_manual</span>(</a>
+<a class="sourceLine" id="cb374-25" title="25">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb374-26" title="26">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb374-27" title="27"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb374-28" title="28">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
-<a class="sourceLine" id="cb374-29" title="29">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb374-30" title="30">  )</a></code></pre></div>
+<a class="sourceLine" id="cb374-27" title="27"><span class="st">  </span><span class="kw">scale_color_manual</span>(</a>
+<a class="sourceLine" id="cb374-28" title="28">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
+<a class="sourceLine" id="cb374-29" title="29">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb374-30" title="30"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
+<a class="sourceLine" id="cb374-31" title="31">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb374-32" title="32">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb374-33" title="33"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb374-34" title="34">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
+<a class="sourceLine" id="cb374-35" title="35">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb374-36" title="36">  )</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-116-1.png" width="672" /></p>
 <div class="sourceCode" id="cb375"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb375-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb375-2" title="2">  <span class="kw">paste0</span>(plot_directory, <span class="st">&quot;avg_cosine_dist_from_centroid.pdf&quot;</span>)</a>
@@ -786,7 +815,7 @@ and 200.</p>
 <a class="sourceLine" id="cb377-3" title="3">    <span class="kw">aes</span>(</a>
 <a class="sourceLine" id="cb377-4" title="4">      <span class="dt">x=</span>genome_length,</a>
 <a class="sourceLine" id="cb377-5" title="5">      <span class="dt">y=</span>avg_unique_selected,</a>
-<a class="sourceLine" id="cb377-6" title="6">      <span class="dt">fill=</span>genome_length</a>
+<a class="sourceLine" id="cb377-6" title="6">      <span class="dt">fill=</span>SELECTION_METHOD</a>
 <a class="sourceLine" id="cb377-7" title="7">    )</a>
 <a class="sourceLine" id="cb377-8" title="8">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb377-9" title="9"><span class="st">  </span><span class="kw">geom_flat_violin</span>(</a>
@@ -794,7 +823,7 @@ and 200.</p>
 <a class="sourceLine" id="cb377-11" title="11">    <span class="dt">alpha =</span> <span class="fl">.8</span></a>
 <a class="sourceLine" id="cb377-12" title="12">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb377-13" title="13"><span class="st">  </span><span class="kw">geom_point</span>(</a>
-<a class="sourceLine" id="cb377-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>genome_length),</a>
+<a class="sourceLine" id="cb377-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>SELECTION_METHOD),</a>
 <a class="sourceLine" id="cb377-15" title="15">    <span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">height=</span><span class="dv">0</span>, <span class="dt">width =</span> <span class="fl">.15</span>),</a>
 <a class="sourceLine" id="cb377-16" title="16">    <span class="dt">size =</span> <span class="fl">.5</span>,</a>
 <a class="sourceLine" id="cb377-17" title="17">    <span class="dt">alpha =</span> <span class="fl">0.8</span></a>
@@ -804,13 +833,19 @@ and 200.</p>
 <a class="sourceLine" id="cb377-21" title="21">    <span class="dt">outlier.shape =</span> <span class="ot">NA</span>,</a>
 <a class="sourceLine" id="cb377-22" title="22">    <span class="dt">alpha =</span> <span class="fl">0.5</span></a>
 <a class="sourceLine" id="cb377-23" title="23">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb377-24" title="24"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
-<a class="sourceLine" id="cb377-25" title="25">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb377-24" title="24"><span class="st">  </span><span class="kw">scale_fill_manual</span>(</a>
+<a class="sourceLine" id="cb377-25" title="25">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb377-26" title="26">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb377-27" title="27"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb377-28" title="28">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
-<a class="sourceLine" id="cb377-29" title="29">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb377-30" title="30">  )</a></code></pre></div>
+<a class="sourceLine" id="cb377-27" title="27"><span class="st">  </span><span class="kw">scale_color_manual</span>(</a>
+<a class="sourceLine" id="cb377-28" title="28">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
+<a class="sourceLine" id="cb377-29" title="29">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb377-30" title="30"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
+<a class="sourceLine" id="cb377-31" title="31">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb377-32" title="32">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb377-33" title="33"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb377-34" title="34">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
+<a class="sourceLine" id="cb377-35" title="35">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb377-36" title="36">  )</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-117-1.png" width="672" /></p>
 <div class="sourceCode" id="cb378"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb378-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb378-2" title="2">  <span class="kw">paste0</span>(plot_directory, <span class="st">&quot;avg_unique_selected.pdf&quot;</span>)</a>
@@ -824,7 +859,7 @@ and 200.</p>
 <a class="sourceLine" id="cb380-3" title="3">    <span class="kw">aes</span>(</a>
 <a class="sourceLine" id="cb380-4" title="4">      <span class="dt">x=</span>genome_length,</a>
 <a class="sourceLine" id="cb380-5" title="5">      <span class="dt">y=</span>avg_entropy_selected,</a>
-<a class="sourceLine" id="cb380-6" title="6">      <span class="dt">fill=</span>genome_length</a>
+<a class="sourceLine" id="cb380-6" title="6">      <span class="dt">fill=</span>SELECTION_METHOD</a>
 <a class="sourceLine" id="cb380-7" title="7">    )</a>
 <a class="sourceLine" id="cb380-8" title="8">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb380-9" title="9"><span class="st">  </span><span class="kw">geom_flat_violin</span>(</a>
@@ -832,7 +867,7 @@ and 200.</p>
 <a class="sourceLine" id="cb380-11" title="11">    <span class="dt">alpha =</span> <span class="fl">.8</span></a>
 <a class="sourceLine" id="cb380-12" title="12">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb380-13" title="13"><span class="st">  </span><span class="kw">geom_point</span>(</a>
-<a class="sourceLine" id="cb380-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>genome_length),</a>
+<a class="sourceLine" id="cb380-14" title="14">    <span class="dt">mapping=</span><span class="kw">aes</span>(<span class="dt">color=</span>SELECTION_METHOD),</a>
 <a class="sourceLine" id="cb380-15" title="15">    <span class="dt">position =</span> <span class="kw">position_jitter</span>(<span class="dt">height=</span><span class="dv">0</span>, <span class="dt">width =</span> <span class="fl">.15</span>),</a>
 <a class="sourceLine" id="cb380-16" title="16">    <span class="dt">size =</span> <span class="fl">.5</span>,</a>
 <a class="sourceLine" id="cb380-17" title="17">    <span class="dt">alpha =</span> <span class="fl">0.8</span></a>
@@ -842,13 +877,19 @@ and 200.</p>
 <a class="sourceLine" id="cb380-21" title="21">    <span class="dt">outlier.shape =</span> <span class="ot">NA</span>,</a>
 <a class="sourceLine" id="cb380-22" title="22">    <span class="dt">alpha =</span> <span class="fl">0.5</span></a>
 <a class="sourceLine" id="cb380-23" title="23">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb380-24" title="24"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
-<a class="sourceLine" id="cb380-25" title="25">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb380-24" title="24"><span class="st">  </span><span class="kw">scale_fill_manual</span>(</a>
+<a class="sourceLine" id="cb380-25" title="25">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb380-26" title="26">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb380-27" title="27"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb380-28" title="28">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
-<a class="sourceLine" id="cb380-29" title="29">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb380-30" title="30">  )</a></code></pre></div>
+<a class="sourceLine" id="cb380-27" title="27"><span class="st">  </span><span class="kw">scale_color_manual</span>(</a>
+<a class="sourceLine" id="cb380-28" title="28">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
+<a class="sourceLine" id="cb380-29" title="29">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb380-30" title="30"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
+<a class="sourceLine" id="cb380-31" title="31">    <span class="op">~</span>SELECTION_METHOD</a>
+<a class="sourceLine" id="cb380-32" title="32">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb380-33" title="33"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb380-34" title="34">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
+<a class="sourceLine" id="cb380-35" title="35">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
+<a class="sourceLine" id="cb380-36" title="36">  )</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-118-1.png" width="672" /></p>
 <div class="sourceCode" id="cb381"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb381-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb381-2" title="2">  <span class="kw">paste0</span>(plot_directory, <span class="st">&quot;avg_entropy_selected.pdf&quot;</span>)</a>
@@ -856,135 +897,8 @@ and 200.</p>
 <pre><code>## Saving 7 x 5 in image</code></pre>
 </div>
 </div>
-<div id="time-series" class="section level2 hasAnchor">
-<h2><span class="header-section-number">10.9</span> Time series<a href="varied-genome-lengths.html#time-series" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Load data</p>
-<div class="sourceCode" id="cb383"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb383-1" title="1">times_series_data_loc &lt;-<span class="st"> </span><span class="kw">paste0</span>(working_directory,<span class="st">&quot;data/evaluation_time_series.csv&quot;</span>)</a>
-<a class="sourceLine" id="cb383-2" title="2">times_series_data &lt;-<span class="st"> </span><span class="kw">read.csv</span>(times_series_data_loc, <span class="dt">na.strings=</span><span class="st">&quot;NONE&quot;</span>)</a>
-<a class="sourceLine" id="cb383-3" title="3"></a>
-<a class="sourceLine" id="cb383-4" title="4">get_genome_length &lt;-<span class="st"> </span><span class="cf">function</span>(seed) {</a>
-<a class="sourceLine" id="cb383-5" title="5">  <span class="kw">return</span>(<span class="kw">filter</span>(exp_summary_data, SEED<span class="op">==</span>seed)<span class="op">$</span>genome_length)</a>
-<a class="sourceLine" id="cb383-6" title="6">}</a>
-<a class="sourceLine" id="cb383-7" title="7"></a>
-<a class="sourceLine" id="cb383-8" title="8"><span class="co"># Specify experimental condition for each datum.</span></a>
-<a class="sourceLine" id="cb383-9" title="9">times_series_data<span class="op">$</span>SELECTION_METHOD &lt;-<span class="st"> </span><span class="kw">factor</span>(</a>
-<a class="sourceLine" id="cb383-10" title="10">  times_series_data<span class="op">$</span>SELECTION_METHOD,</a>
-<a class="sourceLine" id="cb383-11" title="11">  <span class="dt">levels=</span><span class="kw">c</span>(</a>
-<a class="sourceLine" id="cb383-12" title="12">    <span class="st">&quot;elite&quot;</span>,</a>
-<a class="sourceLine" id="cb383-13" title="13">    <span class="st">&quot;tournament&quot;</span>,</a>
-<a class="sourceLine" id="cb383-14" title="14">    <span class="st">&quot;lexicase&quot;</span>,</a>
-<a class="sourceLine" id="cb383-15" title="15">    <span class="st">&quot;non-dominated-elite&quot;</span>,</a>
-<a class="sourceLine" id="cb383-16" title="16">    <span class="st">&quot;non-dominated-tournament&quot;</span>,</a>
-<a class="sourceLine" id="cb383-17" title="17">    <span class="st">&quot;random&quot;</span>,</a>
-<a class="sourceLine" id="cb383-18" title="18">    <span class="st">&quot;none&quot;</span></a>
-<a class="sourceLine" id="cb383-19" title="19">  ),</a>
-<a class="sourceLine" id="cb383-20" title="20">  <span class="dt">labels=</span><span class="kw">c</span>(</a>
-<a class="sourceLine" id="cb383-21" title="21">    <span class="st">&quot;elite&quot;</span>,</a>
-<a class="sourceLine" id="cb383-22" title="22">    <span class="st">&quot;tourn&quot;</span>,</a>
-<a class="sourceLine" id="cb383-23" title="23">    <span class="st">&quot;lex&quot;</span>,</a>
-<a class="sourceLine" id="cb383-24" title="24">    <span class="st">&quot;nde&quot;</span>,</a>
-<a class="sourceLine" id="cb383-25" title="25">    <span class="st">&quot;ndt&quot;</span>,</a>
-<a class="sourceLine" id="cb383-26" title="26">    <span class="st">&quot;random&quot;</span>,</a>
-<a class="sourceLine" id="cb383-27" title="27">    <span class="st">&quot;none&quot;</span></a>
-<a class="sourceLine" id="cb383-28" title="28">  )</a>
-<a class="sourceLine" id="cb383-29" title="29">)</a>
-<a class="sourceLine" id="cb383-30" title="30"></a>
-<a class="sourceLine" id="cb383-31" title="31">times_series_data &lt;-<span class="st"> </span><span class="kw">filter</span>(times_series_data, (updates_elapsed<span class="op">%%</span><span class="dv">10000</span>)<span class="op">==</span><span class="dv">0</span>)</a>
-<a class="sourceLine" id="cb383-32" title="32">times_series_data<span class="op">$</span>genome_length &lt;-<span class="st"> </span><span class="kw">mapply</span>(</a>
-<a class="sourceLine" id="cb383-33" title="33">  get_genome_length,</a>
-<a class="sourceLine" id="cb383-34" title="34">  times_series_data<span class="op">$</span>SEED</a>
-<a class="sourceLine" id="cb383-35" title="35">)</a>
-<a class="sourceLine" id="cb383-36" title="36"></a>
-<a class="sourceLine" id="cb383-37" title="37">times_series_data<span class="op">$</span>U_PER_E &lt;-<span class="st"> </span>times_series_data<span class="op">$</span>UPDATES_PER_EPOCH</a></code></pre></div>
-<div id="best-single-population-task-coverage-3" class="section level3 hasAnchor">
-<h3><span class="header-section-number">10.9.1</span> Best single-population task coverage<a href="varied-genome-lengths.html#best-single-population-task-coverage-3" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb384"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb384-1" title="1"><span class="kw">ggplot</span>(</a>
-<a class="sourceLine" id="cb384-2" title="2">    times_series_data,</a>
-<a class="sourceLine" id="cb384-3" title="3">    <span class="kw">aes</span>(</a>
-<a class="sourceLine" id="cb384-4" title="4">      <span class="dt">x=</span>updates_elapsed,</a>
-<a class="sourceLine" id="cb384-5" title="5">      <span class="dt">y=</span>max_trait_coverage,</a>
-<a class="sourceLine" id="cb384-6" title="6">      <span class="dt">fill=</span>genome_length,</a>
-<a class="sourceLine" id="cb384-7" title="7">      <span class="dt">color=</span>genome_length</a>
-<a class="sourceLine" id="cb384-8" title="8">    )</a>
-<a class="sourceLine" id="cb384-9" title="9">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb384-10" title="10"><span class="st">  </span><span class="kw">stat_summary</span>(<span class="dt">geom=</span><span class="st">&quot;line&quot;</span>, <span class="dt">fun=</span>mean) <span class="op">+</span></a>
-<a class="sourceLine" id="cb384-11" title="11"><span class="st">  </span><span class="kw">stat_summary</span>(</a>
-<a class="sourceLine" id="cb384-12" title="12">    <span class="dt">geom=</span><span class="st">&quot;ribbon&quot;</span>,</a>
-<a class="sourceLine" id="cb384-13" title="13">    <span class="dt">fun.data=</span><span class="st">&quot;mean_cl_boot&quot;</span>,</a>
-<a class="sourceLine" id="cb384-14" title="14">    <span class="dt">fun.args=</span><span class="kw">list</span>(<span class="dt">conf.int=</span><span class="fl">0.95</span>),</a>
-<a class="sourceLine" id="cb384-15" title="15">    <span class="dt">alpha=</span><span class="fl">0.2</span>,</a>
-<a class="sourceLine" id="cb384-16" title="16">    <span class="dt">linetype=</span><span class="dv">0</span></a>
-<a class="sourceLine" id="cb384-17" title="17">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb384-18" title="18"><span class="st">  </span><span class="kw">scale_y_continuous</span>(</a>
-<a class="sourceLine" id="cb384-19" title="19">    <span class="dt">breaks=</span><span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">18</span>,<span class="dv">2</span>)</a>
-<a class="sourceLine" id="cb384-20" title="20">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb384-21" title="21"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
-<a class="sourceLine" id="cb384-22" title="22">    <span class="op">~</span>SELECTION_METHOD,</a>
-<a class="sourceLine" id="cb384-23" title="23">    <span class="dt">nrow=</span><span class="dv">2</span></a>
-<a class="sourceLine" id="cb384-24" title="24">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb384-25" title="25"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb384-26" title="26">    <span class="dt">legend.position=</span><span class="st">&quot;bottom&quot;</span>,</a>
-<a class="sourceLine" id="cb384-27" title="27">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb384-28" title="28">  )</a></code></pre></div>
-<pre><code>## Warning: Computation failed in `stat_summary()`:
-## 
-## Computation failed in `stat_summary()`:</code></pre>
-<p><img src="supplemental-material_files/figure-html/unnamed-chunk-120-1.png" width="672" /></p>
-<div class="sourceCode" id="cb386"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb386-1" title="1"><span class="kw">ggsave</span>(</a>
-<a class="sourceLine" id="cb386-2" title="2">  <span class="kw">paste0</span>(plot_directory, <span class="st">&quot;max_trait_coverage_ot.png&quot;</span>),</a>
-<a class="sourceLine" id="cb386-3" title="3">  <span class="dt">width=</span><span class="dv">20</span>,</a>
-<a class="sourceLine" id="cb386-4" title="4">  <span class="dt">height=</span><span class="dv">10</span></a>
-<a class="sourceLine" id="cb386-5" title="5">)</a></code></pre></div>
-<pre><code>## Warning: Computation failed in `stat_summary()`:
-## 
-## Computation failed in `stat_summary()`:</code></pre>
-</div>
-<div id="metapopulation-task-coverage-4" class="section level3 hasAnchor">
-<h3><span class="header-section-number">10.9.2</span> Metapopulation task coverage<a href="varied-genome-lengths.html#metapopulation-task-coverage-4" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb388"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb388-1" title="1"><span class="kw">ggplot</span>(</a>
-<a class="sourceLine" id="cb388-2" title="2">    times_series_data,</a>
-<a class="sourceLine" id="cb388-3" title="3">    <span class="kw">aes</span>(</a>
-<a class="sourceLine" id="cb388-4" title="4">      <span class="dt">x=</span>updates_elapsed,</a>
-<a class="sourceLine" id="cb388-5" title="5">      <span class="dt">y=</span>total_trait_coverage,</a>
-<a class="sourceLine" id="cb388-6" title="6">      <span class="dt">fill=</span>genome_length,</a>
-<a class="sourceLine" id="cb388-7" title="7">      <span class="dt">color=</span>genome_length</a>
-<a class="sourceLine" id="cb388-8" title="8">    )</a>
-<a class="sourceLine" id="cb388-9" title="9">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb388-10" title="10"><span class="st">  </span><span class="kw">stat_summary</span>(<span class="dt">geom=</span><span class="st">&quot;line&quot;</span>, <span class="dt">fun=</span>mean) <span class="op">+</span></a>
-<a class="sourceLine" id="cb388-11" title="11"><span class="st">  </span><span class="kw">stat_summary</span>(</a>
-<a class="sourceLine" id="cb388-12" title="12">    <span class="dt">geom=</span><span class="st">&quot;ribbon&quot;</span>,</a>
-<a class="sourceLine" id="cb388-13" title="13">    <span class="dt">fun.data=</span><span class="st">&quot;mean_cl_boot&quot;</span>,</a>
-<a class="sourceLine" id="cb388-14" title="14">    <span class="dt">fun.args=</span><span class="kw">list</span>(<span class="dt">conf.int=</span><span class="fl">0.95</span>),</a>
-<a class="sourceLine" id="cb388-15" title="15">    <span class="dt">alpha=</span><span class="fl">0.2</span>,</a>
-<a class="sourceLine" id="cb388-16" title="16">    <span class="dt">linetype=</span><span class="dv">0</span></a>
-<a class="sourceLine" id="cb388-17" title="17">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb388-18" title="18"><span class="st">  </span><span class="kw">scale_y_continuous</span>(</a>
-<a class="sourceLine" id="cb388-19" title="19">    <span class="dt">breaks=</span><span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">18</span>,<span class="dv">2</span>)</a>
-<a class="sourceLine" id="cb388-20" title="20">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb388-21" title="21"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
-<a class="sourceLine" id="cb388-22" title="22">    <span class="op">~</span>SELECTION_METHOD,</a>
-<a class="sourceLine" id="cb388-23" title="23">    <span class="dt">nrow=</span><span class="dv">2</span></a>
-<a class="sourceLine" id="cb388-24" title="24">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb388-25" title="25"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb388-26" title="26">    <span class="dt">legend.position=</span><span class="st">&quot;bottom&quot;</span>,</a>
-<a class="sourceLine" id="cb388-27" title="27">    <span class="dt">panel.border=</span><span class="kw">element_rect</span>(<span class="dt">colour=</span><span class="st">&quot;grey&quot;</span>,<span class="dt">size=</span><span class="dv">1</span>)</a>
-<a class="sourceLine" id="cb388-28" title="28">  )</a></code></pre></div>
-<pre><code>## Warning: Computation failed in `stat_summary()`:
-## 
-## Computation failed in `stat_summary()`:</code></pre>
-<p><img src="supplemental-material_files/figure-html/unnamed-chunk-121-1.png" width="672" /></p>
-<div class="sourceCode" id="cb390"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb390-1" title="1"><span class="kw">ggsave</span>(</a>
-<a class="sourceLine" id="cb390-2" title="2">  <span class="kw">paste0</span>(plot_directory, <span class="st">&quot;total_trait_coverage_ot.png&quot;</span>),</a>
-<a class="sourceLine" id="cb390-3" title="3">  <span class="dt">width=</span><span class="dv">20</span>,</a>
-<a class="sourceLine" id="cb390-4" title="4">  <span class="dt">height=</span><span class="dv">10</span></a>
-<a class="sourceLine" id="cb390-5" title="5">)</a></code></pre></div>
-<pre><code>## Warning: Computation failed in `stat_summary()`:
-## 
-## Computation failed in `stat_summary()`:</code></pre>
-</div>
-</div>
 <div id="discussion-1" class="section level2 hasAnchor">
-<h2><span class="header-section-number">10.10</span> Discussion<a href="varied-genome-lengths.html#discussion-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<h2><span class="header-section-number">10.9</span> Discussion<a href="varied-genome-lengths.html#discussion-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>The task performance data show that our chosen genome length of 100 is a reasonable choice, as there are not substantial performance improvements with longer genome lengths.</p>
 
 </div>

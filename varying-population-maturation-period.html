@@ -23,7 +23,7 @@
 <meta name="author" content="Alexander Lalejini, Emily Dolson, Anya E. Vostinar, and Luis Zaman" />
 
 
-<meta name="date" content="2022-06-27" />
+<meta name="date" content="2022-06-29" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -258,11 +258,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="10.8.1" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#average-number-of-unique-populations-selected-1"><i class="fa fa-check"></i><b>10.8.1</b> Average number of unique populations selected</a></li>
 <li class="chapter" data-level="10.8.2" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#average-entropy-of-selection-ids-1"><i class="fa fa-check"></i><b>10.8.2</b> Average entropy of selection ids</a></li>
 </ul></li>
-<li class="chapter" data-level="10.9" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#time-series"><i class="fa fa-check"></i><b>10.9</b> Time series</a><ul>
-<li class="chapter" data-level="10.9.1" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#best-single-population-task-coverage-3"><i class="fa fa-check"></i><b>10.9.1</b> Best single-population task coverage</a></li>
-<li class="chapter" data-level="10.9.2" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#metapopulation-task-coverage-4"><i class="fa fa-check"></i><b>10.9.2</b> Metapopulation task coverage</a></li>
-</ul></li>
-<li class="chapter" data-level="10.10" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#discussion-1"><i class="fa fa-check"></i><b>10.10</b> Discussion</a></li>
+<li class="chapter" data-level="10.9" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#discussion-1"><i class="fa fa-check"></i><b>10.9</b> Discussion</a></li>
 </ul></li>
 <li class="chapter" data-level="11" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html"><i class="fa fa-check"></i><b>11</b> Population propagule sample size</a><ul>
 <li class="chapter" data-level="11.1" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#overview-5"><i class="fa fa-check"></i><b>11.1</b> Overview</a></li>
@@ -272,7 +268,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="11.5" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#average-generations-per-maturation-period-3"><i class="fa fa-check"></i><b>11.5</b> Average generations per maturation period</a></li>
 <li class="chapter" data-level="11.6" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#performance-2"><i class="fa fa-check"></i><b>11.6</b> Performance</a><ul>
 <li class="chapter" data-level="11.6.1" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#best-population-task-coverage-1"><i class="fa fa-check"></i><b>11.6.1</b> Best population task coverage</a></li>
-<li class="chapter" data-level="11.6.2" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#metapopulation-task-coverage-5"><i class="fa fa-check"></i><b>11.6.2</b> Metapopulation task coverage</a></li>
+<li class="chapter" data-level="11.6.2" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#metapopulation-task-coverage-4"><i class="fa fa-check"></i><b>11.6.2</b> Metapopulation task coverage</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
@@ -338,7 +334,8 @@ We used a more limited set of selection schemes for this supplemental experiment
 <pre><code>## The following object is masked from &#39;package:readr&#39;:
 ## 
 ##     col_factor</code></pre>
-<div class="sourceCode" id="cb307"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb307-1" title="1"><span class="kw">source</span>(<span class="st">&quot;https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R&quot;</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb307"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb307-1" title="1"><span class="kw">library</span>(khroma)</a>
+<a class="sourceLine" id="cb307-2" title="2"><span class="kw">source</span>(<span class="st">&quot;https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R&quot;</span>)</a></code></pre></div>
 <p>These analyses were knit with the following environment:</p>
 <div class="sourceCode" id="cb308"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb308-1" title="1"><span class="kw">print</span>(version)</a></code></pre></div>
 <pre><code>##                _                           
@@ -398,38 +395,40 @@ We used a more limited set of selection schemes for this supplemental experiment
 <div class="sourceCode" id="cb311"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb311-1" title="1"><span class="co"># Configure our default graphing theme</span></a>
 <a class="sourceLine" id="cb311-2" title="2"><span class="kw">theme_set</span>(<span class="kw">theme_cowplot</span>())</a>
 <a class="sourceLine" id="cb311-3" title="3"><span class="co"># Palette</span></a>
-<a class="sourceLine" id="cb311-4" title="4">cb_palette &lt;-<span class="st"> &quot;Set2&quot;</span></a>
-<a class="sourceLine" id="cb311-5" title="5"><span class="co"># Create a directory to store plots</span></a>
-<a class="sourceLine" id="cb311-6" title="6">plot_directory &lt;-<span class="st"> </span><span class="kw">paste0</span>(working_directory, <span class="st">&quot;plots/&quot;</span>)</a>
-<a class="sourceLine" id="cb311-7" title="7"><span class="kw">dir.create</span>(plot_directory, <span class="dt">showWarnings=</span><span class="ot">FALSE</span>)</a>
-<a class="sourceLine" id="cb311-8" title="8"></a>
-<a class="sourceLine" id="cb311-9" title="9">selection_method_breaks &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;elite&quot;</span>, <span class="st">&quot;tourn&quot;</span>, <span class="st">&quot;lex&quot;</span>, <span class="st">&quot;nde&quot;</span>, <span class="st">&quot;random&quot;</span>, <span class="st">&quot;none&quot;</span>)</a>
-<a class="sourceLine" id="cb311-10" title="10">selection_method_labels &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;ELITE&quot;</span>, <span class="st">&quot;TOURN&quot;</span>, <span class="st">&quot;LEX&quot;</span>, <span class="st">&quot;NDE&quot;</span>, <span class="st">&quot;RAND&quot;</span>, <span class="st">&quot;NONE&quot;</span>)</a>
-<a class="sourceLine" id="cb311-11" title="11"></a>
-<a class="sourceLine" id="cb311-12" title="12">exp_summary_data<span class="op">$</span>SELECTION_METHOD_LABEL &lt;-<span class="st"> </span><span class="kw">factor</span>(</a>
-<a class="sourceLine" id="cb311-13" title="13">  exp_summary_data<span class="op">$</span>SELECTION_METHOD,</a>
-<a class="sourceLine" id="cb311-14" title="14">  <span class="dt">levels=</span><span class="kw">c</span>(</a>
-<a class="sourceLine" id="cb311-15" title="15">    <span class="st">&quot;elite&quot;</span>,</a>
-<a class="sourceLine" id="cb311-16" title="16">    <span class="st">&quot;tourn&quot;</span>,</a>
-<a class="sourceLine" id="cb311-17" title="17">    <span class="st">&quot;lex&quot;</span>,</a>
-<a class="sourceLine" id="cb311-18" title="18">    <span class="st">&quot;nde&quot;</span>,</a>
-<a class="sourceLine" id="cb311-19" title="19">    <span class="st">&quot;ndt&quot;</span>,</a>
-<a class="sourceLine" id="cb311-20" title="20">    <span class="st">&quot;random&quot;</span>,</a>
-<a class="sourceLine" id="cb311-21" title="21">    <span class="st">&quot;none&quot;</span></a>
-<a class="sourceLine" id="cb311-22" title="22">  ),</a>
-<a class="sourceLine" id="cb311-23" title="23">  <span class="dt">labels=</span><span class="kw">c</span>(</a>
-<a class="sourceLine" id="cb311-24" title="24">    <span class="st">&quot;Elite Selection&quot;</span>,</a>
-<a class="sourceLine" id="cb311-25" title="25">    <span class="st">&quot;Tournament Selection&quot;</span>,</a>
-<a class="sourceLine" id="cb311-26" title="26">    <span class="st">&quot;Lexicase Selection&quot;</span>,</a>
-<a class="sourceLine" id="cb311-27" title="27">    <span class="st">&quot;Non-dominated Elite Selection&quot;</span>,</a>
-<a class="sourceLine" id="cb311-28" title="28">    <span class="st">&quot;Non-dominated Tournament Selection&quot;</span>,</a>
-<a class="sourceLine" id="cb311-29" title="29">    <span class="st">&quot;Random Selection&quot;</span>,</a>
-<a class="sourceLine" id="cb311-30" title="30">    <span class="st">&quot;No Selection&quot;</span></a>
-<a class="sourceLine" id="cb311-31" title="31">  )</a>
-<a class="sourceLine" id="cb311-32" title="32">)</a>
-<a class="sourceLine" id="cb311-33" title="33"><span class="co"># 1, 4, 5, 7</span></a>
-<a class="sourceLine" id="cb311-34" title="34">selection_methods_smaller_set_colors &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;#66C2A5&quot;</span>, <span class="st">&quot;#E78AC3&quot;</span>, <span class="st">&quot;#A6D854&quot;</span>, <span class="st">&quot;#E5C494&quot;</span>)</a>
-<a class="sourceLine" id="cb311-35" title="35"><span class="co"># c(&quot;#66C2A5&quot;, &quot;#8DA0CB&quot;, &quot;#E78AC3&quot;, &quot;#FFD92F&quot;)</span></a></code></pre></div>
+<a class="sourceLine" id="cb311-4" title="4">scale_fill_fun &lt;-<span class="st"> </span>scale_fill_bright</a>
+<a class="sourceLine" id="cb311-5" title="5">scale_color_fun &lt;-<span class="st"> </span>scale_color_bright</a>
+<a class="sourceLine" id="cb311-6" title="6"><span class="co"># Create a directory to store plots</span></a>
+<a class="sourceLine" id="cb311-7" title="7">plot_directory &lt;-<span class="st"> </span><span class="kw">paste0</span>(working_directory, <span class="st">&quot;plots/&quot;</span>)</a>
+<a class="sourceLine" id="cb311-8" title="8"><span class="kw">dir.create</span>(plot_directory, <span class="dt">showWarnings=</span><span class="ot">FALSE</span>)</a>
+<a class="sourceLine" id="cb311-9" title="9"></a>
+<a class="sourceLine" id="cb311-10" title="10">selection_method_breaks &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;elite&quot;</span>, <span class="st">&quot;tourn&quot;</span>, <span class="st">&quot;lex&quot;</span>, <span class="st">&quot;nde&quot;</span>, <span class="st">&quot;random&quot;</span>, <span class="st">&quot;none&quot;</span>)</a>
+<a class="sourceLine" id="cb311-11" title="11">selection_method_labels &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;ELITE&quot;</span>, <span class="st">&quot;TOURN&quot;</span>, <span class="st">&quot;LEX&quot;</span>, <span class="st">&quot;NDE&quot;</span>, <span class="st">&quot;RAND&quot;</span>, <span class="st">&quot;NONE&quot;</span>)</a>
+<a class="sourceLine" id="cb311-12" title="12"></a>
+<a class="sourceLine" id="cb311-13" title="13">exp_summary_data<span class="op">$</span>SELECTION_METHOD_LABEL &lt;-<span class="st"> </span><span class="kw">factor</span>(</a>
+<a class="sourceLine" id="cb311-14" title="14">  exp_summary_data<span class="op">$</span>SELECTION_METHOD,</a>
+<a class="sourceLine" id="cb311-15" title="15">  <span class="dt">levels=</span><span class="kw">c</span>(</a>
+<a class="sourceLine" id="cb311-16" title="16">    <span class="st">&quot;elite&quot;</span>,</a>
+<a class="sourceLine" id="cb311-17" title="17">    <span class="st">&quot;tourn&quot;</span>,</a>
+<a class="sourceLine" id="cb311-18" title="18">    <span class="st">&quot;lex&quot;</span>,</a>
+<a class="sourceLine" id="cb311-19" title="19">    <span class="st">&quot;nde&quot;</span>,</a>
+<a class="sourceLine" id="cb311-20" title="20">    <span class="st">&quot;ndt&quot;</span>,</a>
+<a class="sourceLine" id="cb311-21" title="21">    <span class="st">&quot;random&quot;</span>,</a>
+<a class="sourceLine" id="cb311-22" title="22">    <span class="st">&quot;none&quot;</span></a>
+<a class="sourceLine" id="cb311-23" title="23">  ),</a>
+<a class="sourceLine" id="cb311-24" title="24">  <span class="dt">labels=</span><span class="kw">c</span>(</a>
+<a class="sourceLine" id="cb311-25" title="25">    <span class="st">&quot;Elite Selection&quot;</span>,</a>
+<a class="sourceLine" id="cb311-26" title="26">    <span class="st">&quot;Tournament Selection&quot;</span>,</a>
+<a class="sourceLine" id="cb311-27" title="27">    <span class="st">&quot;Lexicase Selection&quot;</span>,</a>
+<a class="sourceLine" id="cb311-28" title="28">    <span class="st">&quot;Non-dominated Elite Selection&quot;</span>,</a>
+<a class="sourceLine" id="cb311-29" title="29">    <span class="st">&quot;Non-dominated Tournament Selection&quot;</span>,</a>
+<a class="sourceLine" id="cb311-30" title="30">    <span class="st">&quot;Random Selection&quot;</span>,</a>
+<a class="sourceLine" id="cb311-31" title="31">    <span class="st">&quot;No Selection&quot;</span></a>
+<a class="sourceLine" id="cb311-32" title="32">  )</a>
+<a class="sourceLine" id="cb311-33" title="33">)</a>
+<a class="sourceLine" id="cb311-34" title="34"><span class="co"># 1, 4, 5, 7</span></a>
+<a class="sourceLine" id="cb311-35" title="35">selection_methods_smaller_set_colors &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;#4477AA&quot;</span>, <span class="st">&quot;#CCBB44&quot;</span>, <span class="st">&quot;#66CCEE&quot;</span>, <span class="st">&quot;#BBBBBB&quot;</span>)</a>
+<a class="sourceLine" id="cb311-36" title="36"><span class="co"># c(&quot;#66C2A5&quot;, &quot;#E78AC3&quot;, &quot;#A6D854&quot;, &quot;#E5C494&quot;)</span></a>
+<a class="sourceLine" id="cb311-37" title="37"><span class="co"># c(&quot;#66C2A5&quot;, &quot;#8DA0CB&quot;, &quot;#E78AC3&quot;, &quot;#FFD92F&quot;)</span></a></code></pre></div>
 </div>
 <div id="average-number-of-organisms" class="section level2 hasAnchor">
 <h2><span class="header-section-number">9.4</span> Average number of organisms<a href="varying-population-maturation-period.html#average-number-of-organisms" class="anchor-section" aria-label="Anchor link to header"></a></h2>
@@ -460,20 +459,18 @@ We used a more limited set of selection schemes for this supplemental experiment
 <a class="sourceLine" id="cb312-24" title="24"><span class="st">  </span><span class="kw">scale_x_discrete</span>(</a>
 <a class="sourceLine" id="cb312-25" title="25">    <span class="dt">name=</span><span class="st">&quot;Maturation period (updates)&quot;</span></a>
 <a class="sourceLine" id="cb312-26" title="26">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb312-27" title="27"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
-<a class="sourceLine" id="cb312-28" title="28">    <span class="dt">palette=</span><span class="st">&quot;Set2&quot;</span></a>
-<a class="sourceLine" id="cb312-29" title="29">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb312-30" title="30"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb312-31" title="31">    <span class="dt">palette=</span><span class="st">&quot;Set2&quot;</span></a>
-<a class="sourceLine" id="cb312-32" title="32">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb312-33" title="33"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
-<a class="sourceLine" id="cb312-34" title="34">    <span class="op">~</span>SELECTION_METHOD,</a>
-<a class="sourceLine" id="cb312-35" title="35">    <span class="dt">scales=</span><span class="st">&quot;free_y&quot;</span></a>
-<a class="sourceLine" id="cb312-36" title="36">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb312-37" title="37"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb312-38" title="38">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
-<a class="sourceLine" id="cb312-39" title="39">    <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>, <span class="dt">angle=</span><span class="op">-</span><span class="dv">30</span>, <span class="dt">hjust=</span><span class="dv">0</span>)</a>
-<a class="sourceLine" id="cb312-40" title="40">  )</a></code></pre></div>
+<a class="sourceLine" id="cb312-27" title="27"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
+<a class="sourceLine" id="cb312-28" title="28">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb312-29" title="29"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb312-30" title="30">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb312-31" title="31"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
+<a class="sourceLine" id="cb312-32" title="32">    <span class="op">~</span>SELECTION_METHOD,</a>
+<a class="sourceLine" id="cb312-33" title="33">    <span class="dt">scales=</span><span class="st">&quot;free_y&quot;</span></a>
+<a class="sourceLine" id="cb312-34" title="34">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb312-35" title="35"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb312-36" title="36">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span>,</a>
+<a class="sourceLine" id="cb312-37" title="37">    <span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">size =</span> <span class="dv">9</span>, <span class="dt">angle=</span><span class="op">-</span><span class="dv">30</span>, <span class="dt">hjust=</span><span class="dv">0</span>)</a>
+<a class="sourceLine" id="cb312-38" title="38">  )</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-89-1.png" width="672" /></p>
 <div class="sourceCode" id="cb313"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb313-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb313-2" title="2">  <span class="kw">paste0</span>(plot_directory, <span class="st">&quot;avg_num_orgs.pdf&quot;</span>)</a>
@@ -984,11 +981,11 @@ We used a more limited set of selection schemes for this supplemental experiment
 <a class="sourceLine" id="cb332-22" title="22">    <span class="dt">outlier.shape =</span> <span class="ot">NA</span>,</a>
 <a class="sourceLine" id="cb332-23" title="23">    <span class="dt">alpha =</span> <span class="fl">0.5</span></a>
 <a class="sourceLine" id="cb332-24" title="24">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb332-25" title="25"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
-<a class="sourceLine" id="cb332-26" title="26">    <span class="dt">palette=</span><span class="st">&quot;Set2&quot;</span></a>
+<a class="sourceLine" id="cb332-25" title="25"><span class="st">  </span><span class="kw">scale_fill_manual</span>(</a>
+<a class="sourceLine" id="cb332-26" title="26">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb332-27" title="27">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb332-28" title="28"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb332-29" title="29">    <span class="dt">palette=</span><span class="st">&quot;Set2&quot;</span></a>
+<a class="sourceLine" id="cb332-28" title="28"><span class="st">  </span><span class="kw">scale_color_manual</span>(</a>
+<a class="sourceLine" id="cb332-29" title="29">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb332-30" title="30">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb332-31" title="31"><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Maturation period (updates)&quot;</span>) <span class="op">+</span></a>
 <a class="sourceLine" id="cb332-32" title="32"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
@@ -1033,11 +1030,11 @@ We used a more limited set of selection schemes for this supplemental experiment
 <a class="sourceLine" id="cb334-22" title="22">    <span class="dt">outlier.shape =</span> <span class="ot">NA</span>,</a>
 <a class="sourceLine" id="cb334-23" title="23">    <span class="dt">alpha =</span> <span class="fl">0.5</span></a>
 <a class="sourceLine" id="cb334-24" title="24">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb334-25" title="25"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
-<a class="sourceLine" id="cb334-26" title="26">    <span class="dt">palette=</span><span class="st">&quot;Set2&quot;</span></a>
+<a class="sourceLine" id="cb334-25" title="25"><span class="st">  </span><span class="kw">scale_fill_manual</span>(</a>
+<a class="sourceLine" id="cb334-26" title="26">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb334-27" title="27">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb334-28" title="28"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb334-29" title="29">    <span class="dt">palette=</span><span class="st">&quot;Set2&quot;</span></a>
+<a class="sourceLine" id="cb334-28" title="28"><span class="st">  </span><span class="kw">scale_color_manual</span>(</a>
+<a class="sourceLine" id="cb334-29" title="29">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb334-30" title="30">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb334-31" title="31"><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Maturation period (updates)&quot;</span>) <span class="op">+</span></a>
 <a class="sourceLine" id="cb334-32" title="32"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
@@ -1082,11 +1079,11 @@ We used a more limited set of selection schemes for this supplemental experiment
 <a class="sourceLine" id="cb336-22" title="22">    <span class="dt">outlier.shape =</span> <span class="ot">NA</span>,</a>
 <a class="sourceLine" id="cb336-23" title="23">    <span class="dt">alpha =</span> <span class="fl">0.5</span></a>
 <a class="sourceLine" id="cb336-24" title="24">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb336-25" title="25"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
-<a class="sourceLine" id="cb336-26" title="26">    <span class="dt">palette=</span><span class="st">&quot;Set2&quot;</span></a>
+<a class="sourceLine" id="cb336-25" title="25"><span class="st">  </span><span class="kw">scale_fill_manual</span>(</a>
+<a class="sourceLine" id="cb336-26" title="26">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb336-27" title="27">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb336-28" title="28"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb336-29" title="29">    <span class="dt">palette=</span><span class="st">&quot;Set2&quot;</span></a>
+<a class="sourceLine" id="cb336-28" title="28"><span class="st">  </span><span class="kw">scale_color_manual</span>(</a>
+<a class="sourceLine" id="cb336-29" title="29">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb336-30" title="30">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb336-31" title="31"><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&quot;Maturation period (updates)&quot;</span>) <span class="op">+</span></a>
 <a class="sourceLine" id="cb336-32" title="32"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
@@ -1142,11 +1139,11 @@ We used a more limited set of selection schemes for this supplemental experiment
 <a class="sourceLine" id="cb344-24" title="24"><span class="st">  </span><span class="kw">scale_x_discrete</span>(</a>
 <a class="sourceLine" id="cb344-25" title="25">    <span class="dt">name=</span><span class="st">&quot;Maturation period (updates)&quot;</span></a>
 <a class="sourceLine" id="cb344-26" title="26">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb344-27" title="27"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
-<a class="sourceLine" id="cb344-28" title="28">    <span class="dt">palette=</span><span class="st">&quot;Set2&quot;</span></a>
+<a class="sourceLine" id="cb344-27" title="27"><span class="st">  </span><span class="kw">scale_fill_manual</span>(</a>
+<a class="sourceLine" id="cb344-28" title="28">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb344-29" title="29">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb344-30" title="30"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb344-31" title="31">    <span class="dt">palette=</span><span class="st">&quot;Set2&quot;</span></a>
+<a class="sourceLine" id="cb344-30" title="30"><span class="st">  </span><span class="kw">scale_color_manual</span>(</a>
+<a class="sourceLine" id="cb344-31" title="31">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb344-32" title="32">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb344-33" title="33"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
 <a class="sourceLine" id="cb344-34" title="34">    <span class="op">~</span>SELECTION_METHOD,</a>
@@ -1192,11 +1189,11 @@ We used a more limited set of selection schemes for this supplemental experiment
 <a class="sourceLine" id="cb346-24" title="24"><span class="st">  </span><span class="kw">scale_x_discrete</span>(</a>
 <a class="sourceLine" id="cb346-25" title="25">    <span class="dt">name=</span><span class="st">&quot;Maturation period (updates)&quot;</span></a>
 <a class="sourceLine" id="cb346-26" title="26">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb346-27" title="27"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
-<a class="sourceLine" id="cb346-28" title="28">    <span class="dt">palette=</span><span class="st">&quot;Set2&quot;</span></a>
+<a class="sourceLine" id="cb346-27" title="27"><span class="st">  </span><span class="kw">scale_fill_manual</span>(</a>
+<a class="sourceLine" id="cb346-28" title="28">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb346-29" title="29">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb346-30" title="30"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb346-31" title="31">    <span class="dt">palette=</span><span class="st">&quot;Set2&quot;</span></a>
+<a class="sourceLine" id="cb346-30" title="30"><span class="st">  </span><span class="kw">scale_color_manual</span>(</a>
+<a class="sourceLine" id="cb346-31" title="31">    <span class="dt">values=</span>selection_methods_smaller_set_colors</a>
 <a class="sourceLine" id="cb346-32" title="32">  ) <span class="op">+</span></a>
 <a class="sourceLine" id="cb346-33" title="33"><span class="st">  </span><span class="kw">facet_wrap</span>(</a>
 <a class="sourceLine" id="cb346-34" title="34">    <span class="op">~</span>SELECTION_METHOD,</a>

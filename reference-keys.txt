@@ -106,9 +106,6 @@ spread-avg-cosine-distance
 selection-1
 average-number-of-unique-populations-selected-1
 average-entropy-of-selection-ids-1
-time-series
-best-single-population-task-coverage-3
-metapopulation-task-coverage-4
 discussion-1
 population-propagule-sample-size
 overview-5
@@ -118,4 +115,4 @@ average-number-of-organisms-1
 average-generations-per-maturation-period-3
 performance-2
 best-population-task-coverage-1
-metapopulation-task-coverage-5
+metapopulation-task-coverage-4

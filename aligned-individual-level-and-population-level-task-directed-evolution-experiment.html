@@ -23,7 +23,7 @@
 <meta name="author" content="Alexander Lalejini, Emily Dolson, Anya E. Vostinar, and Luis Zaman" />
 
 
-<meta name="date" content="2022-06-27" />
+<meta name="date" content="2022-06-29" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -258,11 +258,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="10.8.1" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#average-number-of-unique-populations-selected-1"><i class="fa fa-check"></i><b>10.8.1</b> Average number of unique populations selected</a></li>
 <li class="chapter" data-level="10.8.2" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#average-entropy-of-selection-ids-1"><i class="fa fa-check"></i><b>10.8.2</b> Average entropy of selection ids</a></li>
 </ul></li>
-<li class="chapter" data-level="10.9" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#time-series"><i class="fa fa-check"></i><b>10.9</b> Time series</a><ul>
-<li class="chapter" data-level="10.9.1" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#best-single-population-task-coverage-3"><i class="fa fa-check"></i><b>10.9.1</b> Best single-population task coverage</a></li>
-<li class="chapter" data-level="10.9.2" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#metapopulation-task-coverage-4"><i class="fa fa-check"></i><b>10.9.2</b> Metapopulation task coverage</a></li>
-</ul></li>
-<li class="chapter" data-level="10.10" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#discussion-1"><i class="fa fa-check"></i><b>10.10</b> Discussion</a></li>
+<li class="chapter" data-level="10.9" data-path="varied-genome-lengths.html"><a href="varied-genome-lengths.html#discussion-1"><i class="fa fa-check"></i><b>10.9</b> Discussion</a></li>
 </ul></li>
 <li class="chapter" data-level="11" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html"><i class="fa fa-check"></i><b>11</b> Population propagule sample size</a><ul>
 <li class="chapter" data-level="11.1" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#overview-5"><i class="fa fa-check"></i><b>11.1</b> Overview</a></li>
@@ -272,7 +268,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="11.5" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#average-generations-per-maturation-period-3"><i class="fa fa-check"></i><b>11.5</b> Average generations per maturation period</a></li>
 <li class="chapter" data-level="11.6" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#performance-2"><i class="fa fa-check"></i><b>11.6</b> Performance</a><ul>
 <li class="chapter" data-level="11.6.1" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#best-population-task-coverage-1"><i class="fa fa-check"></i><b>11.6.1</b> Best population task coverage</a></li>
-<li class="chapter" data-level="11.6.2" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#metapopulation-task-coverage-5"><i class="fa fa-check"></i><b>11.6.2</b> Metapopulation task coverage</a></li>
+<li class="chapter" data-level="11.6.2" data-path="population-propagule-sample-size.html"><a href="population-propagule-sample-size.html#metapopulation-task-coverage-4"><i class="fa fa-check"></i><b>11.6.2</b> Metapopulation task coverage</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
@@ -312,7 +308,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb181-2" title="2"><span class="kw">library</span>(ggplot2)</a>
 <a class="sourceLine" id="cb181-3" title="3"><span class="kw">library</span>(cowplot)</a>
 <a class="sourceLine" id="cb181-4" title="4"><span class="kw">library</span>(RColorBrewer)</a>
-<a class="sourceLine" id="cb181-5" title="5"><span class="kw">source</span>(<span class="st">&quot;https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R&quot;</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb181-5" title="5"><span class="kw">library</span>(khroma)</a>
+<a class="sourceLine" id="cb181-6" title="6"><span class="kw">source</span>(<span class="st">&quot;https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R&quot;</span>)</a></code></pre></div>
 <p>These analyses were knit with the following environment:</p>
 <div class="sourceCode" id="cb182"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb182-1" title="1"><span class="kw">print</span>(version)</a></code></pre></div>
 <pre><code>##                _                           
@@ -420,24 +417,25 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div class="sourceCode" id="cb187"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb187-1" title="1"><span class="co"># Configure our default graphing theme</span></a>
 <a class="sourceLine" id="cb187-2" title="2"><span class="kw">theme_set</span>(<span class="kw">theme_cowplot</span>())</a>
 <a class="sourceLine" id="cb187-3" title="3"><span class="co"># Palette</span></a>
-<a class="sourceLine" id="cb187-4" title="4">cb_palette &lt;-<span class="st"> &quot;Set2&quot;</span></a>
-<a class="sourceLine" id="cb187-5" title="5">alpha &lt;-<span class="st"> </span><span class="fl">0.05</span></a>
-<a class="sourceLine" id="cb187-6" title="6"><span class="co"># Create a directory to store plots</span></a>
-<a class="sourceLine" id="cb187-7" title="7">plot_directory &lt;-<span class="st"> </span><span class="kw">paste0</span>(working_directory, <span class="st">&quot;plots/&quot;</span>)</a>
-<a class="sourceLine" id="cb187-8" title="8"><span class="kw">dir.create</span>(plot_directory, <span class="dt">showWarnings=</span><span class="ot">FALSE</span>)</a>
-<a class="sourceLine" id="cb187-9" title="9"></a>
-<a class="sourceLine" id="cb187-10" title="10">p_label &lt;-<span class="st"> </span><span class="cf">function</span>(p_value) {</a>
-<a class="sourceLine" id="cb187-11" title="11">  threshold =<span class="st"> </span><span class="fl">0.0001</span></a>
-<a class="sourceLine" id="cb187-12" title="12">  <span class="cf">if</span> (p_value <span class="op">&lt;</span><span class="st"> </span>threshold) {</a>
-<a class="sourceLine" id="cb187-13" title="13">    <span class="kw">return</span>(<span class="kw">paste0</span>(<span class="st">&quot;p &lt; &quot;</span>, threshold))</a>
-<a class="sourceLine" id="cb187-14" title="14">  } <span class="cf">else</span> {</a>
-<a class="sourceLine" id="cb187-15" title="15">    <span class="kw">return</span>(<span class="kw">paste0</span>(<span class="st">&quot;p = &quot;</span>, p_value))</a>
-<a class="sourceLine" id="cb187-16" title="16">  }</a>
-<a class="sourceLine" id="cb187-17" title="17">}</a>
-<a class="sourceLine" id="cb187-18" title="18"></a>
+<a class="sourceLine" id="cb187-4" title="4">scale_fill_fun &lt;-<span class="st"> </span>scale_fill_bright</a>
+<a class="sourceLine" id="cb187-5" title="5">scale_color_fun &lt;-<span class="st"> </span>scale_color_bright</a>
+<a class="sourceLine" id="cb187-6" title="6">alpha &lt;-<span class="st"> </span><span class="fl">0.05</span></a>
+<a class="sourceLine" id="cb187-7" title="7"><span class="co"># Create a directory to store plots</span></a>
+<a class="sourceLine" id="cb187-8" title="8">plot_directory &lt;-<span class="st"> </span><span class="kw">paste0</span>(working_directory, <span class="st">&quot;plots/&quot;</span>)</a>
+<a class="sourceLine" id="cb187-9" title="9"><span class="kw">dir.create</span>(plot_directory, <span class="dt">showWarnings=</span><span class="ot">FALSE</span>)</a>
+<a class="sourceLine" id="cb187-10" title="10"></a>
+<a class="sourceLine" id="cb187-11" title="11">p_label &lt;-<span class="st"> </span><span class="cf">function</span>(p_value) {</a>
+<a class="sourceLine" id="cb187-12" title="12">  threshold =<span class="st"> </span><span class="fl">0.0001</span></a>
+<a class="sourceLine" id="cb187-13" title="13">  <span class="cf">if</span> (p_value <span class="op">&lt;</span><span class="st"> </span>threshold) {</a>
+<a class="sourceLine" id="cb187-14" title="14">    <span class="kw">return</span>(<span class="kw">paste0</span>(<span class="st">&quot;p &lt; &quot;</span>, threshold))</a>
+<a class="sourceLine" id="cb187-15" title="15">  } <span class="cf">else</span> {</a>
+<a class="sourceLine" id="cb187-16" title="16">    <span class="kw">return</span>(<span class="kw">paste0</span>(<span class="st">&quot;p = &quot;</span>, p_value))</a>
+<a class="sourceLine" id="cb187-17" title="17">  }</a>
+<a class="sourceLine" id="cb187-18" title="18">}</a>
 <a class="sourceLine" id="cb187-19" title="19"></a>
-<a class="sourceLine" id="cb187-20" title="20">selection_method_breaks &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;elite&quot;</span>, <span class="st">&quot;elite-10&quot;</span>, <span class="st">&quot;tourn&quot;</span>, <span class="st">&quot;lex&quot;</span>, <span class="st">&quot;nde&quot;</span>, <span class="st">&quot;random&quot;</span>, <span class="st">&quot;none&quot;</span>)</a>
-<a class="sourceLine" id="cb187-21" title="21">selection_method_labels &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;ELITE&quot;</span>, <span class="st">&quot;TOP-10&quot;</span>, <span class="st">&quot;TOURN&quot;</span>, <span class="st">&quot;LEX&quot;</span>, <span class="st">&quot;NDE&quot;</span>, <span class="st">&quot;RAND&quot;</span>, <span class="st">&quot;NONE&quot;</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb187-20" title="20"></a>
+<a class="sourceLine" id="cb187-21" title="21">selection_method_breaks &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;elite&quot;</span>, <span class="st">&quot;elite-10&quot;</span>, <span class="st">&quot;tourn&quot;</span>, <span class="st">&quot;lex&quot;</span>, <span class="st">&quot;nde&quot;</span>, <span class="st">&quot;random&quot;</span>, <span class="st">&quot;none&quot;</span>)</a>
+<a class="sourceLine" id="cb187-22" title="22">selection_method_labels &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;ELITE&quot;</span>, <span class="st">&quot;TOP-10&quot;</span>, <span class="st">&quot;TOURN&quot;</span>, <span class="st">&quot;LEX&quot;</span>, <span class="st">&quot;NDE&quot;</span>, <span class="st">&quot;RAND&quot;</span>, <span class="st">&quot;NONE&quot;</span>)</a></code></pre></div>
 </div>
 <div id="best-single-population-task-coverage-1" class="section level2 hasAnchor">
 <h2><span class="header-section-number">8.4</span> Best single-population task coverage<a href="aligned-individual-level-and-population-level-task-directed-evolution-experiment.html#best-single-population-task-coverage-1" class="anchor-section" aria-label="Anchor link to header"></a></h2>
@@ -476,23 +474,21 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb188-33" title="33">    <span class="dt">breaks=</span>selection_method_breaks,</a>
 <a class="sourceLine" id="cb188-34" title="34">    <span class="dt">labels=</span>selection_method_labels</a>
 <a class="sourceLine" id="cb188-35" title="35">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb188-36" title="36"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
+<a class="sourceLine" id="cb188-36" title="36"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
 <a class="sourceLine" id="cb188-37" title="37">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
 <a class="sourceLine" id="cb188-38" title="38">    <span class="dt">breaks=</span>selection_method_breaks,</a>
 <a class="sourceLine" id="cb188-39" title="39">    <span class="dt">labels=</span>selection_method_labels,</a>
-<a class="sourceLine" id="cb188-40" title="40">    <span class="dt">palette=</span>cb_palette</a>
-<a class="sourceLine" id="cb188-41" title="41">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb188-42" title="42"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb188-43" title="43">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb188-44" title="44">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb188-45" title="45">    <span class="dt">labels=</span>selection_method_labels,</a>
-<a class="sourceLine" id="cb188-46" title="46">    <span class="dt">palette=</span>cb_palette</a>
-<a class="sourceLine" id="cb188-47" title="47">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb188-48" title="48"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb188-49" title="49">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
-<a class="sourceLine" id="cb188-50" title="50">  )</a>
-<a class="sourceLine" id="cb188-51" title="51"></a>
-<a class="sourceLine" id="cb188-52" title="52">max_trait_cov_fig</a></code></pre></div>
+<a class="sourceLine" id="cb188-40" title="40">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb188-41" title="41"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb188-42" title="42">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
+<a class="sourceLine" id="cb188-43" title="43">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb188-44" title="44">    <span class="dt">labels=</span>selection_method_labels,</a>
+<a class="sourceLine" id="cb188-45" title="45">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb188-46" title="46"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb188-47" title="47">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
+<a class="sourceLine" id="cb188-48" title="48">  )</a>
+<a class="sourceLine" id="cb188-49" title="49"></a>
+<a class="sourceLine" id="cb188-50" title="50">max_trait_cov_fig</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-59-1.png" width="672" /></p>
 <div class="sourceCode" id="cb189"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb189-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb189-2" title="2">  <span class="dt">plot=</span>max_trait_cov_fig,</a>
@@ -559,22 +555,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb195-25" title="25">    <span class="dt">limits=</span><span class="kw">c</span>(<span class="op">-</span><span class="fl">0.5</span>,<span class="dv">18</span>),</a>
 <a class="sourceLine" id="cb195-26" title="26">    <span class="dt">breaks=</span><span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">18</span>,<span class="dv">2</span>)</a>
 <a class="sourceLine" id="cb195-27" title="27">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb195-28" title="28"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
+<a class="sourceLine" id="cb195-28" title="28"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
 <a class="sourceLine" id="cb195-29" title="29">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb195-30" title="30">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb195-31" title="31">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb195-32" title="32">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb195-33" title="33">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb195-34" title="34"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb195-35" title="35">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb195-36" title="36">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb195-37" title="37">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb195-38" title="38">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb195-39" title="39">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb195-40" title="40"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb195-41" title="41">    <span class="dt">legend.position=</span><span class="st">&quot;bottom&quot;</span></a>
-<a class="sourceLine" id="cb195-42" title="42">  )</a>
-<a class="sourceLine" id="cb195-43" title="43">max_trait_cov_ot_fig</a></code></pre></div>
+<a class="sourceLine" id="cb195-30" title="30">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb195-31" title="31">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb195-32" title="32">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb195-33" title="33"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb195-34" title="34">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
+<a class="sourceLine" id="cb195-35" title="35">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb195-36" title="36">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb195-37" title="37">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb195-38" title="38"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb195-39" title="39">    <span class="dt">legend.position=</span><span class="st">&quot;bottom&quot;</span></a>
+<a class="sourceLine" id="cb195-40" title="40">  )</a>
+<a class="sourceLine" id="cb195-41" title="41">max_trait_cov_ot_fig</a></code></pre></div>
 <pre><code>## Warning: Computation failed in `stat_summary()`:</code></pre>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-61-1.png" width="672" /></p>
 <div class="sourceCode" id="cb197"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb197-1" title="1"><span class="kw">ggsave</span>(</a>
@@ -613,22 +607,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb199-25" title="25">    <span class="dt">limits=</span><span class="kw">c</span>(<span class="op">-</span><span class="fl">0.5</span>,<span class="fl">18.5</span>),</a>
 <a class="sourceLine" id="cb199-26" title="26">    <span class="dt">breaks=</span><span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">18</span>,<span class="dv">2</span>)</a>
 <a class="sourceLine" id="cb199-27" title="27">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb199-28" title="28"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
+<a class="sourceLine" id="cb199-28" title="28"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
 <a class="sourceLine" id="cb199-29" title="29">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb199-30" title="30">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb199-31" title="31">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb199-32" title="32">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb199-33" title="33">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb199-34" title="34"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb199-35" title="35">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb199-36" title="36">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb199-37" title="37">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb199-38" title="38">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb199-39" title="39">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb199-40" title="40"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb199-41" title="41">    <span class="dt">legend.position=</span><span class="st">&quot;bottom&quot;</span></a>
-<a class="sourceLine" id="cb199-42" title="42">  )</a>
-<a class="sourceLine" id="cb199-43" title="43">max_trait_cov_ot_early_fig</a></code></pre></div>
+<a class="sourceLine" id="cb199-30" title="30">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb199-31" title="31">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb199-32" title="32">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb199-33" title="33"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb199-34" title="34">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
+<a class="sourceLine" id="cb199-35" title="35">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb199-36" title="36">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb199-37" title="37">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb199-38" title="38"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb199-39" title="39">    <span class="dt">legend.position=</span><span class="st">&quot;bottom&quot;</span></a>
+<a class="sourceLine" id="cb199-40" title="40">  )</a>
+<a class="sourceLine" id="cb199-41" title="41">max_trait_cov_ot_early_fig</a></code></pre></div>
 <pre><code>## Warning: Computation failed in `stat_summary()`:</code></pre>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-62-1.png" width="672" /></p>
 <div class="sourceCode" id="cb201"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb201-1" title="1"><span class="kw">ggsave</span>(</a>
@@ -677,23 +669,21 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb203-33" title="33">    <span class="dt">breaks=</span>selection_method_breaks,</a>
 <a class="sourceLine" id="cb203-34" title="34">    <span class="dt">labels=</span>selection_method_labels</a>
 <a class="sourceLine" id="cb203-35" title="35">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb203-36" title="36"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
+<a class="sourceLine" id="cb203-36" title="36"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
 <a class="sourceLine" id="cb203-37" title="37">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb203-38" title="38">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb203-39" title="39">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb203-40" title="40">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb203-41" title="41">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb203-42" title="42"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb203-43" title="43">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb203-44" title="44">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb203-45" title="45">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb203-46" title="46">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb203-47" title="47">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb203-48" title="48"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb203-49" title="49">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
-<a class="sourceLine" id="cb203-50" title="50">  )</a>
-<a class="sourceLine" id="cb203-51" title="51"></a>
-<a class="sourceLine" id="cb203-52" title="52">total_trait_cov_fig</a></code></pre></div>
+<a class="sourceLine" id="cb203-38" title="38">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb203-39" title="39">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb203-40" title="40">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb203-41" title="41"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb203-42" title="42">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
+<a class="sourceLine" id="cb203-43" title="43">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb203-44" title="44">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb203-45" title="45">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb203-46" title="46"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb203-47" title="47">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
+<a class="sourceLine" id="cb203-48" title="48">  )</a>
+<a class="sourceLine" id="cb203-49" title="49"></a>
+<a class="sourceLine" id="cb203-50" title="50">total_trait_cov_fig</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-63-1.png" width="672" /></p>
 <div class="sourceCode" id="cb204"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb204-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb204-2" title="2">  <span class="dt">plot=</span>total_trait_cov_fig,</a>
@@ -760,22 +750,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb210-25" title="25">    <span class="dt">limits=</span><span class="kw">c</span>(<span class="op">-</span><span class="fl">0.5</span>,<span class="fl">18.5</span>),</a>
 <a class="sourceLine" id="cb210-26" title="26">    <span class="dt">breaks=</span><span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">18</span>,<span class="dv">2</span>)</a>
 <a class="sourceLine" id="cb210-27" title="27">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb210-28" title="28"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
+<a class="sourceLine" id="cb210-28" title="28"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
 <a class="sourceLine" id="cb210-29" title="29">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb210-30" title="30">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb210-31" title="31">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb210-32" title="32">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb210-33" title="33">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb210-34" title="34"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb210-35" title="35">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb210-36" title="36">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb210-37" title="37">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb210-38" title="38">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb210-39" title="39">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb210-40" title="40"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb210-41" title="41">    <span class="dt">legend.position=</span><span class="st">&quot;bottom&quot;</span></a>
-<a class="sourceLine" id="cb210-42" title="42">  )</a>
-<a class="sourceLine" id="cb210-43" title="43">metapop_task_cov_ot_fig</a></code></pre></div>
+<a class="sourceLine" id="cb210-30" title="30">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb210-31" title="31">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb210-32" title="32">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb210-33" title="33"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb210-34" title="34">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
+<a class="sourceLine" id="cb210-35" title="35">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb210-36" title="36">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb210-37" title="37">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb210-38" title="38"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb210-39" title="39">    <span class="dt">legend.position=</span><span class="st">&quot;bottom&quot;</span></a>
+<a class="sourceLine" id="cb210-40" title="40">  )</a>
+<a class="sourceLine" id="cb210-41" title="41">metapop_task_cov_ot_fig</a></code></pre></div>
 <pre><code>## Warning: Computation failed in `stat_summary()`:</code></pre>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-65-1.png" width="672" /></p>
 <div class="sourceCode" id="cb212"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb212-1" title="1"><span class="kw">ggsave</span>(</a>
@@ -814,22 +802,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb214-25" title="25">    <span class="dt">limits=</span><span class="kw">c</span>(<span class="op">-</span><span class="fl">0.5</span>,<span class="fl">18.5</span>),</a>
 <a class="sourceLine" id="cb214-26" title="26">    <span class="dt">breaks=</span><span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">18</span>,<span class="dv">2</span>)</a>
 <a class="sourceLine" id="cb214-27" title="27">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb214-28" title="28"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
+<a class="sourceLine" id="cb214-28" title="28"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
 <a class="sourceLine" id="cb214-29" title="29">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb214-30" title="30">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb214-31" title="31">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb214-32" title="32">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb214-33" title="33">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb214-34" title="34"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb214-35" title="35">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb214-36" title="36">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb214-37" title="37">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb214-38" title="38">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb214-39" title="39">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb214-40" title="40"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb214-41" title="41">    <span class="dt">legend.position=</span><span class="st">&quot;bottom&quot;</span></a>
-<a class="sourceLine" id="cb214-42" title="42">  )</a>
-<a class="sourceLine" id="cb214-43" title="43">metapop_task_cov_ot_early_fig</a></code></pre></div>
+<a class="sourceLine" id="cb214-30" title="30">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb214-31" title="31">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb214-32" title="32">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb214-33" title="33"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb214-34" title="34">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
+<a class="sourceLine" id="cb214-35" title="35">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb214-36" title="36">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb214-37" title="37">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb214-38" title="38"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb214-39" title="39">    <span class="dt">legend.position=</span><span class="st">&quot;bottom&quot;</span></a>
+<a class="sourceLine" id="cb214-40" title="40">  )</a>
+<a class="sourceLine" id="cb214-41" title="41">metapop_task_cov_ot_early_fig</a></code></pre></div>
 <pre><code>## Warning: Computation failed in `stat_summary()`:</code></pre>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-66-1.png" width="672" /></p>
 <div class="sourceCode" id="cb216"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb216-1" title="1"><span class="kw">ggsave</span>(</a>
@@ -914,16 +900,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb222-30" title="30">    <span class="dt">breaks=</span>selection_method_breaks,</a>
 <a class="sourceLine" id="cb222-31" title="31">    <span class="dt">labels=</span>selection_method_labels</a>
 <a class="sourceLine" id="cb222-32" title="32">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb222-33" title="33"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
-<a class="sourceLine" id="cb222-34" title="34">    <span class="dt">palette=</span>cb_palette</a>
-<a class="sourceLine" id="cb222-35" title="35">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb222-36" title="36"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb222-37" title="37">    <span class="dt">palette=</span>cb_palette</a>
-<a class="sourceLine" id="cb222-38" title="38">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb222-39" title="39"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb222-40" title="40">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
-<a class="sourceLine" id="cb222-41" title="41">  )</a>
-<a class="sourceLine" id="cb222-42" title="42">num_pop_task_profiles_fig</a></code></pre></div>
+<a class="sourceLine" id="cb222-33" title="33"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
+<a class="sourceLine" id="cb222-34" title="34">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb222-35" title="35"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb222-36" title="36">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb222-37" title="37"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb222-38" title="38">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
+<a class="sourceLine" id="cb222-39" title="39">  )</a>
+<a class="sourceLine" id="cb222-40" title="40">num_pop_task_profiles_fig</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-68-1.png" width="672" /></p>
 <div class="sourceCode" id="cb223"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb223-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb223-2" title="2">  <span class="dt">plot=</span>num_pop_task_profiles_fig,</a>
@@ -987,22 +971,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb229-22" title="22"><span class="st">  </span><span class="kw">scale_y_continuous</span>(</a>
 <a class="sourceLine" id="cb229-23" title="23">    <span class="dt">name=</span><span class="st">&quot;# Different Task Profiles&quot;</span></a>
 <a class="sourceLine" id="cb229-24" title="24">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb229-25" title="25"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
+<a class="sourceLine" id="cb229-25" title="25"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
 <a class="sourceLine" id="cb229-26" title="26">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb229-27" title="27">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb229-28" title="28">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb229-29" title="29">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb229-30" title="30">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb229-31" title="31"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb229-32" title="32">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb229-33" title="33">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb229-34" title="34">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb229-35" title="35">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb229-36" title="36">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb229-37" title="37"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb229-38" title="38">    <span class="dt">legend.position=</span><span class="st">&quot;bottom&quot;</span></a>
-<a class="sourceLine" id="cb229-39" title="39">  )</a>
-<a class="sourceLine" id="cb229-40" title="40">num_task_profiles_ot_fig</a></code></pre></div>
+<a class="sourceLine" id="cb229-27" title="27">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb229-28" title="28">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb229-29" title="29">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb229-30" title="30"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb229-31" title="31">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
+<a class="sourceLine" id="cb229-32" title="32">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb229-33" title="33">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb229-34" title="34">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb229-35" title="35"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb229-36" title="36">    <span class="dt">legend.position=</span><span class="st">&quot;bottom&quot;</span></a>
+<a class="sourceLine" id="cb229-37" title="37">  )</a>
+<a class="sourceLine" id="cb229-38" title="38">num_task_profiles_ot_fig</a></code></pre></div>
 <pre><code>## Warning: Computation failed in `stat_summary()`:</code></pre>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-70-1.png" width="672" /></p>
 <div class="sourceCode" id="cb231"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb231-1" title="1"><span class="kw">ggsave</span>(</a>
@@ -1048,16 +1030,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb233-30" title="30">    <span class="dt">breaks=</span>selection_method_breaks,</a>
 <a class="sourceLine" id="cb233-31" title="31">    <span class="dt">labels=</span>selection_method_labels</a>
 <a class="sourceLine" id="cb233-32" title="32">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb233-33" title="33"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
-<a class="sourceLine" id="cb233-34" title="34">    <span class="dt">palette=</span>cb_palette</a>
-<a class="sourceLine" id="cb233-35" title="35">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb233-36" title="36"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb233-37" title="37">    <span class="dt">palette=</span>cb_palette</a>
-<a class="sourceLine" id="cb233-38" title="38">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb233-39" title="39"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb233-40" title="40">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
-<a class="sourceLine" id="cb233-41" title="41">  )</a>
-<a class="sourceLine" id="cb233-42" title="42">task_profile_spread_fig</a></code></pre></div>
+<a class="sourceLine" id="cb233-33" title="33"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
+<a class="sourceLine" id="cb233-34" title="34">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb233-35" title="35"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb233-36" title="36">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb233-37" title="37"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb233-38" title="38">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
+<a class="sourceLine" id="cb233-39" title="39">  )</a>
+<a class="sourceLine" id="cb233-40" title="40">task_profile_spread_fig</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-71-1.png" width="672" /></p>
 <div class="sourceCode" id="cb234"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb234-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb234-2" title="2">  <span class="dt">plot=</span>task_profile_spread_fig,</a>
@@ -1128,15 +1108,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <a class="sourceLine" id="cb240-29" title="29">    <span class="dt">breaks=</span>selection_method_breaks,</a>
 <a class="sourceLine" id="cb240-30" title="30">    <span class="dt">labels=</span>selection_method_labels</a>
 <a class="sourceLine" id="cb240-31" title="31">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb240-32" title="32"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
-<a class="sourceLine" id="cb240-33" title="33">    <span class="dt">palette=</span>cb_palette</a>
-<a class="sourceLine" id="cb240-34" title="34">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb240-35" title="35"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb240-36" title="36">    <span class="dt">palette=</span>cb_palette</a>
-<a class="sourceLine" id="cb240-37" title="37">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb240-38" title="38"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb240-39" title="39">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
-<a class="sourceLine" id="cb240-40" title="40">  )</a></code></pre></div>
+<a class="sourceLine" id="cb240-32" title="32"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
+<a class="sourceLine" id="cb240-33" title="33">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb240-34" title="34"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb240-35" title="35">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb240-36" title="36"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb240-37" title="37">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
+<a class="sourceLine" id="cb240-38" title="38">  )</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-73-1.png" width="672" /></p>
 <div class="sourceCode" id="cb241"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb241-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb241-2" title="2">  <span class="kw">paste0</span>(plot_directory, <span class="st">&quot;2021-11-30-task-profile-entropy.pdf&quot;</span>)</a>
@@ -1201,21 +1179,19 @@ That is, for each N, we solved the maximum set coverage problem for task coverag
 <a class="sourceLine" id="cb247-22" title="22">    <span class="dt">name=</span><span class="st">&quot;Number of populations&quot;</span>,</a>
 <a class="sourceLine" id="cb247-23" title="23">    <span class="dt">limits=</span><span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">15</span>)</a>
 <a class="sourceLine" id="cb247-24" title="24">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb247-25" title="25"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
+<a class="sourceLine" id="cb247-25" title="25"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
 <a class="sourceLine" id="cb247-26" title="26">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb247-27" title="27">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb247-28" title="28">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb247-29" title="29">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb247-30" title="30">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb247-31" title="31"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb247-32" title="32">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb247-33" title="33">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb247-34" title="34">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb247-35" title="35">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb247-36" title="36">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb247-37" title="37"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb247-38" title="38">    <span class="dt">legend.position=</span><span class="st">&quot;bottom&quot;</span></a>
-<a class="sourceLine" id="cb247-39" title="39">  )</a></code></pre></div>
+<a class="sourceLine" id="cb247-27" title="27">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb247-28" title="28">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb247-29" title="29">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb247-30" title="30"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb247-31" title="31">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
+<a class="sourceLine" id="cb247-32" title="32">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb247-33" title="33">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb247-34" title="34">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb247-35" title="35"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb247-36" title="36">    <span class="dt">legend.position=</span><span class="st">&quot;bottom&quot;</span></a>
+<a class="sourceLine" id="cb247-37" title="37">  )</a></code></pre></div>
 <pre><code>## Warning: Removed 28350 rows containing non-finite values (stat_summary).
 ## Removed 28350 rows containing non-finite values (stat_summary).</code></pre>
 <pre><code>## Warning: Computation failed in `stat_summary()`:</code></pre>
@@ -1262,21 +1238,19 @@ That is, for each N, we solved the maximum set coverage problem for task coverag
 <a class="sourceLine" id="cb254-29" title="29">    <span class="dt">breaks=</span>selection_method_breaks,</a>
 <a class="sourceLine" id="cb254-30" title="30">    <span class="dt">labels=</span>selection_method_labels</a>
 <a class="sourceLine" id="cb254-31" title="31">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb254-32" title="32"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
+<a class="sourceLine" id="cb254-32" title="32"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
 <a class="sourceLine" id="cb254-33" title="33">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb254-34" title="34">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb254-35" title="35">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb254-36" title="36">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb254-37" title="37">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb254-38" title="38"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb254-39" title="39">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
-<a class="sourceLine" id="cb254-40" title="40">    <span class="dt">palette=</span>cb_palette,</a>
-<a class="sourceLine" id="cb254-41" title="41">    <span class="dt">breaks=</span>selection_method_breaks,</a>
-<a class="sourceLine" id="cb254-42" title="42">    <span class="dt">labels=</span>selection_method_labels</a>
-<a class="sourceLine" id="cb254-43" title="43">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb254-44" title="44"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb254-45" title="45">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
-<a class="sourceLine" id="cb254-46" title="46">  )</a></code></pre></div>
+<a class="sourceLine" id="cb254-34" title="34">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb254-35" title="35">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb254-36" title="36">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb254-37" title="37"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb254-38" title="38">    <span class="dt">name=</span><span class="st">&quot;Selection Method&quot;</span>,</a>
+<a class="sourceLine" id="cb254-39" title="39">    <span class="dt">breaks=</span>selection_method_breaks,</a>
+<a class="sourceLine" id="cb254-40" title="40">    <span class="dt">labels=</span>selection_method_labels</a>
+<a class="sourceLine" id="cb254-41" title="41">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb254-42" title="42"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb254-43" title="43">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
+<a class="sourceLine" id="cb254-44" title="44">  )</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-76-1.png" width="672" /></p>
 <div class="sourceCode" id="cb255"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb255-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb255-2" title="2">  <span class="kw">paste0</span>(plot_directory, <span class="st">&quot;2021-11-30-num-selected.pdf&quot;</span>)</a>
@@ -1319,15 +1293,13 @@ That is, for each N, we solved the maximum set coverage problem for task coverag
 <a class="sourceLine" id="cb269-21" title="21">    <span class="dt">outlier.shape =</span> <span class="ot">NA</span>,</a>
 <a class="sourceLine" id="cb269-22" title="22">    <span class="dt">alpha =</span> <span class="fl">0.5</span></a>
 <a class="sourceLine" id="cb269-23" title="23">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb269-24" title="24"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
-<a class="sourceLine" id="cb269-25" title="25">    <span class="dt">palette=</span><span class="st">&quot;Set2&quot;</span></a>
-<a class="sourceLine" id="cb269-26" title="26">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb269-27" title="27"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb269-28" title="28">    <span class="dt">palette=</span><span class="st">&quot;Set2&quot;</span></a>
-<a class="sourceLine" id="cb269-29" title="29">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb269-30" title="30"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb269-31" title="31">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
-<a class="sourceLine" id="cb269-32" title="32">  )</a></code></pre></div>
+<a class="sourceLine" id="cb269-24" title="24"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
+<a class="sourceLine" id="cb269-25" title="25">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb269-26" title="26"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb269-27" title="27">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb269-28" title="28"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb269-29" title="29">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
+<a class="sourceLine" id="cb269-30" title="30">  )</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-78-1.png" width="672" /></p>
 </div>
 </div>
@@ -1365,15 +1337,13 @@ That is, for each N, we solved the maximum set coverage problem for task coverag
 <a class="sourceLine" id="cb270-30" title="30">    <span class="dt">breaks=</span>selection_method_breaks,</a>
 <a class="sourceLine" id="cb270-31" title="31">    <span class="dt">labels=</span>selection_method_labels</a>
 <a class="sourceLine" id="cb270-32" title="32">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb270-33" title="33"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
-<a class="sourceLine" id="cb270-34" title="34">    <span class="dt">palette=</span>cb_palette</a>
-<a class="sourceLine" id="cb270-35" title="35">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb270-36" title="36"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb270-37" title="37">    <span class="dt">palette=</span>cb_palette</a>
-<a class="sourceLine" id="cb270-38" title="38">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb270-39" title="39"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb270-40" title="40">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
-<a class="sourceLine" id="cb270-41" title="41">  )</a></code></pre></div>
+<a class="sourceLine" id="cb270-33" title="33"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
+<a class="sourceLine" id="cb270-34" title="34">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb270-35" title="35"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb270-36" title="36">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb270-37" title="37"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb270-38" title="38">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
+<a class="sourceLine" id="cb270-39" title="39">  )</a></code></pre></div>
 <pre><code>## Warning: Removed 1 rows containing non-finite values (stat_ydensity).</code></pre>
 <pre><code>## Warning: Removed 1 rows containing non-finite values (stat_boxplot).</code></pre>
 <pre><code>## Warning: Removed 1 rows containing missing values (geom_point).</code></pre>
@@ -1419,15 +1389,13 @@ That is, for each N, we solved the maximum set coverage problem for task coverag
 <a class="sourceLine" id="cb279-29" title="29">    <span class="dt">breaks=</span>selection_method_breaks,</a>
 <a class="sourceLine" id="cb279-30" title="30">    <span class="dt">labels=</span>selection_method_labels</a>
 <a class="sourceLine" id="cb279-31" title="31">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb279-32" title="32"><span class="st">  </span><span class="kw">scale_fill_brewer</span>(</a>
-<a class="sourceLine" id="cb279-33" title="33">    <span class="dt">palette=</span>cb_palette</a>
-<a class="sourceLine" id="cb279-34" title="34">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb279-35" title="35"><span class="st">  </span><span class="kw">scale_color_brewer</span>(</a>
-<a class="sourceLine" id="cb279-36" title="36">    <span class="dt">palette=</span>cb_palette</a>
-<a class="sourceLine" id="cb279-37" title="37">  ) <span class="op">+</span></a>
-<a class="sourceLine" id="cb279-38" title="38"><span class="st">  </span><span class="kw">theme</span>(</a>
-<a class="sourceLine" id="cb279-39" title="39">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
-<a class="sourceLine" id="cb279-40" title="40">  )</a></code></pre></div>
+<a class="sourceLine" id="cb279-32" title="32"><span class="st">  </span><span class="kw">scale_fill_fun</span>(</a>
+<a class="sourceLine" id="cb279-33" title="33">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb279-34" title="34"><span class="st">  </span><span class="kw">scale_color_fun</span>(</a>
+<a class="sourceLine" id="cb279-35" title="35">  ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb279-36" title="36"><span class="st">  </span><span class="kw">theme</span>(</a>
+<a class="sourceLine" id="cb279-37" title="37">    <span class="dt">legend.position=</span><span class="st">&quot;none&quot;</span></a>
+<a class="sourceLine" id="cb279-38" title="38">  )</a></code></pre></div>
 <p><img src="supplemental-material_files/figure-html/unnamed-chunk-80-1.png" width="672" /></p>
 <div class="sourceCode" id="cb280"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb280-1" title="1"><span class="kw">ggsave</span>(</a>
 <a class="sourceLine" id="cb280-2" title="2">  <span class="kw">paste0</span>(plot_directory, <span class="st">&quot;2021-11-30-avg-gens.pdf&quot;</span>)</a>
