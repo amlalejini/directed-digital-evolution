@@ -127,7 +127,8 @@ exp_summary_data$SELECTION_METHOD_LABEL <- factor(
   )
 )
 # 1, 4, 5, 7
-selection_methods_smaller_set_colors <- c("#66C2A5", "#E78AC3", "#A6D854", "#E5C494")
+selection_methods_smaller_set_colors <- c("#4477AA", "#CCBB44", "#66CCEE", "#BBBBBB")
+# c("#66C2A5", "#E78AC3", "#A6D854", "#E5C494")
 # c("#66C2A5", "#8DA0CB", "#E78AC3", "#FFD92F")
 ```
 
@@ -163,10 +164,8 @@ ggplot(
     name="Maturation period (updates)"
   ) +
   scale_fill_fun(
-    palette="Set2"
   ) +
   scale_color_fun(
-    palette="Set2"
   ) +
   facet_wrap(
     ~SELECTION_METHOD,
@@ -548,11 +547,11 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
-  scale_fill_fun(
-    palette="Set2"
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
   ) +
-  scale_color_fun(
-    palette="Set2"
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   xlab("Maturation period (updates)") +
   facet_wrap(
@@ -598,11 +597,11 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
-  scale_fill_fun(
-    palette="Set2"
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
   ) +
-  scale_color_fun(
-    palette="Set2"
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   xlab("Maturation period (updates)") +
   facet_wrap(
@@ -648,11 +647,11 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
-  scale_fill_fun(
-    palette="Set2"
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
   ) +
-  scale_color_fun(
-    palette="Set2"
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   xlab("Maturation period (updates)") +
   facet_wrap(
@@ -702,11 +701,11 @@ ggplot(
   scale_x_discrete(
     name="Maturation period (updates)"
   ) +
-  scale_fill_fun(
-    palette="Set2"
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
   ) +
-  scale_color_fun(
-    palette="Set2"
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_wrap(
     ~SELECTION_METHOD,
@@ -753,11 +752,11 @@ ggplot(
   scale_x_discrete(
     name="Maturation period (updates)"
   ) +
-  scale_fill_fun(
-    palette="Set2"
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
   ) +
-  scale_color_fun(
-    palette="Set2"
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_wrap(
     ~SELECTION_METHOD,
