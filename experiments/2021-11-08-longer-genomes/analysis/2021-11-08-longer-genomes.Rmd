@@ -128,8 +128,6 @@ Miscellaneous setup
 ```{r}
 # Configure our default graphing theme
 theme_set(theme_cowplot())
-# Palette
-cb_palette <- "Paired"
 # Create a directory to store plots
 plot_directory <- paste0(working_directory, "plots/")
 dir.create(plot_directory, showWarnings=FALSE)

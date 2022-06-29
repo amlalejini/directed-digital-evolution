@@ -923,10 +923,8 @@ ggplot(
     alpha = 0.5
   ) +
   scale_fill_fun(
-    palette="Set2"
   ) +
   scale_color_fun(
-    palette="Set2"
   ) +
   theme(
     legend.position="none"
