@@ -37,6 +37,7 @@ library(ggplot2)
 library(cowplot)
 library(RColorBrewer)
 library(scales)
+library(khroma)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 ```
 
@@ -104,11 +105,11 @@ Miscellaneous setup
 ```{r}
 # Configure our default graphing theme
 theme_set(theme_cowplot())
-# Palette
-cb_palette <- "Accent"
 # Create a directory to store plots
 plot_directory <- paste0(working_directory, "plots/")
 dir.create(plot_directory, showWarnings=FALSE)
+
+selection_methods_smaller_set_colors <- c("#4477AA", "#CCBB44", "#66CCEE", "#BBBBBB")
 
 sel.labs <- c(
   "elite",
@@ -148,7 +149,7 @@ ggplot(
     aes(
       x=POPULATION_SAMPLING_SIZE,
       y=avg_num_orgs,
-      fill=POPULATION_SAMPLING_SIZE
+      fill=SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -156,7 +157,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=POPULATION_SAMPLING_SIZE),
+    mapping=aes(color=SELECTION_METHOD),
     position = position_jitter(width = .15),
     size = .5,
     alpha = 0.8
@@ -165,6 +166,12 @@ ggplot(
     width = .1,
     outlier.shape = NA,
     alpha = 0.5
+  ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_grid(
     UPDATES_PER_EPOCH~SELECTION_METHOD,
@@ -191,7 +198,7 @@ ggplot(
     aes(
       x=POPULATION_SAMPLING_SIZE,
       y=avg_gens,
-      fill=POPULATION_SAMPLING_SIZE
+      fill=SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -199,7 +206,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=POPULATION_SAMPLING_SIZE),
+    mapping=aes(color=SELECTION_METHOD),
     position = position_jitter(width = .15),
     size = .5,
     alpha = 0.8
@@ -208,6 +215,12 @@ ggplot(
     width = .1,
     outlier.shape = NA,
     alpha = 0.5
+  ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_grid(
     UPDATES_PER_EPOCH~SELECTION_METHOD,
@@ -235,7 +248,7 @@ ggplot(
     aes(
       x=POPULATION_SAMPLING_SIZE,
       y=max_trait_coverage,
-      fill=POPULATION_SAMPLING_SIZE
+      fill=SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -243,7 +256,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=POPULATION_SAMPLING_SIZE),
+    mapping=aes(color=SELECTION_METHOD),
     position = position_jitter(width = .15),
     size = .5,
     alpha = 0.8
@@ -255,6 +268,12 @@ ggplot(
   ) +
   scale_y_continuous(
     name="Task Coverage"
+  ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_grid(
     UPDATES_PER_EPOCH~SELECTION_METHOD,
@@ -300,7 +319,7 @@ ggplot(
     aes(
       x=POPULATION_SAMPLING_SIZE,
       y=total_trait_coverage,
-      fill=POPULATION_SAMPLING_SIZE
+      fill=SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -308,7 +327,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=POPULATION_SAMPLING_SIZE),
+    mapping=aes(color=SELECTION_METHOD),
     position = position_jitter(width = .15),
     size = .5,
     alpha = 0.8
@@ -320,6 +339,12 @@ ggplot(
   ) +
   scale_y_continuous(
     name="Task Coverage"
+  ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_grid(
     UPDATES_PER_EPOCH~SELECTION_METHOD,
