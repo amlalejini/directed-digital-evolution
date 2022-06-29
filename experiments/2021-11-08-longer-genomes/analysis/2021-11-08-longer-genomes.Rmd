@@ -10,6 +10,8 @@ Specifically, for each of elite and lexicase selection, we ran 30 replicates of 
 150,
 and 200.
 
+Note that these runs were performed with a maturation period of 300 updates and run for a total of 3,000 cycles (instead of 200 and 2,000, respectively).
+
 ```{r}
 experiment_slug <- "2021-11-08-longer-genomes"
 
@@ -23,12 +25,10 @@ Load all required R libraries
 ```{r}
 library(tidyverse)
 library(ggplot2)
-# library(GGally)
-# library(ggpcp)
 library(cowplot)
 library(RColorBrewer)
 library(scales)
-# library(viridis)
+library(khroma)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 ```
 
@@ -134,7 +134,7 @@ cb_palette <- "Paired"
 plot_directory <- paste0(working_directory, "plots/")
 dir.create(plot_directory, showWarnings=FALSE)
 
-selection_methods_smaller_set_colors <- c("#66C2A5", "#E78AC3")
+selection_methods_smaller_set_colors <- c("#4477AA", "#CCBB44")
 ```
 
 ## Average generations per maturation period
@@ -145,7 +145,7 @@ ggplot(
     aes(
       x=genome_length,
       y=avg_gens,
-      fill=genome_length
+      fill=SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -153,7 +153,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=genome_length),
+    mapping=aes(color=SELECTION_METHOD),
     position = position_jitter(width = .15),
     size = .5,
     alpha = 0.8
@@ -162,6 +162,12 @@ ggplot(
     width = .1,
     outlier.shape = NA,
     alpha = 0.5
+  ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_wrap(
     ~SELECTION_METHOD
@@ -186,7 +192,7 @@ ggplot(
     aes(
       x=genome_length,
       y=total_gens_approx,
-      fill=genome_length
+      fill=SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -194,7 +200,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=genome_length),
+    mapping=aes(color=SELECTION_METHOD),
     position = position_jitter(width = .15),
     size = .5,
     alpha = 0.8
@@ -203,6 +209,12 @@ ggplot(
     width = .1,
     outlier.shape = NA,
     alpha = 0.5
+  ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_wrap(
     ~SELECTION_METHOD
@@ -229,7 +241,7 @@ ggplot(
     aes(
       x=genome_length,
       y=avg_cpu_cycles_per_replication,
-      fill=genome_length
+      fill=SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -237,7 +249,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=genome_length),
+    mapping=aes(color=SELECTION_METHOD),
     position = position_jitter(height=0, width = .15),
     size = .5,
     alpha = 0.8
@@ -246,6 +258,12 @@ ggplot(
     width = .1,
     outlier.shape = NA,
     alpha = 0.5
+  ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_wrap(
     ~SELECTION_METHOD
@@ -382,7 +400,7 @@ ggplot(
     aes(
       x=genome_length,
       y=num_pop_trait_profiles,
-      fill=genome_length
+      fill=SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -390,7 +408,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=genome_length),
+    mapping=aes(color=SELECTION_METHOD),
     position = position_jitter(height=0, width = .15),
     size = .5,
     alpha = 0.8
@@ -399,6 +417,12 @@ ggplot(
     width = .1,
     outlier.shape = NA,
     alpha = 0.5
+  ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_wrap(
     ~SELECTION_METHOD
@@ -421,7 +445,7 @@ ggplot(
     aes(
       x=genome_length,
       y=pop_trait_profile_entropy,
-      fill=genome_length
+      fill=SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -429,7 +453,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=genome_length),
+    mapping=aes(color=SELECTION_METHOD),
     position = position_jitter(height=0, width = .15),
     size = .5,
     alpha = 0.8
@@ -438,6 +462,12 @@ ggplot(
     width = .1,
     outlier.shape = NA,
     alpha = 0.5
+  ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_wrap(
     ~SELECTION_METHOD
@@ -460,7 +490,7 @@ ggplot(
     aes(
       x=genome_length,
       y=avg_cosine_dist_from_centroid,
-      fill=genome_length
+      fill=SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -468,7 +498,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=genome_length),
+    mapping=aes(color=SELECTION_METHOD),
     position = position_jitter(height=0, width = .15),
     size = .5,
     alpha = 0.8
@@ -477,6 +507,12 @@ ggplot(
     width = .1,
     outlier.shape = NA,
     alpha = 0.5
+  ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_wrap(
     ~SELECTION_METHOD
@@ -501,7 +537,7 @@ ggplot(
     aes(
       x=genome_length,
       y=avg_unique_selected,
-      fill=genome_length
+      fill=SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -509,7 +545,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=genome_length),
+    mapping=aes(color=SELECTION_METHOD),
     position = position_jitter(height=0, width = .15),
     size = .5,
     alpha = 0.8
@@ -518,6 +554,12 @@ ggplot(
     width = .1,
     outlier.shape = NA,
     alpha = 0.5
+  ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_wrap(
     ~SELECTION_METHOD
@@ -540,7 +582,7 @@ ggplot(
     aes(
       x=genome_length,
       y=avg_entropy_selected,
-      fill=genome_length
+      fill=SELECTION_METHOD
     )
   ) +
   geom_flat_violin(
@@ -548,7 +590,7 @@ ggplot(
     alpha = .8
   ) +
   geom_point(
-    mapping=aes(color=genome_length),
+    mapping=aes(color=SELECTION_METHOD),
     position = position_jitter(height=0, width = .15),
     size = .5,
     alpha = 0.8
@@ -557,6 +599,12 @@ ggplot(
     width = .1,
     outlier.shape = NA,
     alpha = 0.5
+  ) +
+  scale_fill_manual(
+    values=selection_methods_smaller_set_colors
+  ) +
+  scale_color_manual(
+    values=selection_methods_smaller_set_colors
   ) +
   facet_wrap(
     ~SELECTION_METHOD
@@ -568,128 +616,6 @@ ggplot(
 
 ggsave(
   paste0(plot_directory, "avg_entropy_selected.pdf")
-)
-```
-
-## Time series
-
-Load data
-
-```{r}
-times_series_data_loc <- paste0(working_directory,"data/evaluation_time_series.csv")
-times_series_data <- read.csv(times_series_data_loc, na.strings="NONE")
-
-get_genome_length <- function(seed) {
-  return(filter(exp_summary_data, SEED==seed)$genome_length)
-}
-
-# Specify experimental condition for each datum.
-times_series_data$SELECTION_METHOD <- factor(
-  times_series_data$SELECTION_METHOD,
-  levels=c(
-    "elite",
-    "tournament",
-    "lexicase",
-    "non-dominated-elite",
-    "non-dominated-tournament",
-    "random",
-    "none"
-  ),
-  labels=c(
-    "elite",
-    "tourn",
-    "lex",
-    "nde",
-    "ndt",
-    "random",
-    "none"
-  )
-)
-
-times_series_data <- filter(times_series_data, (updates_elapsed%%10000)==0)
-times_series_data$genome_length <- mapply(
-  get_genome_length,
-  times_series_data$SEED
-)
-
-times_series_data$U_PER_E <- times_series_data$UPDATES_PER_EPOCH
-```
-
-### Best single-population task coverage
-
-```{r}
-ggplot(
-    times_series_data,
-    aes(
-      x=updates_elapsed,
-      y=max_trait_coverage,
-      fill=genome_length,
-      color=genome_length
-    )
-  ) +
-  stat_summary(geom="line", fun=mean) +
-  stat_summary(
-    geom="ribbon",
-    fun.data="mean_cl_boot",
-    fun.args=list(conf.int=0.95),
-    alpha=0.2,
-    linetype=0
-  ) +
-  scale_y_continuous(
-    breaks=seq(0,18,2)
-  ) +
-  facet_wrap(
-    ~SELECTION_METHOD,
-    nrow=2
-  ) +
-  theme(
-    legend.position="bottom",
-    panel.border=element_rect(colour="grey",size=1)
-  )
-
-ggsave(
-  paste0(plot_directory, "max_trait_coverage_ot.png"),
-  width=20,
-  height=10
-)
-```
-
-### Metapopulation task coverage
-
-```{r}
-ggplot(
-    times_series_data,
-    aes(
-      x=updates_elapsed,
-      y=total_trait_coverage,
-      fill=genome_length,
-      color=genome_length
-    )
-  ) +
-  stat_summary(geom="line", fun=mean) +
-  stat_summary(
-    geom="ribbon",
-    fun.data="mean_cl_boot",
-    fun.args=list(conf.int=0.95),
-    alpha=0.2,
-    linetype=0
-  ) +
-  scale_y_continuous(
-    breaks=seq(0,18,2)
-  ) +
-  facet_wrap(
-    ~SELECTION_METHOD,
-    nrow=2
-  ) +
-  theme(
-    legend.position="bottom",
-    panel.border=element_rect(colour="grey",size=1)
-  )
-
-ggsave(
-  paste0(plot_directory, "total_trait_coverage_ot.png"),
-  width=20,
-  height=10
 )
 ```
 
