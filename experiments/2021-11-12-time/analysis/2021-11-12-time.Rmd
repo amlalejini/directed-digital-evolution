@@ -39,6 +39,7 @@ library(ggplot2)
 library(cowplot)
 library(RColorBrewer)
 library(scales)
+library(khroma)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 ```
 
@@ -95,7 +96,8 @@ Miscellaneous setup
 # Configure our default graphing theme
 theme_set(theme_cowplot())
 # Palette
-cb_palette <- "Set2"
+scale_fill_fun <- scale_fill_bright
+scale_color_fun <- scale_color_bright
 # Create a directory to store plots
 plot_directory <- paste0(working_directory, "plots/")
 dir.create(plot_directory, showWarnings=FALSE)
@@ -160,10 +162,10 @@ ggplot(
   scale_x_discrete(
     name="Maturation period (updates)"
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     palette="Set2"
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     palette="Set2"
   ) +
   facet_wrap(
@@ -546,10 +548,10 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     palette="Set2"
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     palette="Set2"
   ) +
   xlab("Maturation period (updates)") +
@@ -596,10 +598,10 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     palette="Set2"
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     palette="Set2"
   ) +
   xlab("Maturation period (updates)") +
@@ -646,10 +648,10 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     palette="Set2"
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     palette="Set2"
   ) +
   xlab("Maturation period (updates)") +
@@ -700,10 +702,10 @@ ggplot(
   scale_x_discrete(
     name="Maturation period (updates)"
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     palette="Set2"
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     palette="Set2"
   ) +
   facet_wrap(
@@ -751,10 +753,10 @@ ggplot(
   scale_x_discrete(
     name="Maturation period (updates)"
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     palette="Set2"
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     palette="Set2"
   ) +
   facet_wrap(
