@@ -19,6 +19,7 @@ library(tidyverse)
 library(ggplot2)
 library(cowplot)
 library(RColorBrewer)
+library(khroma)
 source("https://gist.githubusercontent.com/benmarwick/2a1bb0133ff568cbe28d/raw/fb53bd97121f7f9ce947837ef1a4c65a73bffb3f/geom_flat_violin.R")
 ```
 
@@ -100,7 +101,8 @@ Miscellaneous setup.
 # Configure our default graphing theme
 theme_set(theme_cowplot())
 # Palette
-cb_palette <- "Set2"
+scale_fill_fun <- scale_fill_bright
+scale_color_fun <- scale_color_bright
 # Create a directory to store plots
 plot_directory <- paste0(working_directory, "plots/")
 dir.create(plot_directory, showWarnings=FALSE)
@@ -135,11 +137,15 @@ ggplot(
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_fill_brewer(
-    palette=cb_palette
+  scale_fill_fun(
+    limits=selection_method_breaks,
+    breaks=selection_method_breaks,
+    labels=selection_method_labels
   ) +
-  scale_color_brewer(
-    palette=cb_palette
+  scale_color_fun(
+    limits=selection_method_breaks,
+    breaks=selection_method_breaks,
+    labels=selection_method_labels
   ) +
   ylab("Successful replicates") +
   theme(legend.position = "none")
@@ -189,11 +195,9 @@ max_task_cov_fig <-
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_fill_brewer(
-    palette=cb_palette
+  scale_fill_fun(
   ) +
-  scale_color_brewer(
-    palette=cb_palette
+  scale_color_fun(
   ) +
   theme(
     legend.position="none"
@@ -208,13 +212,6 @@ ggsave(
   height=3,
   width=4
 )
-
-# save_plot(
-#   filename=paste0(plot_directory, "2021-11-15-ec-performance-2.pdf"),
-#   plot=max_task_cov_fig,
-#   base_height=6,
-#   base_asp=2.5
-# )
 ```
 
 Statistical results:
@@ -272,12 +269,8 @@ ggplot(
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_fill_brewer(
-    palette=cb_palette
-  ) +
-  scale_color_brewer(
-    palette=cb_palette
-  ) +
+  scale_fill_fun() +
+  scale_color_fun() +
   theme(
     legend.position="none",
     axis.text = element_text(size = 8),
@@ -335,12 +328,8 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
-  scale_fill_brewer(
-    palette="Set2"
-  ) +
-  scale_color_brewer(
-    palette="Set2"
-  ) +
+  scale_fill_fun() +
+  scale_color_fun() +
   theme(
     legend.position="none"
   )
@@ -390,16 +379,6 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
-  # scale_fill_brewer(
-  #   palette="Set2",
-  #   breaks=selection_method_breaks,
-  #   labels=selection_method_labels
-  # ) +
-  # scale_color_brewer(
-  #   palette="Set2",
-  #   breaks=selection_method_breaks,
-  #   labels=selection_method_labels
-  # ) +
   scale_y_continuous(
     name="Generation first solution evolved",
     limits=c(0, 65000),
@@ -445,15 +424,13 @@ max_task_cov_ts <-
     limits=c(0, 55000),
     breaks=c(0, 10000, 20000, 30000, 40000, 50000)
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     name="Selection method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     name="Selection method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
