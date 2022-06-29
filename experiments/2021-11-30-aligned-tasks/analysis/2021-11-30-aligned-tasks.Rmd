@@ -132,7 +132,8 @@ Miscellaneous setup
 # Configure our default graphing theme
 theme_set(theme_cowplot())
 # Palette
-cb_palette <- "Set2"
+scale_fill_fun <- scale_fill_bright
+scale_color_fun <- scale_color_bright
 alpha <- 0.05
 # Create a directory to store plots
 plot_directory <- paste0(working_directory, "plots/")
@@ -190,17 +191,15 @@ max_trait_cov_fig <-
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     name="Selection Method",
     breaks=selection_method_breaks,
     labels=selection_method_labels,
-    palette=cb_palette
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     name="Selection Method",
     breaks=selection_method_breaks,
     labels=selection_method_labels,
-    palette=cb_palette
   ) +
   theme(
     legend.position="none"
@@ -261,15 +260,13 @@ max_trait_cov_ot_fig <-
     limits=c(-0.5,18),
     breaks=seq(0,18,2)
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
@@ -315,15 +312,13 @@ max_trait_cov_ot_early_fig <-
     limits=c(-0.5,18.5),
     breaks=seq(0,18,2)
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
@@ -377,15 +372,13 @@ total_trait_cov_fig <-
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
@@ -448,15 +441,13 @@ metapop_task_cov_ot_fig <-
     limits=c(-0.5,18.5),
     breaks=seq(0,18,2)
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
@@ -502,15 +493,13 @@ metapop_task_cov_ot_early_fig <-
     limits=c(-0.5,18.5),
     breaks=seq(0,18,2)
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
@@ -586,11 +575,9 @@ num_pop_task_profiles_fig <-
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_fill_brewer(
-    palette=cb_palette
+  scale_fill_fun(
   ) +
-  scale_color_brewer(
-    palette=cb_palette
+  scale_color_fun(
   ) +
   theme(
     legend.position="none"
@@ -647,15 +634,13 @@ num_task_profiles_ot_fig <-
   scale_y_continuous(
     name="# Different Task Profiles"
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
@@ -706,11 +691,9 @@ task_profile_spread_fig <-
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_fill_brewer(
-    palette=cb_palette
+  scale_fill_fun(
   ) +
-  scale_color_brewer(
-    palette=cb_palette
+  scale_color_fun(
   ) +
   theme(
     legend.position="none"
@@ -772,11 +755,9 @@ ggplot(
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_fill_brewer(
-    palette=cb_palette
+  scale_fill_fun(
   ) +
-  scale_color_brewer(
-    palette=cb_palette
+  scale_color_fun(
   ) +
   theme(
     legend.position="none"
@@ -832,15 +813,13 @@ ggplot(
     name="Number of populations",
     limits=c(0, 15)
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
@@ -889,15 +868,13 @@ ggplot(
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     name="Selection Method",
-    palette=cb_palette,
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
@@ -944,10 +921,10 @@ ggplot(
     outlier.shape = NA,
     alpha = 0.5
   ) +
-  scale_fill_brewer(
+  scale_fill_fun(
     palette="Set2"
   ) +
-  scale_color_brewer(
+  scale_color_fun(
     palette="Set2"
   ) +
   theme(
@@ -990,11 +967,9 @@ ggplot(
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_fill_brewer(
-    palette=cb_palette
+  scale_fill_fun(
   ) +
-  scale_color_brewer(
-    palette=cb_palette
+  scale_color_fun(
   ) +
   theme(
     legend.position="none"
@@ -1039,11 +1014,9 @@ ggplot(
     breaks=selection_method_breaks,
     labels=selection_method_labels
   ) +
-  scale_fill_brewer(
-    palette=cb_palette
+  scale_fill_fun(
   ) +
-  scale_color_brewer(
-    palette=cb_palette
+  scale_color_fun(
   ) +
   theme(
     legend.position="none"
