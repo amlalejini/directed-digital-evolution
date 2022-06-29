@@ -34,6 +34,7 @@ Our supplemental material includes the following:
   - Aligned individual-level and population-level task directed evolution experiment (Section \@ref(aligned-individual-level-and-population-level-task-directed-evolution-experiment))
   - Varying population maturation period experiment (Section \@ref(varying-population-maturation-period))
   - Varied genome lengths experiment (Section \@ref(varied-genome-lengths))
+  - Varied sample size for propagating populations (Section \@ref(population-propagule-sample-size))
 
 ## Contributing authors
 
