@@ -122,6 +122,8 @@ RUN \
     && \
   R -e "install.packages('RColorBrewer', dependencies=NA, repos='http://cran.rstudio.com/')" \
     && \
+  R -e "install.packages('khroma', dependencies=NA, repos='http://cran.rstudio.com/')" \
+    && \
   echo "installed r and configured r environment"
 
 ########################################################
